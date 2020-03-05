@@ -1,17 +1,17 @@
 [
 {
   "directory": "/home/corynull/Projects/red-c/build",
-  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/engine.c.o   -c /home/corynull/Projects/red-c/src/engine.c",
-  "file": "/home/corynull/Projects/red-c/src/engine.c"
+  "command": "/usr/bin/c++   -I/home/corynull/Projects/red-c/include  -g   -o CMakeFiles/RED2D.dir/src/engine.cpp.o -c /home/corynull/Projects/red-c/src/engine.cpp",
+  "file": "/home/corynull/Projects/red-c/src/engine.cpp"
 },
 {
   "directory": "/home/corynull/Projects/red-c/build",
-  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/main.c.o   -c /home/corynull/Projects/red-c/src/main.c",
-  "file": "/home/corynull/Projects/red-c/src/main.c"
+  "command": "/usr/bin/c++   -I/home/corynull/Projects/red-c/include  -g   -o CMakeFiles/RED2D.dir/src/main.cpp.o -c /home/corynull/Projects/red-c/src/main.cpp",
+  "file": "/home/corynull/Projects/red-c/src/main.cpp"
 },
 {
   "directory": "/home/corynull/Projects/red-c/build",
-  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/object.c.o   -c /home/corynull/Projects/red-c/src/object.c",
-  "file": "/home/corynull/Projects/red-c/src/object.c"
+  "command": "/usr/bin/c++   -I/home/corynull/Projects/red-c/include  -g   -o CMakeFiles/RED2D.dir/src/object.cpp.o -c /home/corynull/Projects/red-c/src/object.cpp",
+  "file": "/home/corynull/Projects/red-c/src/object.cpp"
 }
 ]

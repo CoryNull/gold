@@ -10,12 +10,12 @@ include_directories(include)
 
 # add the executable
 add_executable(RED2D 
-	src/engine.c
-	src/main.c
-	src/object.c
+	src/engine.cpp
+	src/main.cpp
+	src/object.cpp
 )
 
-set_property(TARGET RED2D PROPERTY C_STANDARD 11)
+set_property(TARGET RED2D PROPERTY CPP_STANDARD 11)
 
 target_include_directories(
 	RED2D PUBLIC

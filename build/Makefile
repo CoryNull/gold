@@ -123,86 +123,86 @@ RED2D/fast:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/build
 .PHONY : RED2D/fast
 
-src/engine.o: src/engine.c.o
+src/engine.o: src/engine.cpp.o
 
 .PHONY : src/engine.o
 
 # target to build an object file
-src/engine.c.o:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.c.o
-.PHONY : src/engine.c.o
+src/engine.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.cpp.o
+.PHONY : src/engine.cpp.o
 
-src/engine.i: src/engine.c.i
+src/engine.i: src/engine.cpp.i
 
 .PHONY : src/engine.i
 
 # target to preprocess a source file
-src/engine.c.i:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.c.i
-.PHONY : src/engine.c.i
+src/engine.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.cpp.i
+.PHONY : src/engine.cpp.i
 
-src/engine.s: src/engine.c.s
+src/engine.s: src/engine.cpp.s
 
 .PHONY : src/engine.s
 
 # target to generate assembly for a file
-src/engine.c.s:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.c.s
-.PHONY : src/engine.c.s
+src/engine.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.cpp.s
+.PHONY : src/engine.cpp.s
 
-src/main.o: src/main.c.o
+src/main.o: src/main.cpp.o
 
 .PHONY : src/main.o
 
 # target to build an object file
-src/main.c.o:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.c.o
-.PHONY : src/main.c.o
+src/main.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
 
-src/main.i: src/main.c.i
+src/main.i: src/main.cpp.i
 
 .PHONY : src/main.i
 
 # target to preprocess a source file
-src/main.c.i:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.c.i
-.PHONY : src/main.c.i
+src/main.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
 
-src/main.s: src/main.c.s
+src/main.s: src/main.cpp.s
 
 .PHONY : src/main.s
 
 # target to generate assembly for a file
-src/main.c.s:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.c.s
-.PHONY : src/main.c.s
+src/main.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
-src/object.o: src/object.c.o
+src/object.o: src/object.cpp.o
 
 .PHONY : src/object.o
 
 # target to build an object file
-src/object.c.o:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.c.o
-.PHONY : src/object.c.o
+src/object.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.cpp.o
+.PHONY : src/object.cpp.o
 
-src/object.i: src/object.c.i
+src/object.i: src/object.cpp.i
 
 .PHONY : src/object.i
 
 # target to preprocess a source file
-src/object.c.i:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.c.i
-.PHONY : src/object.c.i
+src/object.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.cpp.i
+.PHONY : src/object.cpp.i
 
-src/object.s: src/object.c.s
+src/object.s: src/object.cpp.s
 
 .PHONY : src/object.s
 
 # target to generate assembly for a file
-src/object.c.s:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.c.s
-.PHONY : src/object.c.s
+src/object.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.cpp.s
+.PHONY : src/object.cpp.s
 
 # Help Target
 help:

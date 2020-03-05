@@ -1,5 +1,5 @@
 
-#include "object.h"
+#include "object.hpp"
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,10 +49,10 @@ void redFreeRedChainLink(redChainLink* link) {
 		if (link->data != NULL) {
 			switch (link->type) {
 				case redTypeObject:
-					redDestroyObject(link->data);
+					redDestroyObject((redObject*)link->data);
 					break;
 				case redTypeArray:
-					redDestroyArray(link->data);
+					redDestroyArray((redArray*)link->data);
 					break;
 				default:
 					redInstance.free(link->data);
@@ -153,13 +153,13 @@ void redFree(void* ptr) {
 }
 
 redArray* redNewArray() {
-	redArray* array = redAlloc(sizeof(redArray), redTypeArray);
+	redArray* array = (redArray*)redAlloc(sizeof(redArray), redTypeArray);
 	memset(array, 0, sizeof(redArray));
 	return array;
 }
 
 redObject* redNewObject(redObject* parent) {
-	redObject* obj = redAlloc(sizeof(redObject), redTypeObject);
+	redObject* obj = (redObject*)redAlloc(sizeof(redObject), redTypeObject);
 	memset(obj, 0, sizeof(redObject));
 	obj->parent = parent;
 	return obj;
@@ -217,7 +217,7 @@ redTypes redGetObjectType(redObject* ptr, char* name) {
 	return redTypeNull;
 }
 
-bool redGetObjectKeyIndex(redObject* ptr, char* name, uint64_t* index) {
+bool redGetObjectKeyIndex(redObject* ptr, const char* name, uint64_t* index) {
 	if (ptr == NULL)
 		return false;
 	if (index == NULL)
@@ -233,13 +233,16 @@ bool redGetObjectKeyIndex(redObject* ptr, char* name, uint64_t* index) {
 }
 
 void* redObjectNewItem(redObject* ptr,
-											 char* name,
+											 const char* name,
 											 uint64_t size,
 											 redTypes type) {
 	uint64_t newSize = ptr->size + 1;
-	ptr->keys = redRealloc(ptr->keys, sizeof(char*) * newSize, redTypeString);
-	ptr->type = redRealloc(ptr->type, sizeof(void*) * newSize, redTypeString);
-	ptr->data = redRealloc(ptr->data, sizeof(void*) * newSize, redTypeString);
+	ptr->keys =
+			(char**)redRealloc(ptr->keys, sizeof(char*) * newSize, redTypeString);
+	ptr->type =
+			(redTypes*)redRealloc(ptr->type, sizeof(void*) * newSize, redTypeString);
+	ptr->data =
+			(void**)redRealloc(ptr->data, sizeof(void*) * newSize, redTypeString);
 	uint64_t index = ptr->size;
 	void* item = NULL;
 	if (size > sizeof(void*))
@@ -258,7 +261,7 @@ void redObjectFreeItem(redObject* ptr, uint64_t index) {
 		redFree(ptr->type);
 		ptr->size = 0;
 	} else {
-		void** newData = redAlloc(sizeof(void*) * newSize, redTypeString);
+		void** newData = (void**)redAlloc(sizeof(void*) * newSize, redTypeString);
 		if (sizeof(void*) * index >= 0)
 			memcpy(newData, ptr->data, sizeof(void*) * index);
 		if (sizeof(void*) * (newSize - index) >= 0)
@@ -267,7 +270,8 @@ void redObjectFreeItem(redObject* ptr, uint64_t index) {
 		redFree(ptr->data);
 		ptr->data = newData;
 
-		redTypes* newType = redAlloc(sizeof(redTypes) * newSize, redTypeString);
+		redTypes* newType =
+				(redTypes*)redAlloc(sizeof(redTypes) * newSize, redTypeString);
 		if (sizeof(redTypes) * index >= 0)
 			memcpy(newType, ptr->type, sizeof(redTypes) * index);
 		if (sizeof(redTypes) * (newSize - index) >= 0)
@@ -276,7 +280,7 @@ void redObjectFreeItem(redObject* ptr, uint64_t index) {
 		redFree(ptr->type);
 		ptr->type = newType;
 
-		char** newKey = redAlloc(sizeof(void*) * newSize, redTypeString);
+		char** newKey = (char**)redAlloc(sizeof(void*) * newSize, redTypeString);
 		if (sizeof(void*) * index >= 0)
 			memcpy(newKey, ptr->keys, sizeof(void*) * index);
 		if (sizeof(void*) * (newSize - index) >= 0)
@@ -288,7 +292,7 @@ void redObjectFreeItem(redObject* ptr, uint64_t index) {
 }
 
 void redSetObjectData(redObject* ptr,
-											char* name,
+											const char* name,
 											void* dataPtr,
 											uint64_t size,
 											redTypes type) {
@@ -303,13 +307,13 @@ void redSetObjectData(redObject* ptr,
 			memcpy(data, dataPtr, size);
 			ptr->data[index] = data;
 		} else {
-			memcpy(ptr->data+index, dataPtr, size);
+			memcpy(ptr->data + index, dataPtr, size);
 		}
 	} else {
 		index = ptr->size;
 		void* data = redObjectNewItem(ptr, name, size, type);
 		ptr->data[index] = data;
-		ptr->keys[index] = name;
+		ptr->keys[index] = (char*)name;
 		if (isCopy(type)) {
 			memcpy(ptr->data[index], dataPtr, size);
 		} else {
@@ -319,65 +323,65 @@ void redSetObjectData(redObject* ptr,
 	ptr->type[index] = type;
 }
 
-void redSetObjectString(redObject* ptr, char* name, char* value) {
+void redSetObjectString(redObject* ptr, const char* name, char* value) {
 	redSetObjectData(ptr, name, value, strlen(value) + 1, redTypeString);
 }
 
-void redSetObjectInt64(redObject* ptr, char* name, int64_t value) {
+void redSetObjectInt64(redObject* ptr, const char* name, int64_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(int64_t), redTypeInt64);
 }
 
-void redSetObjectInt32(redObject* ptr, char* name, int32_t value) {
+void redSetObjectInt32(redObject* ptr, const char* name, int32_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(int32_t), redTypeInt32);
 }
 
-void redSetObjectInt16(redObject* ptr, char* name, int16_t value) {
+void redSetObjectInt16(redObject* ptr, const char* name, int16_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(int16_t), redTypeInt16);
 }
 
-void redSetObjectInt8(redObject* ptr, char* name, int8_t value) {
+void redSetObjectInt8(redObject* ptr, const char* name, int8_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(int8_t), redTypeInt8);
 }
 
-void redSetObjectUInt64(redObject* ptr, char* name, uint64_t value) {
+void redSetObjectUInt64(redObject* ptr, const char* name, uint64_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(int64_t), redTypeUInt64);
 }
 
-void redSetObjectUInt32(redObject* ptr, char* name, uint32_t value) {
+void redSetObjectUInt32(redObject* ptr, const char* name, uint32_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(uint32_t), redTypeUInt32);
 }
 
-void redSetObjectUInt16(redObject* ptr, char* name, uint16_t value) {
+void redSetObjectUInt16(redObject* ptr, const char* name, uint16_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(uint16_t), redTypeUInt16);
 }
 
-void redSetObjectUInt8(redObject* ptr, char* name, uint8_t value) {
+void redSetObjectUInt8(redObject* ptr, const char* name, uint8_t value) {
 	redSetObjectData(ptr, name, &value, sizeof(uint8_t), redTypeUInt8);
 }
 
-void redSetObjectDouble(redObject* ptr, char* name, double value) {
+void redSetObjectDouble(redObject* ptr, const char* name, double value) {
 	redSetObjectData(ptr, name, &value, sizeof(double), redTypeDouble);
 }
 
-void redSetObjectFloat(redObject* ptr, char* name, float value) {
+void redSetObjectFloat(redObject* ptr, const char* name, float value) {
 	redSetObjectData(ptr, name, &value, sizeof(float), redTypeFloat);
 }
 
-void redSetObjectBool(redObject* ptr, char* name, bool value) {
+void redSetObjectBool(redObject* ptr, const char* name, bool value) {
 	redSetObjectData(ptr, name, &value, sizeof(bool), redTypeBool);
 }
 
-bool redGetObjectData(redObject* ptr, char* name, void* target, uint64_t size) {
+bool redGetObjectData(redObject* ptr, const char* name, void* target, uint64_t size) {
 	uint64_t index = 0;
 	if (size < sizeof(void*)) {
 		if (redGetObjectKeyIndex(ptr, name, &index)) {
-			memcpy(target, ptr->data+index, size);
+			memcpy(target, ptr->data + index, size);
 			return true;
 		}
 		redObject* parent = ptr->parent;
 		while (parent != NULL) {
 			if (redGetObjectKeyIndex(parent, name, &index)) {
-				memcpy(target, parent->data+index, size);
+				memcpy(target, parent->data + index, size);
 				return true;
 			}
 			parent = parent->parent;
@@ -389,7 +393,7 @@ bool redGetObjectData(redObject* ptr, char* name, void* target, uint64_t size) {
 		}
 		redObject* parent = ptr->parent;
 		while (parent != NULL) {
-			if (redGetObjectKeyIndex(parent, name, &index)){
+			if (redGetObjectKeyIndex(parent, name, &index)) {
 				target = parent->data[index];
 				return true;
 			}
@@ -399,7 +403,7 @@ bool redGetObjectData(redObject* ptr, char* name, void* target, uint64_t size) {
 	return false;
 }
 
-char* redGetObjectString(redObject* ptr, char* name, char* def) {
+char* redGetObjectString(redObject* ptr, const char* name, char* def) {
 	uint64_t index = 0;
 	if (redGetObjectKeyIndex(ptr, name, &index)) {
 		return (char*)ptr->data[index];
@@ -413,90 +417,89 @@ char* redGetObjectString(redObject* ptr, char* name, char* def) {
 	return def;
 }
 
-int64_t redGetObjectInt64(redObject* ptr, char* name, int64_t def) {
+int64_t redGetObjectInt64(redObject* ptr, const char* name, int64_t def) {
 	int64_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(int64_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(int64_t))) {
 		return response;
 	}
 	return def;
 }
 
-int32_t redGetObjectInt32(redObject* ptr, char* name, int32_t def) {
+int32_t redGetObjectInt32(redObject* ptr, const char* name, int32_t def) {
 	int32_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(int32_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(int32_t))) {
 		return response;
 	}
 	return def;
 }
 
-int16_t redGetObjectInt16(redObject* ptr, char* name, int16_t def) {
+int16_t redGetObjectInt16(redObject* ptr, const char* name, int16_t def) {
 	int16_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(int16_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(int16_t))) {
 		return response;
 	}
 	return def;
 }
 
-int8_t redGetObjectInt8(redObject* ptr, char* name, int8_t def) {
+int8_t redGetObjectInt8(redObject* ptr, const char* name, int8_t def) {
 	int8_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(int8_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(int8_t))) {
 		return response;
 	}
 	return def;
 }
 
-uint64_t redGetObjectUInt64(redObject* ptr, char* name, uint64_t def) {
+uint64_t redGetObjectUInt64(redObject* ptr, const char* name, uint64_t def) {
 	uint64_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(uint64_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(uint64_t))) {
 		return response;
 	}
 	return def;
 }
 
-uint32_t redGetObjectUInt32(redObject* ptr, char* name, uint32_t def) {
+uint32_t redGetObjectUInt32(redObject* ptr, const char* name, uint32_t def) {
 	uint32_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(uint32_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(uint32_t))) {
 		return response;
 	}
 	return def;
 }
 
-uint16_t redGetObjectUInt16(redObject* ptr, char* name, uint16_t def) {
+uint16_t redGetObjectUInt16(redObject* ptr, const char* name, uint16_t def) {
 	uint16_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(uint16_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(uint16_t))) {
 		return response;
 	}
 	return def;
 }
 
-uint8_t redGetObjectUInt8(redObject* ptr, char* name, uint8_t def) {
+uint8_t redGetObjectUInt8(redObject* ptr, const char* name, uint8_t def) {
 	uint8_t response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(uint8_t))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(uint8_t))) {
 		return response;
 	}
 	return def;
 }
 
-
-double redGetObjectDouble(redObject* ptr, char* name, double def) {
+double redGetObjectDouble(redObject* ptr, const char* name, double def) {
 	double response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(double))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(double))) {
 		return response;
 	}
 	return def;
 }
 
-float redGetObjectFloat(redObject* ptr, char* name, float def) {
+float redGetObjectFloat(redObject* ptr, const char* name, float def) {
 	float response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(float))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(float))) {
 		return response;
 	}
 	return def;
 }
 
-bool redGetObjectBool(redObject* ptr, char* name, bool def) {
+bool redGetObjectBool(redObject* ptr, const char* name, bool def) {
 	bool response = 0;
-	if(redGetObjectData(ptr, name, &response, sizeof(bool))) {
+	if (redGetObjectData(ptr, name, &response, sizeof(bool))) {
 		return response;
 	}
 	return def;
@@ -509,8 +512,9 @@ uint64_t redGetArraySize(redArray* ptr) {
 void redPopArray(redArray* ptr) {
 	uint64_t newSize = ptr->size - 1;
 	if (newSize > 0) {
-		ptr->data = redInstance.realloc(ptr->data, sizeof(void*) * newSize);
-		ptr->type = redInstance.realloc(ptr->type, sizeof(redTypes) * newSize);
+		ptr->data = (void**)redInstance.realloc(ptr->data, sizeof(void*) * newSize);
+		ptr->type =
+				(redTypes*)redInstance.realloc(ptr->type, sizeof(redTypes) * newSize);
 		ptr->size = newSize;
 	}
 }
@@ -543,12 +547,12 @@ void redGetBSONArray(redArray* ptr, bson_t* doc) {
 		switch (ptr->type[i]) {
 			case redTypeArray:
 				bson_append_array_begin(doc, iStrPtr, iSize, &child);
-				redGetBSONArray(dataPtr, &child);
+				redGetBSONArray((redArray*)dataPtr, &child);
 				bson_append_array_end(doc, &child);
 				break;
 			case redTypeObject:
 				bson_append_document_begin(doc, iStrPtr, iSize, &child);
-				redGetBSONObject(dataPtr, &child);
+				redGetBSONObject((redObject*)dataPtr, &child);
 				bson_append_document_end(doc, &child);
 				break;
 			case redTypeBool:
@@ -585,7 +589,7 @@ void redGetBSONArray(redArray* ptr, bson_t* doc) {
 				bson_append_int32(doc, iStrPtr, iSize, (int32_t) * (uint8_t*)dataPtr);
 				break;
 			case redTypeString:
-				bson_append_utf8(doc, iStrPtr, iSize, dataPtr, -1);
+				bson_append_utf8(doc, iStrPtr, iSize, (char*)dataPtr, -1);
 				break;
 			case redTypeNull:
 				bson_append_null(doc, iStrPtr, iSize);
@@ -618,12 +622,12 @@ void redGetBSONObject(redObject* ptr, bson_t* doc) {
 		switch (ptr->type[i]) {
 			case redTypeArray:
 				bson_append_array_begin(doc, key, -1, &child);
-				redGetBSONArray(dataPtr, &child);
+				redGetBSONArray((redArray*)dataPtr, &child);
 				bson_append_array_end(doc, &child);
 				break;
 			case redTypeObject:
 				bson_append_document_begin(doc, key, -1, &child);
-				redGetBSONObject(dataPtr, &child);
+				redGetBSONObject((redObject*)dataPtr, &child);
 				bson_append_document_end(doc, &child);
 				break;
 			case redTypeBool:
@@ -660,7 +664,7 @@ void redGetBSONObject(redObject* ptr, bson_t* doc) {
 				bson_append_int32(doc, key, -1, (int32_t) * (uint8_t*)dataPtr);
 				break;
 			case redTypeString:
-				bson_append_utf8(doc, key, -1, dataPtr, -1);
+				bson_append_utf8(doc, key, -1, (char*)dataPtr, -1);
 				break;
 			case redTypeNull:
 				bson_append_null(doc, key, -1);
@@ -676,8 +680,10 @@ void redPushArrayData(redArray* ptr,
 											uint64_t size,
 											redTypes type) {
 	uint64_t i = ptr->size;
-	ptr->type = redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
-	ptr->data = redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
+	ptr->type =
+			(redTypes*)redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
+	ptr->data =
+			(void**)redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
 	void* data = redAlloc(size, type);
 	memcpy(data, dataPtr, size);
 	ptr->data[i] = data;
@@ -735,8 +741,10 @@ void redPushArrayBool(redArray* ptr, bool value) {
 
 void redPushArrayArray(redArray* ptr, redArray* value) {
 	uint64_t i = ptr->size;
-	ptr->type = redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
-	ptr->data = redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
+	ptr->type =
+			(redTypes*)redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
+	ptr->data =
+			(void**)redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
 	ptr->data[i] = value;
 	ptr->type[i] = redTypeArray;
 	ptr->size += 1;
@@ -744,8 +752,10 @@ void redPushArrayArray(redArray* ptr, redArray* value) {
 
 void redPushArrayObject(redArray* ptr, redObject* value) {
 	uint64_t i = ptr->size;
-	ptr->type = redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
-	ptr->data = redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
+	ptr->type =
+			(redTypes*)redRealloc(ptr->type, sizeof(void*) * (i + 1), redTypeString);
+	ptr->data =
+			(void**)redRealloc(ptr->data, sizeof(void*) * (i + 1), redTypeString);
 	ptr->data[i] = value;
 	ptr->type[i] = redTypeObject;
 	ptr->size += 1;
@@ -753,10 +763,10 @@ void redPushArrayObject(redArray* ptr, redObject* value) {
 
 void redSetArrayString(redArray* ptr, uint64_t index, char* value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = strlen(value);
@@ -769,10 +779,10 @@ void redSetArrayString(redArray* ptr, uint64_t index, char* value) {
 
 void redSetArrayInt64(redArray* ptr, uint64_t index, int64_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(int64_t);
@@ -784,10 +794,10 @@ void redSetArrayInt64(redArray* ptr, uint64_t index, int64_t value) {
 
 void redSetArrayInt32(redArray* ptr, uint64_t index, int32_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(int32_t);
@@ -799,10 +809,10 @@ void redSetArrayInt32(redArray* ptr, uint64_t index, int32_t value) {
 
 void redSetArrayInt16(redArray* ptr, uint64_t index, int16_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(int16_t);
@@ -814,10 +824,10 @@ void redSetArrayInt16(redArray* ptr, uint64_t index, int16_t value) {
 
 void redSetArrayInt8(redArray* ptr, uint64_t index, int8_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(int8_t);
@@ -829,10 +839,10 @@ void redSetArrayInt8(redArray* ptr, uint64_t index, int8_t value) {
 
 void redSetArrayUInt64(redArray* ptr, uint64_t index, uint64_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(uint64_t);
@@ -844,10 +854,10 @@ void redSetArrayUInt64(redArray* ptr, uint64_t index, uint64_t value) {
 
 void redSetArrayUInt32(redArray* ptr, uint64_t index, uint32_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(uint32_t);
@@ -859,10 +869,10 @@ void redSetArrayUInt32(redArray* ptr, uint64_t index, uint32_t value) {
 
 void redSetArrayUInt16(redArray* ptr, uint64_t index, uint16_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(uint16_t);
@@ -874,10 +884,10 @@ void redSetArrayUInt16(redArray* ptr, uint64_t index, uint16_t value) {
 
 void redSetArrayUInt8(redArray* ptr, uint64_t index, uint8_t value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(uint8_t);
@@ -889,10 +899,10 @@ void redSetArrayUInt8(redArray* ptr, uint64_t index, uint8_t value) {
 
 void redSetArrayDouble(redArray* ptr, uint64_t index, double value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(double);
@@ -904,10 +914,10 @@ void redSetArrayDouble(redArray* ptr, uint64_t index, double value) {
 
 void redSetArrayFloat(redArray* ptr, uint64_t index, float value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(float);
@@ -919,10 +929,10 @@ void redSetArrayFloat(redArray* ptr, uint64_t index, float value) {
 
 void redSetArrayBool(redArray* ptr, uint64_t index, bool value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	uint64_t size = sizeof(bool);
@@ -934,10 +944,10 @@ void redSetArrayBool(redArray* ptr, uint64_t index, bool value) {
 
 void redSetArrayArray(redArray* ptr, uint64_t index, redArray* value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	ptr->data[index] = value;
@@ -946,10 +956,10 @@ void redSetArrayArray(redArray* ptr, uint64_t index, redArray* value) {
 
 void redSetArrayObject(redArray* ptr, uint64_t index, redObject* value) {
 	if (index >= ptr->size) {
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * (index + 1), redTypeString);
-		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * (index + 1), redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * (index + 1),
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * (index + 1),
+																	 redTypeString);
 		ptr->size = index + 1;
 	}
 	ptr->data[index] = value;
@@ -1068,7 +1078,7 @@ redObject* redGetArrayObject(redArray* ptr, uint64_t index, redObject* def) {
 	return def;
 }
 
-redMethod redGetObjectMethod(redObject* ptr, char* name, redMethod def) {
+redMethod redGetObjectMethod(redObject* ptr, const char* name, redMethod def) {
 	uint64_t index = 0;
 	if (redGetObjectKeyIndex(ptr, name, &index)) {
 		return (redMethod)ptr->data[index];
@@ -1083,7 +1093,31 @@ redMethod redGetObjectMethod(redObject* ptr, char* name, redMethod def) {
 	return def;
 }
 
-void redSetObjectArray(redObject* ptr, char* name, redArray* value) {
+void redSetObjectArray(redObject* ptr, const char* name, redArray* value) {
+	uint64_t index = 0;
+	if (redGetObjectKeyIndex(ptr, name, &index)) {
+		redTypes type = ptr->type[index];
+		if (isCopy(type)) {
+			void* old = ptr->data[index];
+			redFree(old);
+		}
+		ptr->data[index] = value;
+	} else {
+		index = ptr->size;
+		ptr->keys = (char**)redRealloc(ptr->keys, sizeof(char*) * ptr->size + 1,
+																	 redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * ptr->size + 1,
+																			redTypeString);
+		ptr->data = (void**)redRealloc(ptr->data, sizeof(void*) * ptr->size + 1,
+																	 redTypeString);
+		ptr->data[index] = value;
+		ptr->keys[index] = (char*)name;
+		ptr->size += 1;
+	}
+	ptr->type[index] = redTypeArray;
+}
+
+void redSetObjectObject(redObject* ptr, const char* name, redObject* value) {
 	uint64_t index = 0;
 	if (redGetObjectKeyIndex(ptr, name, &index)) {
 		redTypes type = ptr->type[index];
@@ -1095,40 +1129,19 @@ void redSetObjectArray(redObject* ptr, char* name, redArray* value) {
 	} else {
 		index = ptr->size;
 		ptr->keys =
-				redRealloc(ptr->keys, sizeof(char*) * ptr->size + 1, redTypeString);
-		ptr->type =
-				redRealloc(ptr->type, sizeof(void*) * ptr->size + 1, redTypeString);
+				(char**)redRealloc(ptr->keys, sizeof(char*) * index + 1, redTypeString);
+		ptr->type = (redTypes*)redRealloc(ptr->type, sizeof(void*) * index + 1,
+																			redTypeString);
 		ptr->data =
-				redRealloc(ptr->data, sizeof(void*) * ptr->size + 1, redTypeString);
+				(void**)redRealloc(ptr->data, sizeof(void*) * index + 1, redTypeString);
 		ptr->data[index] = value;
-		ptr->keys[index] = name;
-		ptr->size += 1;
-	}
-	ptr->type[index] = redTypeArray;
-}
-
-void redSetObjectObject(redObject* ptr, char* name, redObject* value) {
-	uint64_t index = 0;
-	if (redGetObjectKeyIndex(ptr, name, &index)) {
-		redTypes type = ptr->type[index];
-		if (isCopy(type)) {
-			void* old = ptr->data[index];
-			redFree(old);
-		}
-		ptr->data[index] = value;
-	} else {
-		index = ptr->size;
-		ptr->keys = redRealloc(ptr->keys, sizeof(char*) * index + 1, redTypeString);
-		ptr->type = redRealloc(ptr->type, sizeof(void*) * index + 1, redTypeString);
-		ptr->data = redRealloc(ptr->data, sizeof(void*) * index + 1, redTypeString);
-		ptr->data[index] = value;
-		ptr->keys[index] = name;
+		ptr->keys[index] = (char*)name;
 		ptr->size += 1;
 	}
 	ptr->type[index] = redTypeObject;
 }
 
-void redSetObjectMethod(redObject* ptr, char* name, redMethod value) {
+void redSetObjectMethod(redObject* ptr, const char* name, redMethod value) {
 	uint64_t index = 0;
 	if (redGetObjectKeyIndex(ptr, name, &index)) {
 		redTypes type = ptr->type[index];
@@ -1136,21 +1149,24 @@ void redSetObjectMethod(redObject* ptr, char* name, redMethod value) {
 			void* old = ptr->data[index];
 			redFree(old);
 		}
-		ptr->data[index] = value;
+		ptr->data[index] = (void*)value;
 	} else {
 		index = ptr->size;
 		uint64_t nSize = index + 1;
-		ptr->keys = redRealloc(ptr->keys, sizeof(char*) * nSize, redTypeString);
-		ptr->type = redRealloc(ptr->type, sizeof(void*) * nSize, redTypeString);
-		ptr->data = redRealloc(ptr->data, sizeof(void*) * nSize, redTypeString);
-		ptr->data[index] = value;
-		ptr->keys[index] = name;
+		ptr->keys =
+				(char**)redRealloc(ptr->keys, sizeof(char*) * nSize, redTypeString);
+		ptr->type =
+				(redTypes*)redRealloc(ptr->type, sizeof(void*) * nSize, redTypeString);
+		ptr->data =
+				(void**)redRealloc(ptr->data, sizeof(void*) * nSize, redTypeString);
+		ptr->data[index] = (void*)value;
+		ptr->keys[index] = (char*)name;
 		ptr->size += 1;
 	}
 	ptr->type[index] = redTypeMethod;
 }
 
-redArray* redCallMethod(redObject* ptr, char* name, redArray* args) {
+redArray* redCallMethod(redObject* ptr, const char* name, redArray* args) {
 	redMethod method = redGetObjectMethod(ptr, name, 0);
 	if (method != NULL) {
 		redArray* response = (*method)(ptr, args);

@@ -1,11 +1,11 @@
 
-#include "engine.h"
+#include "engine.hpp"
 #include <SDL2/SDL.h>
 
 redObject* engineProto = NULL;
 
-redArray* redEngineStart(redObject* this, redArray* args) {
-	if (!this)
+redArray* redEngineStart(redObject* self, redArray* args) {
+	if (!self)
 		return NULL;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
@@ -22,24 +22,24 @@ redArray* redEngineStart(redObject* this, redArray* args) {
 	SDL_Window* window =
 			SDL_CreateWindow("RED2D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 											 width, height, flags);
-	redSetObjectUInt64(this, "window", (uint64_t)window);
+	redSetObjectUInt64(self, "window", (uint64_t)window);
 
-	redSetObjectBool(this, "running", true);
+	redSetObjectBool(self, "running", true);
 	SDL_Event e;
 	while (true) {
 		SDL_PollEvent(&e);
-		if (!redGetObjectBool(this, "running", false) || e.type == SDL_QUIT) {
+		if (!redGetObjectBool(self, "running", false) || e.type == SDL_QUIT) {
 			break;
 		}
 	}
 	return NULL;
 }
 
-redArray* redEngineOnDestroy(redObject* this, redArray* args) {
-	SDL_Window* window = (SDL_Window*)redGetObjectUInt64(this, "window", 0);
+redArray* redEngineOnDestroy(redObject* self, redArray* args) {
+	SDL_Window* window = (SDL_Window*)redGetObjectUInt64(self, "window", 0);
 	if (window)
 		SDL_DestroyWindow(window);
-	redSetObjectBool(this, "running", false);
+	redSetObjectBool(self, "running", false);
 	SDL_Quit();
 	return NULL;
 }

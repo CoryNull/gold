@@ -10,7 +10,7 @@
 typedef struct redArray_t redArray;
 typedef struct redObject_t redObject;
 typedef struct redVar_t redVar;
-typedef redArray* (*redMethod)(redObject* this, redArray* args);
+typedef redArray* (*redMethod)(redObject*, redArray*);
 
 typedef enum redTypes_t {
 	redTypeNull = 0,
@@ -110,42 +110,42 @@ redObject* redGetArrayObject(redArray* ptr, uint64_t index, redObject* def);
 redObject* redNewObject(redObject* parent);
 void redDestroyObject(redObject*);
 
-redTypes redGetObjectType(redObject* ptr, char* name);
-bool redGetObjectKeyIndex(redObject* ptr, char* name, uint64_t* index);
+redTypes redGetObjectType(redObject* ptr, const char* name);
+bool redGetObjectKeyIndex(redObject* ptr, const char* name, uint64_t* index);
 char* redGetJSONObject(redObject* ptr, uint64_t* size);
 void redGetBSONObject(redObject* ptr, bson_t* doc);
-redArray* redCallMethod(redObject* ptr, char* name, redArray* args);
+redArray* redCallMethod(redObject* ptr, const char* name, redArray* args);
 
-void redSetObjectString(redObject* ptr, char* name, char* value);
-void redSetObjectInt64(redObject* ptr, char* name, int64_t value);
-void redSetObjectInt32(redObject* ptr, char* name, int32_t value);
-void redSetObjectInt16(redObject* ptr, char* name, int16_t value);
-void redSetObjectInt8(redObject* ptr, char* name, int8_t value);
-void redSetObjectUInt64(redObject* ptr, char* name, uint64_t value);
-void redSetObjectUInt32(redObject* ptr, char* name, uint32_t value);
-void redSetObjectUInt16(redObject* ptr, char* name, uint16_t value);
-void redSetObjectUInt8(redObject* ptr, char* name, uint8_t value);
-void redSetObjectDouble(redObject* ptr, char* name, double value);
-void redSetObjectFloat(redObject* ptr, char* name, float value);
-void redSetObjectBool(redObject* ptr, char* name, bool value);
-void redSetObjectArray(redObject* ptr, char* name, redArray* value);
-void redSetObjectObject(redObject* ptr, char* name, redObject* value);
-void redSetObjectMethod(redObject* ptr, char* name, redMethod value);
+void redSetObjectString(redObject* ptr, const char* name, char* value);
+void redSetObjectInt64(redObject* ptr, const char* name, int64_t value);
+void redSetObjectInt32(redObject* ptr, const char* name, int32_t value);
+void redSetObjectInt16(redObject* ptr, const char* name, int16_t value);
+void redSetObjectInt8(redObject* ptr, const char* name, int8_t value);
+void redSetObjectUInt64(redObject* ptr, const char* name, uint64_t value);
+void redSetObjectUInt32(redObject* ptr, const char* name, uint32_t value);
+void redSetObjectUInt16(redObject* ptr, const char* name, uint16_t value);
+void redSetObjectUInt8(redObject* ptr, const char* name, uint8_t value);
+void redSetObjectDouble(redObject* ptr, const char* name, double value);
+void redSetObjectFloat(redObject* ptr, const char* name, float value);
+void redSetObjectBool(redObject* ptr, const char* name, bool value);
+void redSetObjectArray(redObject* ptr, const char* name, redArray* value);
+void redSetObjectObject(redObject* ptr, const char* name, redObject* value);
+void redSetObjectMethod(redObject* ptr, const char* name, redMethod value);
 
-char* redGetObjectString(redObject* ptr, char* name, char* def);
-int64_t redGetObjectInt64(redObject* ptr, char* name, int64_t def);
-int32_t redGetObjectInt32(redObject* ptr, char* name, int32_t def);
-int16_t redGetObjectInt16(redObject* ptr, char* name, int16_t def);
-int8_t redGetObjectInt8(redObject* ptr, char* name, int8_t def);
-uint64_t redGetObjectUInt64(redObject* ptr, char* name, uint64_t def);
-uint32_t redGetObjectUInt32(redObject* ptr, char* name, uint32_t def);
-uint16_t redGetObjectUInt16(redObject* ptr, char* name, uint16_t def);
-uint8_t redGetObjectUInt8(redObject* ptr, char* name, uint8_t def);
-double redGetObjectDouble(redObject* ptr, char* name, double def);
-float redGetObjectFloat(redObject* ptr, char* name, float def);
-bool redGetObjectBool(redObject* ptr, char* name, bool def);
-redArray* redGetObjectArray(redObject* ptr, char* name, redArray* def);
-redObject* redGetObjectObject(redObject* ptr, char* name, redObject* def);
-redMethod redGetObjectMethod(redObject* ptr, char* name, redMethod def);
+char* redGetObjectString(redObject* ptr, const char* name, char* def);
+int64_t redGetObjectInt64(redObject* ptr, const char* name, int64_t def);
+int32_t redGetObjectInt32(redObject* ptr, const char* name, int32_t def);
+int16_t redGetObjectInt16(redObject* ptr, const char* name, int16_t def);
+int8_t redGetObjectInt8(redObject* ptr, const char* name, int8_t def);
+uint64_t redGetObjectUInt64(redObject* ptr, const char* name, uint64_t def);
+uint32_t redGetObjectUInt32(redObject* ptr, const char* name, uint32_t def);
+uint16_t redGetObjectUInt16(redObject* ptr, const char* name, uint16_t def);
+uint8_t redGetObjectUInt8(redObject* ptr, const char* name, uint8_t def);
+double redGetObjectDouble(redObject* ptr, const char* name, double def);
+float redGetObjectFloat(redObject* ptr, const char* name, float def);
+bool redGetObjectBool(redObject* ptr, const char* name, bool def);
+redArray* redGetObjectArray(redObject* ptr, const char* name, redArray* def);
+redObject* redGetObjectObject(redObject* ptr, const char* name, redObject* def);
+redMethod redGetObjectMethod(redObject* ptr, const char* name, redMethod def);
 
 /* </Object> */

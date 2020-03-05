@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/RED2D.dir/src/engine.c.o CMakeFiles/RED2D.dir/src/main.c.o CMakeFiles/RED2D.dir/src/object.c.o  -o RED2D /usr/lib/x86_64-linux-gnu/libbson-1.0.so -lSDL2 
+/usr/bin/c++  -g   CMakeFiles/RED2D.dir/src/engine.cpp.o CMakeFiles/RED2D.dir/src/main.cpp.o CMakeFiles/RED2D.dir/src/object.cpp.o  -o RED2D /usr/lib/x86_64-linux-gnu/libbson-1.0.so -lSDL2 

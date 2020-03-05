@@ -1,7 +1,7 @@
 #pragma once
 
 /* <Includes> */
-#include "object.h"
+#include "object.hpp"
 /* </Includes> */
 
 /* <Types> */
