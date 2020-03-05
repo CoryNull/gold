@@ -1,0 +1,3 @@
+/home/corynull/Projects/red-c/build/CMakeFiles/rebuild_cache.dir
+/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir
+/home/corynull/Projects/red-c/build/CMakeFiles/edit_cache.dir

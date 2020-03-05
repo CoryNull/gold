@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/corynull/Projects/red-c/build",
+  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/engine.c.o   -c /home/corynull/Projects/red-c/src/engine.c",
+  "file": "/home/corynull/Projects/red-c/src/engine.c"
+},
+{
+  "directory": "/home/corynull/Projects/red-c/build",
+  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/main.c.o   -c /home/corynull/Projects/red-c/src/main.c",
+  "file": "/home/corynull/Projects/red-c/src/main.c"
+},
+{
+  "directory": "/home/corynull/Projects/red-c/build",
+  "command": "/usr/bin/cc  -I/home/corynull/Projects/red-c/include  -g   -std=gnu11 -o CMakeFiles/RED2D.dir/src/object.c.o   -c /home/corynull/Projects/red-c/src/object.c",
+  "file": "/home/corynull/Projects/red-c/src/object.c"
+}
+]

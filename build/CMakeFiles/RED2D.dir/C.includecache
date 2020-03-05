@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/engine.h
+object.h
+../include/object.h
+
+../include/object.h
+inttypes.h
+-
+stdbool.h
+-
+libbson-1.0/bson.h
+-
+
+/home/corynull/Projects/red-c/src/engine.c
+engine.h
+/home/corynull/Projects/red-c/src/engine.h
+SDL2/SDL.h
+-
+
+/home/corynull/Projects/red-c/src/main.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+engine.h
+/home/corynull/Projects/red-c/src/engine.h
+
+/home/corynull/Projects/red-c/src/object.c
+object.h
+/home/corynull/Projects/red-c/src/object.h
+stdlib.h
+-
+string.h
+-
+
