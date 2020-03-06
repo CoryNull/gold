@@ -123,6 +123,33 @@ RED2D/fast:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/build
 .PHONY : RED2D/fast
 
+src/array.o: src/array.cpp.o
+
+.PHONY : src/array.o
+
+# target to build an object file
+src/array.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/array.cpp.o
+.PHONY : src/array.cpp.o
+
+src/array.i: src/array.cpp.i
+
+.PHONY : src/array.i
+
+# target to preprocess a source file
+src/array.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/array.cpp.i
+.PHONY : src/array.cpp.i
+
+src/array.s: src/array.cpp.s
+
+.PHONY : src/array.s
+
+# target to generate assembly for a file
+src/array.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/array.cpp.s
+.PHONY : src/array.cpp.s
+
 src/engine.o: src/engine.cpp.o
 
 .PHONY : src/engine.o
@@ -177,6 +204,33 @@ src/main.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/memory.o: src/memory.cpp.o
+
+.PHONY : src/memory.o
+
+# target to build an object file
+src/memory.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.o
+.PHONY : src/memory.cpp.o
+
+src/memory.i: src/memory.cpp.i
+
+.PHONY : src/memory.i
+
+# target to preprocess a source file
+src/memory.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.i
+.PHONY : src/memory.cpp.i
+
+src/memory.s: src/memory.cpp.s
+
+.PHONY : src/memory.s
+
+# target to generate assembly for a file
+src/memory.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.s
+.PHONY : src/memory.cpp.s
+
 src/object.o: src/object.cpp.o
 
 .PHONY : src/object.o
@@ -204,6 +258,33 @@ src/object.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.cpp.s
 .PHONY : src/object.cpp.s
 
+src/var.o: src/var.cpp.o
+
+.PHONY : src/var.o
+
+# target to build an object file
+src/var.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/var.cpp.o
+.PHONY : src/var.cpp.o
+
+src/var.i: src/var.cpp.i
+
+.PHONY : src/var.i
+
+# target to preprocess a source file
+src/var.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/var.cpp.i
+.PHONY : src/var.cpp.i
+
+src/var.s: src/var.cpp.s
+
+.PHONY : src/var.s
+
+# target to generate assembly for a file
+src/var.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/var.cpp.s
+.PHONY : src/var.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -213,15 +294,24 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... RED2D"
 	@echo "... edit_cache"
+	@echo "... src/array.o"
+	@echo "... src/array.i"
+	@echo "... src/array.s"
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/memory.o"
+	@echo "... src/memory.i"
+	@echo "... src/memory.s"
 	@echo "... src/object.o"
 	@echo "... src/object.i"
 	@echo "... src/object.s"
+	@echo "... src/var.o"
+	@echo "... src/var.i"
+	@echo "... src/var.s"
 .PHONY : help
 
 

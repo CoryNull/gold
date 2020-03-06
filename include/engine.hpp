@@ -4,8 +4,9 @@
 #include "object.hpp"
 /* </Includes> */
 
-/* <Types> */
-typedef redObject redEngine;
-/* </Types> */
-
-redEngine* redNewEngine();
+namespace red {
+	class engine : public object {
+	public:
+		engine();
+	};
+}  // namespace red

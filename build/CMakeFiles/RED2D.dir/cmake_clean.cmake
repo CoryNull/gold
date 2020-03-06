@@ -1,7 +1,10 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/RED2D.dir/src/array.cpp.o"
   "CMakeFiles/RED2D.dir/src/engine.cpp.o"
   "CMakeFiles/RED2D.dir/src/main.cpp.o"
+  "CMakeFiles/RED2D.dir/src/memory.cpp.o"
   "CMakeFiles/RED2D.dir/src/object.cpp.o"
+  "CMakeFiles/RED2D.dir/src/var.cpp.o"
   "RED2D.pdb"
   "RED2D"
 )

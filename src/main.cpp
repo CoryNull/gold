@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "memory.hpp"
 #include "engine.hpp"
 
+using namespace red;
+
 int main() {
-	redInit();
+	init();
 
-	redEngine* engine = redNewEngine();
-	redCallMethod(engine, "start", 0);
-	redCallMethod(engine, "destroy", 0);
-	redFree(engine);
+	engine main = engine();
+	main.callMethod("start");
+	main.callMethod("destroy");
 
-	redCleanUp();
+	cleanUp();
 	return 0;
 }

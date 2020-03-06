@@ -1,61 +1,67 @@
 
 #include "engine.hpp"
 #include <SDL2/SDL.h>
+#include "memory.hpp"
 
-redObject* engineProto = NULL;
+namespace red {
+	object* engineProto = NULL;
 
-redArray* redEngineStart(redObject* self, redArray* args) {
-	if (!self)
-		return NULL;
-
-	if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
-		printf("[SDL2] %s\n", SDL_GetError());
-	}
-
-	int32_t width = redGetObjectInt32(engineProto, "width", 1360);
-	int32_t height = redGetObjectInt32(engineProto, "height", 800);
-
-	uint32_t flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN |
-									 SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_INPUT_FOCUS |
-									 SDL_WINDOW_ALLOW_HIGHDPI;
-
-	SDL_Window* window =
-			SDL_CreateWindow("RED2D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-											 width, height, flags);
-	redSetObjectUInt64(self, "window", (uint64_t)window);
-
-	redSetObjectBool(self, "running", true);
-	SDL_Event e;
-	while (true) {
-		SDL_PollEvent(&e);
-		if (!redGetObjectBool(self, "running", false) || e.type == SDL_QUIT) {
-			break;
+	array* engineStart(object* self, array* args) {
+		if (!self)
+			return NULL;
+		
+		SDL_SetMainReady();
+		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
+			printf("[SDL2] %s\n", SDL_GetError());
+			return NULL;
 		}
+
+		int32_t width = self->getInt32("width", 1360);
+		int32_t height = self->getInt32("height", 800);
+
+		uint32_t flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN |
+										 SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_INPUT_FOCUS |
+										 SDL_WINDOW_ALLOW_HIGHDPI;
+
+		SDL_Window* window =
+				SDL_CreateWindow("RED2D", SDL_WINDOWPOS_CENTERED,
+												 SDL_WINDOWPOS_CENTERED, width, height, flags);
+		self->setUInt64("window", (uint64_t)window);
+
+		self->setBool("running", true);
+		SDL_Event e;
+		while (true) {
+			SDL_PollEvent(&e);
+			if (!self->getBool("running", false) || e.type == SDL_QUIT) {
+				break;
+			}
+		}
+		return NULL;
 	}
-	return NULL;
-}
 
-redArray* redEngineOnDestroy(redObject* self, redArray* args) {
-	SDL_Window* window = (SDL_Window*)redGetObjectUInt64(self, "window", 0);
-	if (window)
-		SDL_DestroyWindow(window);
-	redSetObjectBool(self, "running", false);
-	SDL_Quit();
-	return NULL;
-}
+	array* engineOnDestroy(object* self, array* args) {
+		SDL_Window* window = (SDL_Window*)self->getUInt64("window");
+		if (window)
+			SDL_DestroyWindow(window);
+		self->setBool("running", false);
+		SDL_Quit();
+		return NULL;
+	}
 
-redObject* redGetEnginePrototype() {
-	if (engineProto)
+	object* getEnginePrototype() {
+		if (engineProto)
+			return engineProto;
+		auto address = (object*)alloc(sizeof(engine), typeObject);
+		engineProto = new (address) object();
+		engineProto->setInt32("width", 1360);
+		engineProto->setInt32("height", 800);
+		engineProto->setMethod("start", engineStart);
+		engineProto->setMethod("destroy", engineOnDestroy);
 		return engineProto;
-	engineProto = redNewObject(0);
-	redSetObjectInt32(engineProto, "width", 1360);
-	redSetObjectInt32(engineProto, "height", 800);
-	redSetObjectMethod(engineProto, "start", redEngineStart);
-	redSetObjectMethod(engineProto, "destroy", redEngineOnDestroy);
-	return engineProto;
-}
+	}
 
-redEngine* redNewEngine() {
-	redEngine* engine = redNewObject(redGetEnginePrototype());
-	return engine;
-}
+	engine::engine() : object(getEnginePrototype()) {
+
+	}
+
+}  // namespace red
