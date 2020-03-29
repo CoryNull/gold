@@ -6,5 +6,5 @@ CXX_FLAGS = -g   -std=gnu++1z
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/corynull/Projects/red-c/include 
+CXX_INCLUDES = -I/home/corynull/Projects/red-c/include -I/home/corynull/Projects/red-c/3rdParty/json/single_include 
 

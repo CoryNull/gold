@@ -8,12 +8,14 @@ namespace red {
 	using namespace std;
 	class var {
 	 protected:
-		shared_ptr<void*> sPtr;
-		types type;
+		typedef shared_ptr<class varContainer> varPtr;
+		varPtr sPtr;
+
 	 public:
 		var();
-		var(var& copy);
+		var(const var& copy);
 		var(char* string);
+		var(const char* string);
 		var(string string);
 		var(int64_t v);
 		var(int32_t v);
@@ -26,14 +28,29 @@ namespace red {
 		var(double v);
 		var(float v);
 		var(bool v);
-		var(array v);
-		var(object v);
+		var(array& v);
+		var(object& v);
+		var(void* v);
+		var(method v);
+		var(exception v);
+		~var();
 
 		var& operator=(const var& rhs);
 
 		types getType();
+		const char* getTypeString();
 
-		char* getString();
+		bool isString();
+		bool isNumber();
+		bool isFloating();
+		bool isSigned();
+		bool isBool();
+		bool isObject();
+		bool isArray();
+		bool isEmpty();
+		bool isError();
+
+		const char* getString();
 		int64_t getInt64();
 		int32_t getInt32();
 		int16_t getInt16();
@@ -47,8 +64,10 @@ namespace red {
 		bool getBool();
 		array* getArray();
 		object* getObject();
+		method getMethod();
+		void* getPtr();
 
-		operator char*() const;
+		operator const char*() const;
 		operator int64_t() const;
 		operator int32_t() const;
 		operator int16_t() const;
@@ -62,5 +81,9 @@ namespace red {
 		operator bool() const;
 		operator array*() const;
 		operator object*() const;
+		operator method() const;
+		operator void*() const;
+		var operator()(object&, var&);
+		var operator()(object&);
 	};
 }  // namespace red

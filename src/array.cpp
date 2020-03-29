@@ -1,16 +1,48 @@
 
 #include "array.hpp"
 #include "object.hpp"
+#include "types.hpp"
 
 namespace red {
 
 	array::array() : items() {}
 
-	array::~array() {
-		for (uint64_t i = 0; i < this->items.size(); ++i) {
-			auto item = this->items[i];
-			if (isCopyable(item.type))
-				free(item.data);
+	array::array(array& copy) : items(copy.items) {}
+
+	array::array(json value) : items() {
+		if (value.is_array()) {
+			for (auto it = value.begin(); it != value.end(); ++it) {
+				auto name = std::stoul(it.key());
+				auto value = it.value();
+				switch (value.type()) {
+					case detail::value_t::null:
+						this->setNull(name);
+						break;
+					case detail::value_t::object:
+						this->setObject(name, new object(value));
+						break;
+					case detail::value_t::array:
+						this->setArray(name, new array(value));
+						break;
+					case detail::value_t::string:
+						this->setString(name, (char*)((string)value).c_str());
+						break;
+					case detail::value_t::boolean:
+						this->setBool(name, (bool)value);
+						break;
+					case detail::value_t::number_integer:
+						this->setInt64(name, (int64_t)value);
+						break;
+					case detail::value_t::number_unsigned:
+						this->setUInt64(name, (uint64_t)value);
+						break;
+					case detail::value_t::number_float:
+						this->setDouble(name, (double)value);
+						break;
+					default:
+						break;
+				}
+			}
 		}
 	}
 
@@ -18,277 +50,206 @@ namespace red {
 
 	void array::pop() { this->items.pop_back(); }
 
-	types array::getType(uint64_t index) { return this->items[index].type; }
+	types array::getType(uint64_t index) { return this->items[index].getType(); }
 
-	char* array::getJSON(uint64_t& size) {
-		bson_t doc;
-		bson_init(&doc);
-		this->getBSON(doc);
-		size_t jsonSize = 0;
-		char* json = bson_array_as_json(&doc, &jsonSize);
-		void* dataPtr = new char[jsonSize + 1];
-		memset(dataPtr, 0, jsonSize + 1);
-		memcpy(dataPtr, json, jsonSize);
-		bson_free(json);
-		bson_destroy(&doc);
-		return (char*)dataPtr;
-	}
-
-	void array::getBSON(bson_t& doc) {
-		for (uint32_t i = 0; i < this->items.size(); ++i) {
-			char iStr[16];
-			const char* iStrPtr;
-			size_t iSize = bson_uint32_to_string(i, &iStrPtr, iStr, 16);
-			void* dataPtr = this->items[i].data;
-			bson_t child;
-			switch (this->items[i].type) {
+	json array::getJSON() {
+		json j = json::array();
+		for (auto i = this->items.begin(); i != this->items.end(); ++i) {
+			switch (i->getType()) {
+				case typeNull:
+					j.push_back(nullptr);
+					break;
 				case typeArray:
-					bson_append_array_begin(&doc, iStrPtr, iSize, &child);
-					((array*)dataPtr)->getBSON(child);
-					bson_append_array_end(&doc, &child);
+					j.push_back(i->getArray()->getJSON());
 					break;
 				case typeObject:
-					bson_append_document_begin(&doc, iStrPtr, iSize, &child);
-					((object*)dataPtr)->getBSON(child);
-					bson_append_document_end(&doc, &child);
-					break;
-				case typeBool:
-					bson_append_bool(&doc, iStrPtr, iSize, this->getBool(i));
-					break;
-				case typeDouble:
-					bson_append_double(&doc, iStrPtr, iSize, this->getDouble(i));
-					break;
-				case typeFloat:
-					bson_append_double(&doc, iStrPtr, iSize, (double)this->getFloat(i));
-					break;
-				case typeInt64:
-					bson_append_int64(&doc, iStrPtr, iSize, this->getInt64(i));
-					break;
-				case typeInt32:
-					bson_append_int32(&doc, iStrPtr, iSize, this->getInt32(i));
-					break;
-				case typeInt16:
-					bson_append_int32(&doc, iStrPtr, iSize, (int32_t)this->getInt16(i));
-					break;
-				case typeInt8:
-					bson_append_int32(&doc, iStrPtr, iSize, (int32_t)this->getInt8(i));
-					break;
-				case typeUInt64:
-					bson_append_double(&doc, iStrPtr, iSize, (double)this->getUInt64(i));
-					break;
-				case typeUInt32:
-					bson_append_int64(&doc, iStrPtr, iSize, (int64_t)this->getUInt32(i));
-					break;
-				case typeUInt16:
-					bson_append_int32(&doc, iStrPtr, iSize, (int32_t)this->getUInt16(i));
-					break;
-				case typeUInt8:
-					bson_append_int32(&doc, iStrPtr, iSize, (int32_t)this->getUInt8(i));
+					j.push_back(i->getObject()->getJSON());
 					break;
 				case typeString:
-					bson_append_utf8(&doc, iStrPtr, iSize, this->getString(i), -1);
+					j.push_back(i->getString());
 					break;
-				case typeNull:
-					bson_append_null(&doc, iStrPtr, iSize);
+				case typeInt64:
+					j.push_back(i->getInt64());
+					break;
+				case typeInt32:
+					j.push_back(i->getInt32());
+					break;
+				case typeInt16:
+					j.push_back(i->getInt16());
+					break;
+				case typeInt8:
+					j.push_back(i->getInt8());
+					break;
+				case typeUInt64:
+					j.push_back(i->getUInt64());
+					break;
+				case typeUInt32:
+					j.push_back(i->getUInt32());
+					break;
+				case typeUInt16:
+					j.push_back(i->getUInt16());
+					break;
+				case typeUInt8:
+					j.push_back(i->getUInt8());
+					break;
+				case typeDouble:
+					j.push_back(i->getDouble());
+					break;
+				case typeFloat:
+					j.push_back(i->getFloat());
+					break;
+				case typeBool:
+					j.push_back(i->getBool());
 					break;
 				default:
 					break;
 			}
 		}
+		return j;
 	}
 
-	void array::pushData(void* dataPtr, uint64_t size, types type) {
-		void* data = nullptr;
-		if (isCopyable(type)) {
-			void* data = new char[size + 1];
-			memset(data, 0, size + 1);
-			memcpy(data, dataPtr, size);
-		} else {
-			memcpy(&data, dataPtr, size);
-		}
-		this->items.push_back({data, type});
-	}
+	vector<uint8_t> array::getBSON() { return json::to_bson(getJSON()); }
 
-	void array::pushString(char* value) {
-		this->pushData(value, strlen(value), typeString);
-	}
+	vector<uint8_t> array::getCBOR() { return json::to_cbor(getJSON()); }
 
-	void array::pushInt64(int64_t value) {
-		this->pushData(&value, sizeof(int64_t), typeInt64);
-	}
+	vector<uint8_t> array::getMsgPack() { return json::to_msgpack(getJSON()); }
 
-	void array::pushInt32(int32_t value) {
-		this->pushData(&value, sizeof(int32_t), typeInt32);
-	}
+	vector<uint8_t> array::getUBJSON() { return json::to_ubjson(getJSON()); }
 
-	void array::pushInt16(int16_t value) {
-		this->pushData(&value, sizeof(int16_t), typeInt16);
-	}
+	void array::pushString(char* value) { this->items.push_back(var(value)); }
 
-	void array::pushInt8(int8_t value) {
-		this->pushData(&value, sizeof(int8_t), typeInt8);
-	}
+	void array::pushInt64(int64_t value) { this->items.push_back(var(value)); }
 
-	void array::pushUInt64(uint64_t value) {
-		this->pushData(&value, sizeof(uint64_t), typeUInt64);
-	}
+	void array::pushInt32(int32_t value) { this->items.push_back(var(value)); }
 
-	void array::pushUInt32(uint32_t value) {
-		this->pushData(&value, sizeof(uint32_t), typeUInt32);
-	}
+	void array::pushInt16(int16_t value) { this->items.push_back(var(value)); }
 
-	void array::pushUInt16(uint16_t value) {
-		this->pushData(&value, sizeof(uint16_t), typeUInt16);
-	}
+	void array::pushInt8(int8_t value) { this->items.push_back(var(value)); }
 
-	void array::pushUInt8(uint8_t value) {
-		this->pushData(&value, sizeof(uint8_t), typeUInt8);
-	}
+	void array::pushUInt64(uint64_t value) { this->items.push_back(var(value)); }
 
-	void array::pushDouble(double value) {
-		this->pushData(&value, sizeof(double), typeDouble);
-	}
+	void array::pushUInt32(uint32_t value) { this->items.push_back(var(value)); }
 
-	void array::pushFloat(float value) {
-		this->pushData(&value, sizeof(float), typeFloat);
-	}
+	void array::pushUInt16(uint16_t value) { this->items.push_back(var(value)); }
 
-	void array::pushBool(bool value) {
-		this->pushData(&value, sizeof(bool), typeBool);
-	}
+	void array::pushUInt8(uint8_t value) { this->items.push_back(var(value)); }
 
-	void array::pushArray(array* value) {
-		this->pushData(value, sizeof(array), typeArray);
-	}
+	void array::pushDouble(double value) { this->items.push_back(var(value)); }
 
-	void array::pushObject(object* value) {
-		this->pushData(value, sizeof(object), typeObject);
-	}
+	void array::pushFloat(float value) { this->items.push_back(var(value)); }
+
+	void array::pushBool(bool value) { this->items.push_back(var(value)); }
+
+	void array::pushArray(array* value) { this->items.push_back(var(value)); }
+
+	void array::pushObject(object* value) { this->items.push_back(var(value)); }
+
+	void array::pushPtr(void* value) { this->items.push_back(var(value)); }
+
+	void array::pushNull() { this->items.push_back(var()); }
 
 	void array::setString(uint64_t index, char* value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		uint64_t size = strlen(value);
-		void* data = new char[size + 1];
-		memset((void*)(((uint64_t)data) + size), 0, 1);
-		memcpy(data, value, size);
-		this->items[index] = {data, typeString};
+		this->items[index] = var(value);
 	}
 
 	void array::setInt64(uint64_t index, int64_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(int64_t));
-		this->items[index] = {data, typeInt64};
+		this->items[index] = var(value);
 	}
 
 	void array::setInt32(uint64_t index, int32_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(int32_t));
-		this->items[index] = {data, typeInt32};
+		this->items[index] = var(value);
 	}
 
 	void array::setInt16(uint64_t index, int16_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(int16_t));
-		this->items[index] = {data, typeInt16};
+		this->items[index] = var(value);
 	}
 
 	void array::setInt8(uint64_t index, int8_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(int8_t));
-		this->items[index] = {data, typeInt8};
+		this->items[index] = var(value);
 	}
 
 	void array::setUInt64(uint64_t index, uint64_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(uint64_t));
-		this->items[index] = {data, typeUInt64};
+		this->items[index] = var(value);
 	}
 
 	void array::setUInt32(uint64_t index, uint32_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(uint32_t));
-		this->items[index] = {data, typeUInt32};
+		this->items[index] = var(value);
 	}
 
 	void array::setUInt16(uint64_t index, uint16_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(uint16_t));
-		this->items[index] = {data, typeUInt16};
+		this->items[index] = var(value);
 	}
 
 	void array::setUInt8(uint64_t index, uint8_t value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(uint8_t));
-		this->items[index] = {data, typeUInt8};
+		this->items[index] = var(value);
 	}
 
 	void array::setDouble(uint64_t index, double value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		if (isCopyable(typeDouble)) {
-			data = new double;
-			memcpy(data, &value, sizeof(double));
-		} else
-			memcpy(&data, &value, sizeof(double));
-		this->items[index] = {data, typeDouble};
+		this->items[index] = var(value);
 	}
 
 	void array::setFloat(uint64_t index, float value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(float));
-		this->items[index] = {data, typeFloat};
+		this->items[index] = var(value);
 	}
 
 	void array::setBool(uint64_t index, bool value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(bool));
-		this->items[index] = {data, typeBool};
+		this->items[index] = var(value);
 	}
 
 	void array::setArray(uint64_t index, array* value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(array*));
-		this->items[index] = {data, typeArray};
+		this->items[index] = var(value);
 	}
 
 	void array::setObject(uint64_t index, object* value) {
 		if (this->items.size() <= index)
 			this->items.resize(index);
-		void* data = nullptr;
-		memcpy(&data, &value, sizeof(object*));
-		this->items[index] = {data, typeObject};
+		this->items[index] = var(value);
 	}
 
-	char* array::getString(uint64_t index, char* def) {
+	void array::setPtr(uint64_t index, void* value) {
+		if (this->items.size() <= index)
+			this->items.resize(index);
+		this->items[index] = var(value);
+	}
+
+	void array::setNull(uint64_t index) {
+		if (this->items.size() <= index)
+			this->items.resize(index);
+		this->items[index] = var();
+	}
+
+	const char* array::getString(uint64_t index, char* def) {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeString)
-			return (char*)item.data;
+		if (item.getType() == typeString)
+			return (const char*)item;
 		return def;
 	}
 
@@ -296,14 +257,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeInt64) {
-			int64_t data = 0;
-			if (isCopyable(typeInt64))
-				memcpy(&data, (int64_t*)item.data, sizeof(int64_t));
-			else
-				memcpy(&data, &item.data, sizeof(int64_t));
-			return data;
-		}
+		if (item.getType() == typeInt64)
+			return (int64_t)item;
 		return def;
 	}
 
@@ -311,8 +266,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeInt32)
-			return (int32_t)(int64_t)item.data;
+		if (item.getType() == typeInt32)
+			return (int32_t)item;
 		return def;
 	}
 
@@ -320,8 +275,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeInt16)
-			return (int16_t)(int64_t)item.data;
+		if (item.getType() == typeInt16)
+			return (int16_t)item;
 		return def;
 	}
 
@@ -329,8 +284,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeInt8)
-			return (int8_t)(int64_t)item.data;
+		if (item.getType() == typeInt8)
+			return (int8_t)item;
 		return def;
 	}
 
@@ -338,14 +293,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeUInt64) {
-			uint64_t data = 0;
-			if (isCopyable(typeUInt64))
-				memcpy(&data, (uint64_t*)item.data, sizeof(uint64_t));
-			else
-				memcpy(&data, &item.data, sizeof(uint64_t));
-			return data;
-		}
+		if (item.getType() == typeUInt64)
+			return (uint64_t)item;
 		return def;
 	}
 
@@ -353,8 +302,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeUInt32)
-			return (uint32_t)(uint64_t)item.data;
+		if (item.getType() == typeUInt32)
+			return (uint32_t)item;
 		return def;
 	}
 
@@ -362,8 +311,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeUInt16)
-			return (uint16_t)(uint64_t)item.data;
+		if (item.getType() == typeUInt16)
+			return (uint16_t)item;
 		return def;
 	}
 
@@ -371,8 +320,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeUInt8)
-			return (uint8_t)(uint64_t)item.data;
+		if (item.getType() == typeUInt8)
+			return (uint8_t)item;
 		return def;
 	}
 
@@ -380,14 +329,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeDouble) {
-			double data = 0;
-			if (isCopyable(typeDouble)) {
-				memcpy(&data, (double*)item.data, sizeof(double));
-			} else
-				memcpy(&data, &item.data, sizeof(double));
-			return data;
-		}
+		if (item.getType() == typeDouble)
+			return (double)item;
 		return def;
 	}
 
@@ -395,11 +338,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeFloat) {
-			float data = 0;
-			memcpy(&data, &item.data, sizeof(float));
-			return data;
-		}
+		if (item.getType() == typeFloat)
+			return (float)item;
 		return def;
 	}
 
@@ -407,8 +347,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeBool)
-			return (bool)item.data;
+		if (item.getType() == typeBool)
+			return (bool)item;
 		return def;
 	}
 
@@ -416,8 +356,8 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeArray)
-			return (array*)item.data;
+		if (item.getType() == typeArray)
+			return (array*)item;
 		return def;
 	}
 
@@ -425,8 +365,17 @@ namespace red {
 		if (index >= this->items.size())
 			return def;
 		auto item = this->items[index];
-		if (item.type == typeObject)
-			return (object*)item.data;
+		if (item.getType() == typeObject)
+			return (object*)item;
+		return def;
+	}
+
+	void* array::getPtr(uint64_t index, void* def) {
+		if (index >= this->items.size())
+			return def;
+		auto item = this->items[index];
+		if (item.getType() == typePtr)
+			return (void*)item;
 		return def;
 	}
 }  // namespace red

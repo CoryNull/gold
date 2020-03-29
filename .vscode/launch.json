@@ -5,14 +5,19 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "clang build and debug active file",
+			"name": "RED2D",
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/build/RED2D",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}/build",
-			"environment": [],
+			"environment": [
+				{
+					"name": "XDG_RUNTIME_DIR",
+					"value": "/run/user/1000"
+				}
+			],
 			"externalConsole": false,
 			"MIMode": "lldb",
 			"setupCommands": [

@@ -83,7 +83,17 @@
 			"locale": "cpp",
 			"stack": "cpp",
 			"valarray": "cpp",
-			"*.ipp": "cpp"
+			"*.ipp": "cpp",
+			"__functional_03": "cpp",
+			"variant": "cpp",
+			"__memory": "cpp",
+			"random": "cpp",
+			"regex": "cpp",
+			"hash_map": "cpp",
+			"hash_set": "cpp",
+			"unordered_set": "cpp",
+			"future": "cpp",
+			"*.def": "cpp"
 		},
 		"editor.insertSpaces": false,
 		"cmake.configureOnOpen": true,

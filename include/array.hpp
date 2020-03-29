@@ -1,29 +1,32 @@
 #pragma once
 
-#include <libbson-1.0/bson.h>
 #include <vector>
+#include <string>
 #include "types.hpp"
+#include "var.hpp"
 
 namespace red {
+	using namespace std;
+	using namespace nlohmann;
 	/* <Array> */
-	struct arrayItem {
-		void* data;
-		types type;
-	};
 	class array {
 	protected:
-		std::vector<arrayItem> items;
+		std::vector<var> items;
 
 		void pushData(void* dataPtr, uint64_t size, types type);
 	public:
 		array();
-		~array();
+		array(array& copy);
+		array(json value);
 
 		uint64_t getSize();
 		void pop();
 		types getType(uint64_t index);
-		char* getJSON(uint64_t& size);
-		void getBSON(bson_t& doc);
+		json getJSON();
+		vector<uint8_t> getBSON();
+		vector<uint8_t> getCBOR();
+		vector<uint8_t> getMsgPack();
+		vector<uint8_t> getUBJSON();
 
 		void pushString(char* value);
 		void pushInt64(int64_t value);
@@ -39,6 +42,8 @@ namespace red {
 		void pushBool(bool value);
 		void pushArray(array* value);
 		void pushObject(object* value);
+		void pushPtr(void* value);
+		void pushNull();
 
 		void setString(uint64_t index, char* value);
 		void setInt64(uint64_t index, int64_t value);
@@ -54,8 +59,10 @@ namespace red {
 		void setBool(uint64_t index, bool value);
 		void setArray(uint64_t index, array* value);
 		void setObject(uint64_t index, object* value);
+		void setPtr(uint64_t index, void* value);
+		void setNull(uint64_t index);
 
-		char* getString(uint64_t index, char* def = 0);
+		const char* getString(uint64_t index, char* def = 0);
 		int64_t getInt64(uint64_t index, int64_t def = 0);
 		int32_t getInt32(uint64_t index, int32_t def = 0);
 		int16_t getInt16(uint64_t index, int16_t def = 0);
@@ -69,6 +76,7 @@ namespace red {
 		bool getBool(uint64_t index, bool def = false);
 		array* getArray(uint64_t index, array* def = 0);
 		object* getObject(uint64_t index, object* def = 0);
+		void* getPtr(uint64_t index, void* def = 0);
 	};
 
 	/* </Array> */

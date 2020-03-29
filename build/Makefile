@@ -177,6 +177,33 @@ src/engine.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.cpp.s
 .PHONY : src/engine.cpp.s
 
+src/graphics.o: src/graphics.cpp.o
+
+.PHONY : src/graphics.o
+
+# target to build an object file
+src/graphics.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/graphics.cpp.o
+.PHONY : src/graphics.cpp.o
+
+src/graphics.i: src/graphics.cpp.i
+
+.PHONY : src/graphics.i
+
+# target to preprocess a source file
+src/graphics.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/graphics.cpp.i
+.PHONY : src/graphics.cpp.i
+
+src/graphics.s: src/graphics.cpp.s
+
+.PHONY : src/graphics.s
+
+# target to generate assembly for a file
+src/graphics.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/graphics.cpp.s
+.PHONY : src/graphics.cpp.s
+
 src/main.o: src/main.cpp.o
 
 .PHONY : src/main.o
@@ -204,32 +231,32 @@ src/main.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/memory.o: src/memory.cpp.o
+src/mesh.o: src/mesh.cpp.o
 
-.PHONY : src/memory.o
+.PHONY : src/mesh.o
 
 # target to build an object file
-src/memory.cpp.o:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.o
-.PHONY : src/memory.cpp.o
+src/mesh.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/mesh.cpp.o
+.PHONY : src/mesh.cpp.o
 
-src/memory.i: src/memory.cpp.i
+src/mesh.i: src/mesh.cpp.i
 
-.PHONY : src/memory.i
+.PHONY : src/mesh.i
 
 # target to preprocess a source file
-src/memory.cpp.i:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.i
-.PHONY : src/memory.cpp.i
+src/mesh.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/mesh.cpp.i
+.PHONY : src/mesh.cpp.i
 
-src/memory.s: src/memory.cpp.s
+src/mesh.s: src/mesh.cpp.s
 
-.PHONY : src/memory.s
+.PHONY : src/mesh.s
 
 # target to generate assembly for a file
-src/memory.cpp.s:
-	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/memory.cpp.s
-.PHONY : src/memory.cpp.s
+src/mesh.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/mesh.cpp.s
+.PHONY : src/mesh.cpp.s
 
 src/object.o: src/object.cpp.o
 
@@ -258,6 +285,87 @@ src/object.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/object.cpp.s
 .PHONY : src/object.cpp.s
 
+src/renderable.o: src/renderable.cpp.o
+
+.PHONY : src/renderable.o
+
+# target to build an object file
+src/renderable.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/renderable.cpp.o
+.PHONY : src/renderable.cpp.o
+
+src/renderable.i: src/renderable.cpp.i
+
+.PHONY : src/renderable.i
+
+# target to preprocess a source file
+src/renderable.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/renderable.cpp.i
+.PHONY : src/renderable.cpp.i
+
+src/renderable.s: src/renderable.cpp.s
+
+.PHONY : src/renderable.s
+
+# target to generate assembly for a file
+src/renderable.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/renderable.cpp.s
+.PHONY : src/renderable.cpp.s
+
+src/sprite.o: src/sprite.cpp.o
+
+.PHONY : src/sprite.o
+
+# target to build an object file
+src/sprite.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/sprite.cpp.o
+.PHONY : src/sprite.cpp.o
+
+src/sprite.i: src/sprite.cpp.i
+
+.PHONY : src/sprite.i
+
+# target to preprocess a source file
+src/sprite.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/sprite.cpp.i
+.PHONY : src/sprite.cpp.i
+
+src/sprite.s: src/sprite.cpp.s
+
+.PHONY : src/sprite.s
+
+# target to generate assembly for a file
+src/sprite.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/sprite.cpp.s
+.PHONY : src/sprite.cpp.s
+
+src/types.o: src/types.cpp.o
+
+.PHONY : src/types.o
+
+# target to build an object file
+src/types.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/types.cpp.o
+.PHONY : src/types.cpp.o
+
+src/types.i: src/types.cpp.i
+
+.PHONY : src/types.i
+
+# target to preprocess a source file
+src/types.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/types.cpp.i
+.PHONY : src/types.cpp.i
+
+src/types.s: src/types.cpp.s
+
+.PHONY : src/types.s
+
+# target to generate assembly for a file
+src/types.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/types.cpp.s
+.PHONY : src/types.cpp.s
+
 src/var.o: src/var.cpp.o
 
 .PHONY : src/var.o
@@ -285,6 +393,33 @@ src/var.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/var.cpp.s
 .PHONY : src/var.cpp.s
 
+src/window.o: src/window.cpp.o
+
+.PHONY : src/window.o
+
+# target to build an object file
+src/window.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/window.cpp.o
+.PHONY : src/window.cpp.o
+
+src/window.i: src/window.cpp.i
+
+.PHONY : src/window.i
+
+# target to preprocess a source file
+src/window.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/window.cpp.i
+.PHONY : src/window.cpp.i
+
+src/window.s: src/window.cpp.s
+
+.PHONY : src/window.s
+
+# target to generate assembly for a file
+src/window.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/window.cpp.s
+.PHONY : src/window.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -300,18 +435,33 @@ help:
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"
+	@echo "... src/graphics.o"
+	@echo "... src/graphics.i"
+	@echo "... src/graphics.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/memory.o"
-	@echo "... src/memory.i"
-	@echo "... src/memory.s"
+	@echo "... src/mesh.o"
+	@echo "... src/mesh.i"
+	@echo "... src/mesh.s"
 	@echo "... src/object.o"
 	@echo "... src/object.i"
 	@echo "... src/object.s"
+	@echo "... src/renderable.o"
+	@echo "... src/renderable.i"
+	@echo "... src/renderable.s"
+	@echo "... src/sprite.o"
+	@echo "... src/sprite.i"
+	@echo "... src/sprite.s"
+	@echo "... src/types.o"
+	@echo "... src/types.i"
+	@echo "... src/types.s"
 	@echo "... src/var.o"
 	@echo "... src/var.i"
 	@echo "... src/var.s"
+	@echo "... src/window.o"
+	@echo "... src/window.i"
+	@echo "... src/window.s"
 .PHONY : help
 
 
