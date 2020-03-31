@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "array.hpp"
+#include "entity.hpp"
 #include "graphics.hpp"
 #include "var.hpp"
 #include "window.hpp"
@@ -18,8 +20,7 @@ namespace red {
 
 	var engine::destroy(object& self, var& args) {
 		auto window = self.getObject("window");
-		if (window != nullptr)
-			(*window)("destroy");
+		if (window != nullptr) (*window)("destroy");
 		self.setNull("window");
 		self.setBool("running", false);
 		SDL_Quit();
@@ -28,8 +29,7 @@ namespace red {
 
 	string engine::getSettingsDir() {
 		auto dir = string(SDL_GetPrefPath("MountainAndValley", "RED2D"));
-		if (dir.size() == 0)
-			dir = "./";
+		if (dir.size() == 0) dir = "./";
 		return dir;
 	}
 
@@ -40,15 +40,15 @@ namespace red {
 	var engine::loadSettings(object& self, var& args) {
 		auto configPath = engine::getSettingsPath();
 		auto configJSON = object::loadJSON(configPath);
-		object* config = nullptr;
+		object config;
 		if (configJSON.isObject()) {
-			config = configJSON.getObject();
+			auto o = configJSON.getObject();
+			config = o ? object(*o) : config;
 			cout << "loading settings: " << configPath << endl;
-			self.setObject("config", *config);
-			return var(*config);
+			self.setObject("config", config);
+			return var(config);
 		}
-		config = new object();
-		return var(*config);
+		return var(config);
 	}
 
 	var engine::saveSettings(object& self, var& args) {
@@ -78,25 +78,36 @@ namespace red {
 		auto config = *configVar.getObject();
 
 		auto windowConfig = config.getObject("window");
-		auto primaryWindow =
-				windowConfig != nullptr ? window(*windowConfig) : window();
-		self.setObject("window", primaryWindow);
+		auto primaryWindow = self.create<window>("window", windowConfig);
 
 		self.setBool("running", true);
 		SDL_Event e;
-		auto eVar = var(&e);
+		auto eVar = var((void*)&e);
 		while (true) {
 			SDL_PollEvent(&e);
-			if (!self.getBool("running") || e.type == SDL_QUIT)
-				break;
-			primaryWindow("handleEvent", eVar);
+			if (!self.getBool("running") || e.type == SDL_QUIT) break;
+			primaryWindow.callMethod("handleEvent", eVar);
 		}
 		self("saveSettings");
 		return var();
 	}
 
-	engine::engine() : object(proto) {}
+	engine::engine() : object(proto) { setArray("entites", array()); }
 
 	set<string> engine::allowedConfigNames() { return {"window"}; }
+
+	engine& engine::operator+=(var element) {
+		auto a = getArray("entites");
+		if (a == nullptr) return *this;
+		if (element.isObject(&entity::proto)) (*a) += element;
+		return *this;
+	}
+
+	engine& engine::operator-=(var element) {
+		auto a = getArray("entites");
+		if (a == nullptr) return *this;
+		if (element.isObject(&entity::proto)) (*a) -= element;
+		return *this;
+	}
 
 }  // namespace red

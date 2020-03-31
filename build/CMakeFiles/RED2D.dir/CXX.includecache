@@ -341,18 +341,28 @@ type_traits
 -
 
 ../include/array.hpp
-vector
--
 string
+-
+vector
 -
 types.hpp
 ../include/types.hpp
 var.hpp
 ../include/var.hpp
 
+../include/component.hpp
+object.hpp
+../include/object.hpp
+
 ../include/engine.hpp
 set
 -
+object.hpp
+../include/object.hpp
+renderable.hpp
+../include/renderable.hpp
+
+../include/entity.hpp
 object.hpp
 ../include/object.hpp
 
@@ -403,12 +413,12 @@ vector
 -
 
 ../include/var.hpp
-types.hpp
-../include/types.hpp
 memory
 -
 string
 -
+types.hpp
+../include/types.hpp
 
 ../include/window.hpp
 object.hpp
@@ -422,6 +432,10 @@ object.hpp
 types.hpp
 /home/corynull/Projects/red-c/src/types.hpp
 
+/home/corynull/Projects/red-c/src/component.cpp
+component.hpp
+/home/corynull/Projects/red-c/src/component.hpp
+
 /home/corynull/Projects/red-c/src/engine.cpp
 engine.hpp
 /home/corynull/Projects/red-c/src/engine.hpp
@@ -429,12 +443,24 @@ SDL2/SDL.h
 -
 iostream
 -
+array.hpp
+/home/corynull/Projects/red-c/src/array.hpp
+entity.hpp
+/home/corynull/Projects/red-c/src/entity.hpp
 graphics.hpp
 /home/corynull/Projects/red-c/src/graphics.hpp
 var.hpp
 /home/corynull/Projects/red-c/src/var.hpp
 window.hpp
 /home/corynull/Projects/red-c/src/window.hpp
+
+/home/corynull/Projects/red-c/src/entity.cpp
+entity.hpp
+/home/corynull/Projects/red-c/src/entity.hpp
+array.hpp
+/home/corynull/Projects/red-c/src/array.hpp
+component.hpp
+/home/corynull/Projects/red-c/src/component.hpp
 
 /home/corynull/Projects/red-c/src/graphics.cpp
 graphics.hpp

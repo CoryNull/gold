@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+
 #include "object.hpp"
 #include "renderable.hpp"
 
@@ -11,6 +12,5 @@ namespace red {
 	 public:
 		mesh();
 		mesh(object& config);
-		
 	};
 }  // namespace red

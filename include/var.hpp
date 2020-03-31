@@ -1,8 +1,9 @@
 #pragma once
 
-#include "types.hpp"
 #include <memory>
 #include <string>
+
+#include "types.hpp"
 
 namespace red {
 	using namespace std;
@@ -28,14 +29,16 @@ namespace red {
 		var(double v);
 		var(float v);
 		var(bool v);
-		var(array& v);
-		var(object& v);
+		var(array v);
+		var(object v);
 		var(void* v);
 		var(method v);
 		var(exception v);
 		~var();
 
 		var& operator=(const var& rhs);
+		bool operator==(const var& rhs);
+		bool operator!=(const var& rhs);
 
 		types getType();
 		const char* getTypeString();
@@ -46,6 +49,7 @@ namespace red {
 		bool isSigned();
 		bool isBool();
 		bool isObject();
+		bool isObject(object* proto);
 		bool isArray();
 		bool isEmpty();
 		bool isError();
@@ -86,4 +90,5 @@ namespace red {
 		var operator()(object&, var&);
 		var operator()(object&);
 	};
+
 }  // namespace red

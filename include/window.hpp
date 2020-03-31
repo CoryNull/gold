@@ -20,6 +20,5 @@ namespace red {
 	 public:
 		window();
 		window(object& config);
-
 	};
 }  // namespace red

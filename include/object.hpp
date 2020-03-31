@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "types.hpp"
 #include "var.hpp"
 /* </Includes> */
@@ -17,14 +18,15 @@ namespace red {
 
 	class object {
 	 protected:
-	 	typedef unordered_map<key, var> omap;
-		omap items;
+		typedef map<key, var> omap;
+		omap* items;
 		var parent;
 
 	 public:
-	 	typedef initializer_list<omap::value_type> object_list;
+		typedef initializer_list<omap::value_type> object_list;
 		object(object* parent = nullptr);
-		object(object& copy, object* parent = nullptr);
+		object(object& copy);
+		object(object& copy, object parent);
 		object(object_list list, object* parent = nullptr);
 		object(json value);
 
@@ -56,8 +58,8 @@ namespace red {
 		void setDouble(string name, double value);
 		void setFloat(string name, float value);
 		void setBool(string name, bool value);
-		void setArray(string name, array& value);
-		void setObject(string name, object& value);
+		void setArray(string name, array value);
+		void setObject(string name, object value);
 		void setMethod(string name, method value);
 		void setPtr(string name, void* value);
 		void setVar(string name, var var);
@@ -80,7 +82,7 @@ namespace red {
 		method getMethod(string name, method def = 0);
 		void* getPtr(string name, void* def = 0);
 
-		var operator[](string name);	
+		var operator[](string name);
 		var operator()(string name, var&);
 		var operator()(string name);
 
@@ -98,6 +100,13 @@ namespace red {
 
 		static var loadUBJSON(string path);
 		static void saveUBJSON(string path, object& value);
+
+		template <class oT>
+		oT create(string name, object* config = nullptr) {
+			oT o(*config);
+			setObject(name, o);
+			return *(oT*)getObject(name);
+		}
 	};
 
 	/* </Object> */

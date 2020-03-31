@@ -10,7 +10,6 @@ namespace red {
 
 		static var draw(object& self, var args);
 
-
 	 public:
 		sprite();
 		sprite(object& config);

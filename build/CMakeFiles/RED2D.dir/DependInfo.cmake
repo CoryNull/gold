@@ -5,7 +5,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
   "/home/corynull/Projects/red-c/src/array.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/array.cpp.o"
+  "/home/corynull/Projects/red-c/src/component.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/component.cpp.o"
   "/home/corynull/Projects/red-c/src/engine.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/engine.cpp.o"
+  "/home/corynull/Projects/red-c/src/entity.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/entity.cpp.o"
   "/home/corynull/Projects/red-c/src/graphics.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/graphics.cpp.o"
   "/home/corynull/Projects/red-c/src/main.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/main.cpp.o"
   "/home/corynull/Projects/red-c/src/mesh.cpp" "/home/corynull/Projects/red-c/build/CMakeFiles/RED2D.dir/src/mesh.cpp.o"

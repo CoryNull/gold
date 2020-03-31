@@ -93,7 +93,8 @@
 			"hash_set": "cpp",
 			"unordered_set": "cpp",
 			"future": "cpp",
-			"*.def": "cpp"
+			"*.def": "cpp",
+			"forward_list": "cpp"
 		},
 		"editor.insertSpaces": false,
 		"cmake.configureOnOpen": true,

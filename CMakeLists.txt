@@ -17,7 +17,9 @@ unset(_MSC_VER CACHE)
 # add the executable
 add_executable(RED2D
 	src/array.cpp
+	src/component.cpp
 	src/engine.cpp
+	src/entity.cpp
 	src/graphics.cpp
 	src/main.cpp
 	src/mesh.cpp

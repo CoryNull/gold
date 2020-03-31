@@ -4,6 +4,7 @@
 #include <set>
 
 #include "object.hpp"
+#include "renderable.hpp"
 /* </Includes> */
 
 namespace red {
@@ -17,9 +18,13 @@ namespace red {
 		static var start(object& self, var& args);
 		static var loadSettings(object& self, var& args);
 		static var saveSettings(object& self, var& args);
+		static var addElement(object& self, var& args);
 
 	 public:
 		engine();
 		static set<string> allowedConfigNames();
+
+		engine& operator+=(var element);
+		engine& operator-=(var element);
 	};
 }  // namespace red

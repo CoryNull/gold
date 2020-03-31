@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+
 #include <nlohmann/json.hpp>
 #include <vector>
 

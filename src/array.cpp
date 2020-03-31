@@ -1,15 +1,16 @@
 
 #include "array.hpp"
+
 #include "object.hpp"
 #include "types.hpp"
 
 namespace red {
 
-	array::array() : items() {}
+	array::array() : items(new avec()) {}
 
 	array::array(array& copy) : items(copy.items) {}
 
-	array::array(json value) : items() {
+	array::array(json value) : items(new avec()) {
 		if (value.is_array()) {
 			for (auto it = value.begin(); it != value.end(); ++it) {
 				auto name = std::stoul(it.key());
@@ -46,15 +47,15 @@ namespace red {
 		}
 	}
 
-	uint64_t array::getSize() { return this->items.size(); }
+	uint64_t array::getSize() { return items->size(); }
 
-	void array::pop() { this->items.pop_back(); }
+	void array::pop() { items->pop_back(); }
 
-	types array::getType(uint64_t index) { return this->items[index].getType(); }
+	types array::getType(uint64_t index) { return (*items)[index].getType(); }
 
 	json array::getJSON() {
 		json j = json::array();
-		for (auto i = this->items.begin(); i != this->items.end(); ++i) {
+		for (auto i = items->begin(); i != items->end(); ++i) {
 			switch (i->getType()) {
 				case typeNull:
 					j.push_back(nullptr);
@@ -116,266 +117,241 @@ namespace red {
 
 	vector<uint8_t> array::getUBJSON() { return json::to_ubjson(getJSON()); }
 
-	void array::pushString(char* value) { this->items.push_back(var(value)); }
+	array::avec::iterator array::begin() { return items->begin(); }
 
-	void array::pushInt64(int64_t value) { this->items.push_back(var(value)); }
+	array::avec::iterator array::end() { return items->end(); }
 
-	void array::pushInt32(int32_t value) { this->items.push_back(var(value)); }
+	void array::erase(array::avec::iterator i) { items->erase(i); }
 
-	void array::pushInt16(int16_t value) { this->items.push_back(var(value)); }
+	array& array::operator+=(var item) {
+		items->push_back(item);
+		return *this;
+	}
 
-	void array::pushInt8(int8_t value) { this->items.push_back(var(value)); }
+	array& array::operator-=(var item) {
+		for (auto it = begin(); it != end(); ++it) {
+			if (it->getPtr() == item.getPtr()) {
+				erase(it);
+				break;
+			}
+		}
+		return *this;
+	}
 
-	void array::pushUInt64(uint64_t value) { this->items.push_back(var(value)); }
+	void array::pushString(char* value) { items->push_back(var(value)); }
 
-	void array::pushUInt32(uint32_t value) { this->items.push_back(var(value)); }
+	void array::pushInt64(int64_t value) { items->push_back(var(value)); }
 
-	void array::pushUInt16(uint16_t value) { this->items.push_back(var(value)); }
+	void array::pushInt32(int32_t value) { items->push_back(var(value)); }
 
-	void array::pushUInt8(uint8_t value) { this->items.push_back(var(value)); }
+	void array::pushInt16(int16_t value) { items->push_back(var(value)); }
 
-	void array::pushDouble(double value) { this->items.push_back(var(value)); }
+	void array::pushInt8(int8_t value) { items->push_back(var(value)); }
 
-	void array::pushFloat(float value) { this->items.push_back(var(value)); }
+	void array::pushUInt64(uint64_t value) { items->push_back(var(value)); }
 
-	void array::pushBool(bool value) { this->items.push_back(var(value)); }
+	void array::pushUInt32(uint32_t value) { items->push_back(var(value)); }
 
-	void array::pushArray(array* value) { this->items.push_back(var(value)); }
+	void array::pushUInt16(uint16_t value) { items->push_back(var(value)); }
 
-	void array::pushObject(object* value) { this->items.push_back(var(value)); }
+	void array::pushUInt8(uint8_t value) { items->push_back(var(value)); }
 
-	void array::pushPtr(void* value) { this->items.push_back(var(value)); }
+	void array::pushDouble(double value) { items->push_back(var(value)); }
 
-	void array::pushNull() { this->items.push_back(var()); }
+	void array::pushFloat(float value) { items->push_back(var(value)); }
+
+	void array::pushBool(bool value) { items->push_back(var(value)); }
+
+	void array::pushArray(array* value) { items->push_back(var(value)); }
+
+	void array::pushObject(object* value) { items->push_back(var(value)); }
+
+	void array::pushPtr(void* value) { items->push_back(var(value)); }
+
+	void array::pushNull() { items->push_back(var()); }
 
 	void array::setString(uint64_t index, char* value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setInt64(uint64_t index, int64_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setInt32(uint64_t index, int32_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setInt16(uint64_t index, int16_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setInt8(uint64_t index, int8_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setUInt64(uint64_t index, uint64_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setUInt32(uint64_t index, uint32_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setUInt16(uint64_t index, uint16_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setUInt8(uint64_t index, uint8_t value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setDouble(uint64_t index, double value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setFloat(uint64_t index, float value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setBool(uint64_t index, bool value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setArray(uint64_t index, array* value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setObject(uint64_t index, object* value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setPtr(uint64_t index, void* value) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var(value);
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var(value);
 	}
 
 	void array::setNull(uint64_t index) {
-		if (this->items.size() <= index)
-			this->items.resize(index);
-		this->items[index] = var();
+		if (items->size() <= index) items->resize(index);
+		(*items)[index] = var();
 	}
 
 	const char* array::getString(uint64_t index, char* def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeString)
-			return (const char*)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeString) return (const char*)item;
 		return def;
 	}
 
 	int64_t array::getInt64(uint64_t index, int64_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeInt64)
-			return (int64_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeInt64) return (int64_t)item;
 		return def;
 	}
 
 	int32_t array::getInt32(uint64_t index, int32_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeInt32)
-			return (int32_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeInt32) return (int32_t)item;
 		return def;
 	}
 
 	int16_t array::getInt16(uint64_t index, int16_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeInt16)
-			return (int16_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeInt16) return (int16_t)item;
 		return def;
 	}
 
 	int8_t array::getInt8(uint64_t index, int8_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeInt8)
-			return (int8_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeInt8) return (int8_t)item;
 		return def;
 	}
 
 	uint64_t array::getUInt64(uint64_t index, uint64_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeUInt64)
-			return (uint64_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeUInt64) return (uint64_t)item;
 		return def;
 	}
 
 	uint32_t array::getUInt32(uint64_t index, uint32_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeUInt32)
-			return (uint32_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeUInt32) return (uint32_t)item;
 		return def;
 	}
 
 	uint16_t array::getUInt16(uint64_t index, uint16_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeUInt16)
-			return (uint16_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeUInt16) return (uint16_t)item;
 		return def;
 	}
 
 	uint8_t array::getUInt8(uint64_t index, uint8_t def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeUInt8)
-			return (uint8_t)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeUInt8) return (uint8_t)item;
 		return def;
 	}
 
 	double array::getDouble(uint64_t index, double def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeDouble)
-			return (double)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeDouble) return (double)item;
 		return def;
 	}
 
 	float array::getFloat(uint64_t index, float def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeFloat)
-			return (float)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeFloat) return (float)item;
 		return def;
 	}
 
 	bool array::getBool(uint64_t index, bool def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeBool)
-			return (bool)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeBool) return (bool)item;
 		return def;
 	}
 
 	array* array::getArray(uint64_t index, array* def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeArray)
-			return (array*)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeArray) return (array*)item;
 		return def;
 	}
 
 	object* array::getObject(uint64_t index, object* def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typeObject)
-			return (object*)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typeObject) return (object*)item;
 		return def;
 	}
 
 	void* array::getPtr(uint64_t index, void* def) {
-		if (index >= this->items.size())
-			return def;
-		auto item = this->items[index];
-		if (item.getType() == typePtr)
-			return (void*)item;
+		if (index >= items->size()) return def;
+		auto item = (*items)[index];
+		if (item.getType() == typePtr) return (void*)item;
 		return def;
 	}
 }  // namespace red

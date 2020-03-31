@@ -8,15 +8,34 @@ CMakeFiles/RED2D.dir/src/array.cpp.o
  ../include/types.hpp
  ../include/var.hpp
  /home/corynull/Projects/red-c/src/array.cpp
+CMakeFiles/RED2D.dir/src/component.cpp.o
+ ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/component.hpp
+ ../include/object.hpp
+ ../include/types.hpp
+ ../include/var.hpp
+ /home/corynull/Projects/red-c/src/component.cpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/array.hpp
  ../include/engine.hpp
+ ../include/entity.hpp
  ../include/graphics.hpp
  ../include/object.hpp
+ ../include/renderable.hpp
  ../include/types.hpp
  ../include/var.hpp
  ../include/window.hpp
  /home/corynull/Projects/red-c/src/engine.cpp
+CMakeFiles/RED2D.dir/src/entity.cpp.o
+ ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/array.hpp
+ ../include/component.hpp
+ ../include/entity.hpp
+ ../include/object.hpp
+ ../include/types.hpp
+ ../include/var.hpp
+ /home/corynull/Projects/red-c/src/entity.cpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
  ../include/graphics.hpp
@@ -28,6 +47,7 @@ CMakeFiles/RED2D.dir/src/main.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
  ../include/engine.hpp
  ../include/object.hpp
+ ../include/renderable.hpp
  ../include/types.hpp
  ../include/var.hpp
  /home/corynull/Projects/red-c/src/main.cpp

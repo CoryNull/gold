@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
+
 #include "types.hpp"
 #include "var.hpp"
 
@@ -10,11 +11,13 @@ namespace red {
 	using namespace nlohmann;
 	/* <Array> */
 	class array {
-	protected:
-		std::vector<var> items;
+	 protected:
+		typedef std::vector<var> avec;
+		avec* items;
 
 		void pushData(void* dataPtr, uint64_t size, types type);
-	public:
+
+	 public:
 		array();
 		array(array& copy);
 		array(json value);
@@ -27,6 +30,13 @@ namespace red {
 		vector<uint8_t> getCBOR();
 		vector<uint8_t> getMsgPack();
 		vector<uint8_t> getUBJSON();
+
+		avec::iterator begin();
+		avec::iterator end();
+		void erase(avec::iterator i);
+
+		array& operator+=(var item);
+		array& operator-=(var item);
 
 		void pushString(char* value);
 		void pushInt64(int64_t value);

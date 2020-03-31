@@ -2,29 +2,24 @@
 
 #include "object.hpp"
 
-namespace red
-{
+namespace red {
 	class backend : public object {
-		protected:
-		public:
-
+	 protected:
+	 public:
 		backend();
 	};
 
 	class vulkanBackend : public backend {
-		protected:
-		public:
-
+	 protected:
+	 public:
 		vulkanBackend();
-		
+
 		static bool isSupported();
 	};
 
 	class openGLBackend : public backend {
-		protected:
-		public:
-
+	 protected:
+	 public:
 		openGLBackend();
-		
 	};
-} // namespace red
+}  // namespace red

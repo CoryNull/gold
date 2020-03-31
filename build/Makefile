@@ -150,6 +150,33 @@ src/array.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/array.cpp.s
 .PHONY : src/array.cpp.s
 
+src/component.o: src/component.cpp.o
+
+.PHONY : src/component.o
+
+# target to build an object file
+src/component.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/component.cpp.o
+.PHONY : src/component.cpp.o
+
+src/component.i: src/component.cpp.i
+
+.PHONY : src/component.i
+
+# target to preprocess a source file
+src/component.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/component.cpp.i
+.PHONY : src/component.cpp.i
+
+src/component.s: src/component.cpp.s
+
+.PHONY : src/component.s
+
+# target to generate assembly for a file
+src/component.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/component.cpp.s
+.PHONY : src/component.cpp.s
+
 src/engine.o: src/engine.cpp.o
 
 .PHONY : src/engine.o
@@ -176,6 +203,33 @@ src/engine.s: src/engine.cpp.s
 src/engine.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/engine.cpp.s
 .PHONY : src/engine.cpp.s
+
+src/entity.o: src/entity.cpp.o
+
+.PHONY : src/entity.o
+
+# target to build an object file
+src/entity.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/entity.cpp.o
+.PHONY : src/entity.cpp.o
+
+src/entity.i: src/entity.cpp.i
+
+.PHONY : src/entity.i
+
+# target to preprocess a source file
+src/entity.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/entity.cpp.i
+.PHONY : src/entity.cpp.i
+
+src/entity.s: src/entity.cpp.s
+
+.PHONY : src/entity.s
+
+# target to generate assembly for a file
+src/entity.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/entity.cpp.s
+.PHONY : src/entity.cpp.s
 
 src/graphics.o: src/graphics.cpp.o
 
@@ -432,9 +486,15 @@ help:
 	@echo "... src/array.o"
 	@echo "... src/array.i"
 	@echo "... src/array.s"
+	@echo "... src/component.o"
+	@echo "... src/component.i"
+	@echo "... src/component.s"
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"
+	@echo "... src/entity.o"
+	@echo "... src/entity.i"
+	@echo "... src/entity.s"
 	@echo "... src/graphics.o"
 	@echo "... src/graphics.i"
 	@echo "... src/graphics.s"

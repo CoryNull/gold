@@ -7,14 +7,10 @@ namespace red {
 	const var nullVar = var();
 
 	bool isCopyable(types type) {
-		if (type == typeString)
-			return true;
-		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64)
-			return true;
-		if (sizeof(int64_t) > sizeof(void*) && type == typeInt64)
-			return true;
-		if (sizeof(double) > sizeof(void*) && type == typeDouble)
-			return true;
+		if (type == typeString) return true;
+		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64) return true;
+		if (sizeof(int64_t) > sizeof(void*) && type == typeInt64) return true;
+		if (sizeof(double) > sizeof(void*) && type == typeDouble) return true;
 		return false;
 	}
 
