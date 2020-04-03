@@ -18,6 +18,7 @@ CMakeFiles/RED2D.dir/src/component.cpp.o
 CMakeFiles/RED2D.dir/src/engine.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
  ../include/array.hpp
+ ../include/component.hpp
  ../include/engine.hpp
  ../include/entity.hpp
  ../include/graphics.hpp
@@ -26,6 +27,7 @@ CMakeFiles/RED2D.dir/src/engine.cpp.o
  ../include/types.hpp
  ../include/var.hpp
  ../include/window.hpp
+ ../include/worker.hpp
  /home/corynull/Projects/red-c/src/engine.cpp
 CMakeFiles/RED2D.dir/src/entity.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
@@ -37,19 +39,41 @@ CMakeFiles/RED2D.dir/src/entity.cpp.o
  ../include/var.hpp
  /home/corynull/Projects/red-c/src/entity.cpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o
+ ../3rdParty/bgfx/include/bgfx/bgfx.h
+ ../3rdParty/bgfx/include/bgfx/defines.h
+ ../3rdParty/bgfx/include/bgfx/platform.h
+ ../3rdParty/bx/include/bx/allocator.h
+ ../3rdParty/bx/include/bx/bx.h
+ ../3rdParty/bx/include/bx/config.h
+ ../3rdParty/bx/include/bx/debug.h
+ ../3rdParty/bx/include/bx/error.h
+ ../3rdParty/bx/include/bx/filepath.h
+ ../3rdParty/bx/include/bx/inline/allocator.inl
+ ../3rdParty/bx/include/bx/inline/bx.inl
+ ../3rdParty/bx/include/bx/inline/error.inl
+ ../3rdParty/bx/include/bx/inline/string.inl
+ ../3rdParty/bx/include/bx/macros.h
+ ../3rdParty/bx/include/bx/os.h
+ ../3rdParty/bx/include/bx/platform.h
+ ../3rdParty/bx/include/bx/string.h
  ../3rdParty/json/single_include/nlohmann/json.hpp
  ../include/graphics.hpp
  ../include/object.hpp
  ../include/types.hpp
  ../include/var.hpp
+ ../include/window.hpp
  /home/corynull/Projects/red-c/src/graphics.cpp
 CMakeFiles/RED2D.dir/src/main.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/component.hpp
  ../include/engine.hpp
+ ../include/entity.hpp
  ../include/object.hpp
  ../include/renderable.hpp
+ ../include/sprite.hpp
  ../include/types.hpp
  ../include/var.hpp
+ ../include/worker.hpp
  /home/corynull/Projects/red-c/src/main.cpp
 CMakeFiles/RED2D.dir/src/mesh.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
@@ -68,6 +92,7 @@ CMakeFiles/RED2D.dir/src/object.cpp.o
  /home/corynull/Projects/red-c/src/object.cpp
 CMakeFiles/RED2D.dir/src/renderable.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/component.hpp
  ../include/object.hpp
  ../include/renderable.hpp
  ../include/types.hpp
@@ -81,6 +106,21 @@ CMakeFiles/RED2D.dir/src/sprite.cpp.o
  ../include/types.hpp
  ../include/var.hpp
  /home/corynull/Projects/red-c/src/sprite.cpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o
+ ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/object.hpp
+ ../include/texture.hpp
+ ../include/types.hpp
+ ../include/var.hpp
+ /home/corynull/Projects/red-c/src/texture.cpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o
+ ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/component.hpp
+ ../include/object.hpp
+ ../include/transform.hpp
+ ../include/types.hpp
+ ../include/var.hpp
+ /home/corynull/Projects/red-c/src/transform.cpp
 CMakeFiles/RED2D.dir/src/types.cpp.o
  ../3rdParty/json/single_include/nlohmann/json.hpp
  ../include/types.hpp
@@ -101,3 +141,10 @@ CMakeFiles/RED2D.dir/src/window.cpp.o
  ../include/var.hpp
  ../include/window.hpp
  /home/corynull/Projects/red-c/src/window.cpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o
+ ../3rdParty/json/single_include/nlohmann/json.hpp
+ ../include/object.hpp
+ ../include/types.hpp
+ ../include/var.hpp
+ ../include/worker.hpp
+ /home/corynull/Projects/red-c/src/worker.cpp

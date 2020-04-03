@@ -6,11 +6,11 @@
 
 namespace red {
 
-	array::array() : items(new avec()) {}
+	array::array() : items(new avec()), amutex() {}
 
-	array::array(array& copy) : items(copy.items) {}
+	array::array(array& copy) : items(copy.items), amutex() {}
 
-	array::array(json value) : items(new avec()) {
+	array::array(json value) : items(new avec()), amutex() {
 		if (value.is_array()) {
 			for (auto it = value.begin(); it != value.end(); ++it) {
 				auto name = std::stoul(it.key());
@@ -20,13 +20,14 @@ namespace red {
 						this->setNull(name);
 						break;
 					case detail::value_t::object:
-						this->setObject(name, new object(value));
+						this->setObject(name, value);
 						break;
 					case detail::value_t::array:
-						this->setArray(name, new array(value));
+						this->setArray(name, value);
 						break;
 					case detail::value_t::string:
-						this->setString(name, (char*)((string)value).c_str());
+						this->setString(
+							name, (char*)((string)value).c_str());
 						break;
 					case detail::value_t::boolean:
 						this->setBool(name, (bool)value);
@@ -47,13 +48,25 @@ namespace red {
 		}
 	}
 
-	uint64_t array::getSize() { return items->size(); }
+	array::~array() {}
 
-	void array::pop() { items->pop_back(); }
+	uint64_t array::getSize() {
+		unique_lock<mutex> gaurd(amutex);
+		return items->size();
+	}
 
-	types array::getType(uint64_t index) { return (*items)[index].getType(); }
+	void array::pop() {
+		unique_lock<mutex> gaurd(amutex);
+		items->pop_back();
+	}
+
+	types array::getType(uint64_t index) {
+		unique_lock<mutex> gaurd(amutex);
+		return (*items)[index].getType();
+	}
 
 	json array::getJSON() {
+		unique_lock<mutex> gaurd(amutex);
 		json j = json::array();
 		for (auto i = items->begin(); i != items->end(); ++i) {
 			switch (i->getType()) {
@@ -109,26 +122,60 @@ namespace red {
 		return j;
 	}
 
-	vector<uint8_t> array::getBSON() { return json::to_bson(getJSON()); }
+	vector<uint8_t> array::getBSON() {
+		return json::to_bson(getJSON());
+	}
 
-	vector<uint8_t> array::getCBOR() { return json::to_cbor(getJSON()); }
+	vector<uint8_t> array::getCBOR() {
+		return json::to_cbor(getJSON());
+	}
 
-	vector<uint8_t> array::getMsgPack() { return json::to_msgpack(getJSON()); }
+	vector<uint8_t> array::getMsgPack() {
+		return json::to_msgpack(getJSON());
+	}
 
-	vector<uint8_t> array::getUBJSON() { return json::to_ubjson(getJSON()); }
+	vector<uint8_t> array::getUBJSON() {
+		return json::to_ubjson(getJSON());
+	}
 
-	array::avec::iterator array::begin() { return items->begin(); }
+	array::avec::iterator array::begin() {
+		unique_lock<mutex> gaurd(amutex);
+		return items->begin();
+	}
 
-	array::avec::iterator array::end() { return items->end(); }
+	array::avec::iterator array::end() {
+		unique_lock<mutex> gaurd(amutex);
+		return items->end();
+	}
 
-	void array::erase(array::avec::iterator i) { items->erase(i); }
+	void array::erase(array::avec::iterator i) {
+		unique_lock<mutex> gaurd(amutex);
+		items->erase(i);
+	}
+
+	array::avec::iterator array::find(var item) {
+		unique_lock<mutex> gaurd(amutex);
+		for (auto it = begin(); it != end(); ++it)
+			if ((*it) == item) return it;
+		return end();
+	}
+
+	array::avec::iterator array::find(
+		var item, avec::iterator start) {
+		unique_lock<mutex> gaurd(amutex);
+		for (auto it = start; it != end(); ++it)
+			if ((*it) == item) return it;
+		return end();
+	}
 
 	array& array::operator+=(var item) {
+		unique_lock<mutex> gaurd(amutex);
 		items->push_back(item);
 		return *this;
 	}
 
 	array& array::operator-=(var item) {
+		unique_lock<mutex> gaurd(amutex);
 		for (auto it = begin(); it != end(); ++it) {
 			if (it->getPtr() == item.getPtr()) {
 				erase(it);
@@ -138,119 +185,184 @@ namespace red {
 		return *this;
 	}
 
-	void array::pushString(char* value) { items->push_back(var(value)); }
+	void array::pushString(char* value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushInt64(int64_t value) { items->push_back(var(value)); }
+	void array::pushInt64(int64_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushInt32(int32_t value) { items->push_back(var(value)); }
+	void array::pushInt32(int32_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushInt16(int16_t value) { items->push_back(var(value)); }
+	void array::pushInt16(int16_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushInt8(int8_t value) { items->push_back(var(value)); }
+	void array::pushInt8(int8_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushUInt64(uint64_t value) { items->push_back(var(value)); }
+	void array::pushUInt64(uint64_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushUInt32(uint32_t value) { items->push_back(var(value)); }
+	void array::pushUInt32(uint32_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushUInt16(uint16_t value) { items->push_back(var(value)); }
+	void array::pushUInt16(uint16_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushUInt8(uint8_t value) { items->push_back(var(value)); }
+	void array::pushUInt8(uint8_t value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushDouble(double value) { items->push_back(var(value)); }
+	void array::pushDouble(double value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushFloat(float value) { items->push_back(var(value)); }
+	void array::pushFloat(float value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushBool(bool value) { items->push_back(var(value)); }
+	void array::pushBool(bool value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushArray(array* value) { items->push_back(var(value)); }
+	void array::pushArray(array value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushObject(object* value) { items->push_back(var(value)); }
+	void array::pushObject(object value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushPtr(void* value) { items->push_back(var(value)); }
+	void array::pushPtr(void* value) {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(value);
+	}
 
-	void array::pushNull() { items->push_back(var()); }
+	void array::pushNull() {
+		unique_lock<mutex> gaurd(amutex);
+		items->push_back(var());
+	}
 
 	void array::setString(uint64_t index, char* value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setInt64(uint64_t index, int64_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setInt32(uint64_t index, int32_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setInt16(uint64_t index, int16_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setInt8(uint64_t index, int8_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setUInt64(uint64_t index, uint64_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setUInt32(uint64_t index, uint32_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setUInt16(uint64_t index, uint16_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setUInt8(uint64_t index, uint8_t value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setDouble(uint64_t index, double value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setFloat(uint64_t index, float value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setBool(uint64_t index, bool value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
-	void array::setArray(uint64_t index, array* value) {
+	void array::setArray(uint64_t index, array value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
-	void array::setObject(uint64_t index, object* value) {
+	void array::setObject(uint64_t index, object value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setPtr(uint64_t index, void* value) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var(value);
 	}
 
 	void array::setNull(uint64_t index) {
+		unique_lock<mutex> gaurd(amutex);
 		if (items->size() <= index) items->resize(index);
 		(*items)[index] = var();
 	}
 
 	const char* array::getString(uint64_t index, char* def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeString) return (const char*)item;
@@ -258,6 +370,7 @@ namespace red {
 	}
 
 	int64_t array::getInt64(uint64_t index, int64_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeInt64) return (int64_t)item;
@@ -265,6 +378,7 @@ namespace red {
 	}
 
 	int32_t array::getInt32(uint64_t index, int32_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeInt32) return (int32_t)item;
@@ -272,6 +386,7 @@ namespace red {
 	}
 
 	int16_t array::getInt16(uint64_t index, int16_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeInt16) return (int16_t)item;
@@ -279,6 +394,7 @@ namespace red {
 	}
 
 	int8_t array::getInt8(uint64_t index, int8_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeInt8) return (int8_t)item;
@@ -286,6 +402,7 @@ namespace red {
 	}
 
 	uint64_t array::getUInt64(uint64_t index, uint64_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeUInt64) return (uint64_t)item;
@@ -293,6 +410,7 @@ namespace red {
 	}
 
 	uint32_t array::getUInt32(uint64_t index, uint32_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeUInt32) return (uint32_t)item;
@@ -300,6 +418,7 @@ namespace red {
 	}
 
 	uint16_t array::getUInt16(uint64_t index, uint16_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeUInt16) return (uint16_t)item;
@@ -307,6 +426,7 @@ namespace red {
 	}
 
 	uint8_t array::getUInt8(uint64_t index, uint8_t def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeUInt8) return (uint8_t)item;
@@ -314,6 +434,7 @@ namespace red {
 	}
 
 	double array::getDouble(uint64_t index, double def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeDouble) return (double)item;
@@ -321,6 +442,7 @@ namespace red {
 	}
 
 	float array::getFloat(uint64_t index, float def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeFloat) return (float)item;
@@ -328,6 +450,7 @@ namespace red {
 	}
 
 	bool array::getBool(uint64_t index, bool def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeBool) return (bool)item;
@@ -335,6 +458,7 @@ namespace red {
 	}
 
 	array* array::getArray(uint64_t index, array* def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeArray) return (array*)item;
@@ -342,6 +466,7 @@ namespace red {
 	}
 
 	object* array::getObject(uint64_t index, object* def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typeObject) return (object*)item;
@@ -349,6 +474,7 @@ namespace red {
 	}
 
 	void* array::getPtr(uint64_t index, void* def) {
+		unique_lock<mutex> gaurd(amutex);
 		if (index >= items->size()) return def;
 		auto item = (*items)[index];
 		if (item.getType() == typePtr) return (void*)item;

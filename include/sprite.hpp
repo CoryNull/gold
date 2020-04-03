@@ -12,6 +12,6 @@ namespace red {
 
 	 public:
 		sprite();
-		sprite(object& config);
+		sprite(object config);
 	};
 }  // namespace red

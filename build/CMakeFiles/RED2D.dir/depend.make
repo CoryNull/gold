@@ -17,6 +17,7 @@ CMakeFiles/RED2D.dir/src/component.cpp.o: ../src/component.cpp
 
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/array.hpp
+CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/component.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/engine.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/entity.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/graphics.hpp
@@ -25,6 +26,7 @@ CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/renderable.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/var.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/window.hpp
+CMakeFiles/RED2D.dir/src/engine.cpp.o: ../include/worker.hpp
 CMakeFiles/RED2D.dir/src/engine.cpp.o: ../src/engine.cpp
 
 CMakeFiles/RED2D.dir/src/entity.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
@@ -36,19 +38,41 @@ CMakeFiles/RED2D.dir/src/entity.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/entity.cpp.o: ../include/var.hpp
 CMakeFiles/RED2D.dir/src/entity.cpp.o: ../src/entity.cpp
 
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bgfx/include/bgfx/bgfx.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bgfx/include/bgfx/defines.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bgfx/include/bgfx/platform.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/allocator.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/bx.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/config.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/debug.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/error.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/filepath.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/inline/allocator.inl
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/inline/bx.inl
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/inline/error.inl
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/inline/string.inl
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/macros.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/os.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/platform.h
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/bx/include/bx/string.h
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../include/graphics.hpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../include/object.hpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../include/var.hpp
+CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../include/window.hpp
 CMakeFiles/RED2D.dir/src/graphics.cpp.o: ../src/graphics.cpp
 
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
+CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/component.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/engine.hpp
+CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/entity.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/object.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/renderable.hpp
+CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/sprite.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/var.hpp
+CMakeFiles/RED2D.dir/src/main.cpp.o: ../include/worker.hpp
 CMakeFiles/RED2D.dir/src/main.cpp.o: ../src/main.cpp
 
 CMakeFiles/RED2D.dir/src/mesh.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
@@ -67,6 +91,7 @@ CMakeFiles/RED2D.dir/src/object.cpp.o: ../include/var.hpp
 CMakeFiles/RED2D.dir/src/object.cpp.o: ../src/object.cpp
 
 CMakeFiles/RED2D.dir/src/renderable.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
+CMakeFiles/RED2D.dir/src/renderable.cpp.o: ../include/component.hpp
 CMakeFiles/RED2D.dir/src/renderable.cpp.o: ../include/object.hpp
 CMakeFiles/RED2D.dir/src/renderable.cpp.o: ../include/renderable.hpp
 CMakeFiles/RED2D.dir/src/renderable.cpp.o: ../include/types.hpp
@@ -80,6 +105,21 @@ CMakeFiles/RED2D.dir/src/sprite.cpp.o: ../include/sprite.hpp
 CMakeFiles/RED2D.dir/src/sprite.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/sprite.cpp.o: ../include/var.hpp
 CMakeFiles/RED2D.dir/src/sprite.cpp.o: ../src/sprite.cpp
+
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../include/object.hpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../include/texture.hpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../include/types.hpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../include/var.hpp
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../src/texture.cpp
+
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../include/component.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../include/object.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../include/transform.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../include/types.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../include/var.hpp
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../src/transform.cpp
 
 CMakeFiles/RED2D.dir/src/types.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
 CMakeFiles/RED2D.dir/src/types.cpp.o: ../include/types.hpp
@@ -100,4 +140,11 @@ CMakeFiles/RED2D.dir/src/window.cpp.o: ../include/types.hpp
 CMakeFiles/RED2D.dir/src/window.cpp.o: ../include/var.hpp
 CMakeFiles/RED2D.dir/src/window.cpp.o: ../include/window.hpp
 CMakeFiles/RED2D.dir/src/window.cpp.o: ../src/window.cpp
+
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../3rdParty/json/single_include/nlohmann/json.hpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../include/object.hpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../include/types.hpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../include/var.hpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../include/worker.hpp
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../src/worker.cpp
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 #include "types.hpp"
 #include "var.hpp"
@@ -18,17 +19,21 @@ namespace red {
 
 	class object {
 	 protected:
+		friend class var;
 		typedef map<key, var> omap;
-		omap* items;
-		var parent;
+		shared_ptr<omap> items;
+		object* parent;
+		uint64_t id;
+		mutex omutex;
 
 	 public:
 		typedef initializer_list<omap::value_type> object_list;
 		object(object* parent = nullptr);
-		object(object& copy);
-		object(object& copy, object parent);
+		object(const object& copy);
+		object(object copy, object* parent);
 		object(object_list list, object* parent = nullptr);
 		object(json value);
+		~object();
 
 		omap::iterator begin();
 		omap::iterator end();
@@ -81,29 +86,32 @@ namespace red {
 		object* getObject(string name, object* def = 0);
 		method getMethod(string name, method def = 0);
 		void* getPtr(string name, void* def = 0);
+		var getVar(string name);
 
 		var operator[](string name);
-		var operator()(string name, var&);
+		var operator()(string name, var);
 		var operator()(string name);
+		bool operator==(const object& other);
+		object& operator=(const object rhs);
 
 		static var loadJSON(string path);
-		static void saveJSON(string path, object& value);
+		static void saveJSON(string path, object value);
 
 		static var loadBSON(string path);
-		static void saveBSON(string path, object& value);
+		static void saveBSON(string path, object value);
 
 		static var loadCBOR(string path);
-		static void saveCBOR(string path, object& value);
+		static void saveCBOR(string path, object value);
 
 		static var loadMsgPack(string path);
-		static void saveMsgPack(string path, object& value);
+		static void saveMsgPack(string path, object value);
 
 		static var loadUBJSON(string path);
-		static void saveUBJSON(string path, object& value);
+		static void saveUBJSON(string path, object value);
 
 		template <class oT>
 		oT create(string name, object* config = nullptr) {
-			oT o(*config);
+			oT o = config ? oT(*config) : oT();
 			setObject(name, o);
 			return *(oT*)getObject(name);
 		}

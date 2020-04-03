@@ -6,10 +6,14 @@ project(RED2D)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 set(JSON_Install OFF CACHE INTERNAL "")
 set(BUILD_TESTING OFF CACHE INTERNAL "")
+set(BGFX_BUILD_EXAMPLES ON CACHE INTERNAL "")
+set(BGFX_CONFIG_DEBUG OFF CACHE INTERNAL "")
+set(ENTRY_CONFIG_USE_SDL ON CACHE INTERNAL "")
+set(BGFX_OPENGL_VERSION "46" CACHE INTERNAL "")
 
 find_package (SDL2 REQUIRED)
 find_package (glm 0.9.9 REQUIRED)
-add_subdirectory(3rdParty/json)
+add_subdirectory(3rdParty)
 
 include_directories(include)
 unset(_MSC_VER CACHE)
@@ -26,9 +30,12 @@ add_executable(RED2D
 	src/object.cpp
 	src/renderable.cpp
 	src/sprite.cpp
+	src/texture.cpp
+	src/transform.cpp
 	src/types.cpp
 	src/var.cpp
 	src/window.cpp
+	src/worker.cpp
 )
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,6 +52,7 @@ target_include_directories(
 
 target_link_libraries (RED2D PRIVATE 
 	nlohmann_json::nlohmann_json
+	bgfx
 	${SDL2_LIBRARIES}
 )
 

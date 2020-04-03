@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/corynull/Projects/red-c/build/3rdParty/json/cmake_install.cmake")
+  include("/home/corynull/Projects/red-c/build/3rdParty/cmake_install.cmake")
 
 endif()
 

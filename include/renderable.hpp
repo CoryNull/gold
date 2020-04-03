@@ -5,12 +5,11 @@
 namespace red {
 	class renderable : public object {
 	 protected:
-		static object proto;
-
 		static var draw(object& self, var args);
 
 	 public:
+		static object proto;
 		renderable();
-		renderable(object& config);
+		renderable(object config);
 	};
 }  // namespace red

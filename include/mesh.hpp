@@ -11,6 +11,6 @@ namespace red {
 	 protected:
 	 public:
 		mesh();
-		mesh(object& config);
+		mesh(object config);
 	};
 }  // namespace red

@@ -297,9 +297,57 @@ CMakeFiles/RED2D.dir/src/sprite.cpp.o.provides: CMakeFiles/RED2D.dir/src/sprite.
 CMakeFiles/RED2D.dir/src/sprite.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/sprite.cpp.o
 
 
+CMakeFiles/RED2D.dir/src/texture.cpp.o: CMakeFiles/RED2D.dir/flags.make
+CMakeFiles/RED2D.dir/src/texture.cpp.o: ../src/texture.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/RED2D.dir/src/texture.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/texture.cpp.o -c /home/corynull/Projects/red-c/src/texture.cpp
+
+CMakeFiles/RED2D.dir/src/texture.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RED2D.dir/src/texture.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/corynull/Projects/red-c/src/texture.cpp > CMakeFiles/RED2D.dir/src/texture.cpp.i
+
+CMakeFiles/RED2D.dir/src/texture.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RED2D.dir/src/texture.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/corynull/Projects/red-c/src/texture.cpp -o CMakeFiles/RED2D.dir/src/texture.cpp.s
+
+CMakeFiles/RED2D.dir/src/texture.cpp.o.requires:
+
+.PHONY : CMakeFiles/RED2D.dir/src/texture.cpp.o.requires
+
+CMakeFiles/RED2D.dir/src/texture.cpp.o.provides: CMakeFiles/RED2D.dir/src/texture.cpp.o.requires
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/texture.cpp.o.provides.build
+.PHONY : CMakeFiles/RED2D.dir/src/texture.cpp.o.provides
+
+CMakeFiles/RED2D.dir/src/texture.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/texture.cpp.o
+
+
+CMakeFiles/RED2D.dir/src/transform.cpp.o: CMakeFiles/RED2D.dir/flags.make
+CMakeFiles/RED2D.dir/src/transform.cpp.o: ../src/transform.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/RED2D.dir/src/transform.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/transform.cpp.o -c /home/corynull/Projects/red-c/src/transform.cpp
+
+CMakeFiles/RED2D.dir/src/transform.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RED2D.dir/src/transform.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/corynull/Projects/red-c/src/transform.cpp > CMakeFiles/RED2D.dir/src/transform.cpp.i
+
+CMakeFiles/RED2D.dir/src/transform.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RED2D.dir/src/transform.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/corynull/Projects/red-c/src/transform.cpp -o CMakeFiles/RED2D.dir/src/transform.cpp.s
+
+CMakeFiles/RED2D.dir/src/transform.cpp.o.requires:
+
+.PHONY : CMakeFiles/RED2D.dir/src/transform.cpp.o.requires
+
+CMakeFiles/RED2D.dir/src/transform.cpp.o.provides: CMakeFiles/RED2D.dir/src/transform.cpp.o.requires
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/transform.cpp.o.provides.build
+.PHONY : CMakeFiles/RED2D.dir/src/transform.cpp.o.provides
+
+CMakeFiles/RED2D.dir/src/transform.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/transform.cpp.o
+
+
 CMakeFiles/RED2D.dir/src/types.cpp.o: CMakeFiles/RED2D.dir/flags.make
 CMakeFiles/RED2D.dir/src/types.cpp.o: ../src/types.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/RED2D.dir/src/types.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/RED2D.dir/src/types.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/types.cpp.o -c /home/corynull/Projects/red-c/src/types.cpp
 
 CMakeFiles/RED2D.dir/src/types.cpp.i: cmake_force
@@ -323,7 +371,7 @@ CMakeFiles/RED2D.dir/src/types.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/ty
 
 CMakeFiles/RED2D.dir/src/var.cpp.o: CMakeFiles/RED2D.dir/flags.make
 CMakeFiles/RED2D.dir/src/var.cpp.o: ../src/var.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/RED2D.dir/src/var.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/RED2D.dir/src/var.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/var.cpp.o -c /home/corynull/Projects/red-c/src/var.cpp
 
 CMakeFiles/RED2D.dir/src/var.cpp.i: cmake_force
@@ -347,7 +395,7 @@ CMakeFiles/RED2D.dir/src/var.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/var.
 
 CMakeFiles/RED2D.dir/src/window.cpp.o: CMakeFiles/RED2D.dir/flags.make
 CMakeFiles/RED2D.dir/src/window.cpp.o: ../src/window.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/RED2D.dir/src/window.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/RED2D.dir/src/window.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/window.cpp.o -c /home/corynull/Projects/red-c/src/window.cpp
 
 CMakeFiles/RED2D.dir/src/window.cpp.i: cmake_force
@@ -369,6 +417,30 @@ CMakeFiles/RED2D.dir/src/window.cpp.o.provides: CMakeFiles/RED2D.dir/src/window.
 CMakeFiles/RED2D.dir/src/window.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/window.cpp.o
 
 
+CMakeFiles/RED2D.dir/src/worker.cpp.o: CMakeFiles/RED2D.dir/flags.make
+CMakeFiles/RED2D.dir/src/worker.cpp.o: ../src/worker.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/RED2D.dir/src/worker.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/RED2D.dir/src/worker.cpp.o -c /home/corynull/Projects/red-c/src/worker.cpp
+
+CMakeFiles/RED2D.dir/src/worker.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/RED2D.dir/src/worker.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/corynull/Projects/red-c/src/worker.cpp > CMakeFiles/RED2D.dir/src/worker.cpp.i
+
+CMakeFiles/RED2D.dir/src/worker.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/RED2D.dir/src/worker.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/corynull/Projects/red-c/src/worker.cpp -o CMakeFiles/RED2D.dir/src/worker.cpp.s
+
+CMakeFiles/RED2D.dir/src/worker.cpp.o.requires:
+
+.PHONY : CMakeFiles/RED2D.dir/src/worker.cpp.o.requires
+
+CMakeFiles/RED2D.dir/src/worker.cpp.o.provides: CMakeFiles/RED2D.dir/src/worker.cpp.o.requires
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/worker.cpp.o.provides.build
+.PHONY : CMakeFiles/RED2D.dir/src/worker.cpp.o.provides
+
+CMakeFiles/RED2D.dir/src/worker.cpp.o.provides.build: CMakeFiles/RED2D.dir/src/worker.cpp.o
+
+
 # Object files for target RED2D
 RED2D_OBJECTS = \
 "CMakeFiles/RED2D.dir/src/array.cpp.o" \
@@ -381,9 +453,12 @@ RED2D_OBJECTS = \
 "CMakeFiles/RED2D.dir/src/object.cpp.o" \
 "CMakeFiles/RED2D.dir/src/renderable.cpp.o" \
 "CMakeFiles/RED2D.dir/src/sprite.cpp.o" \
+"CMakeFiles/RED2D.dir/src/texture.cpp.o" \
+"CMakeFiles/RED2D.dir/src/transform.cpp.o" \
 "CMakeFiles/RED2D.dir/src/types.cpp.o" \
 "CMakeFiles/RED2D.dir/src/var.cpp.o" \
-"CMakeFiles/RED2D.dir/src/window.cpp.o"
+"CMakeFiles/RED2D.dir/src/window.cpp.o" \
+"CMakeFiles/RED2D.dir/src/worker.cpp.o"
 
 # External object files for target RED2D
 RED2D_EXTERNAL_OBJECTS =
@@ -398,12 +473,33 @@ RED2D: CMakeFiles/RED2D.dir/src/mesh.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/object.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/renderable.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/sprite.cpp.o
+RED2D: CMakeFiles/RED2D.dir/src/texture.cpp.o
+RED2D: CMakeFiles/RED2D.dir/src/transform.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/types.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/var.cpp.o
 RED2D: CMakeFiles/RED2D.dir/src/window.cpp.o
+RED2D: CMakeFiles/RED2D.dir/src/worker.cpp.o
 RED2D: CMakeFiles/RED2D.dir/build.make
+RED2D: 3rdParty/libbgfxd.a
+RED2D: 3rdParty/libbimgd.a
+RED2D: 3rdParty/libastc-codec.a
+RED2D: 3rdParty/libastc.a
+RED2D: 3rdParty/libedtaa3.a
+RED2D: 3rdParty/libetc1.a
+RED2D: 3rdParty/libetc2.a
+RED2D: 3rdParty/libiqa.a
+RED2D: 3rdParty/libsquish.a
+RED2D: 3rdParty/libnvtt.a
+RED2D: 3rdParty/libbxd.a
+RED2D: 3rdParty/libpvrtc.a
+RED2D: /usr/lib/x86_64-linux-gnu/libSM.so
+RED2D: /usr/lib/x86_64-linux-gnu/libICE.so
+RED2D: /usr/lib/x86_64-linux-gnu/libX11.so
+RED2D: /usr/lib/x86_64-linux-gnu/libXext.so
+RED2D: /usr/lib/x86_64-linux-gnu/libGL.so
+RED2D: /usr/lib/x86_64-linux-gnu/libGLU.so
 RED2D: CMakeFiles/RED2D.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable RED2D"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/corynull/Projects/red-c/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable RED2D"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/RED2D.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -421,9 +517,12 @@ CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/mesh.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/object.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/renderable.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/sprite.cpp.o.requires
+CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/texture.cpp.o.requires
+CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/transform.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/types.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/var.cpp.o.requires
 CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/window.cpp.o.requires
+CMakeFiles/RED2D.dir/requires: CMakeFiles/RED2D.dir/src/worker.cpp.o.requires
 
 .PHONY : CMakeFiles/RED2D.dir/requires
 

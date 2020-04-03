@@ -49,7 +49,7 @@ namespace red {
 		bool isSigned();
 		bool isBool();
 		bool isObject();
-		bool isObject(object* proto);
+		bool isObject(object proto);
 		bool isArray();
 		bool isEmpty();
 		bool isError();
@@ -87,7 +87,7 @@ namespace red {
 		operator object*() const;
 		operator method() const;
 		operator void*() const;
-		var operator()(object&, var&);
+		var operator()(object&, var);
 		var operator()(object&);
 	};
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "types.hpp"
 #include "var.hpp"
@@ -13,7 +14,8 @@ namespace red {
 	class array {
 	 protected:
 		typedef std::vector<var> avec;
-		avec* items;
+		shared_ptr<avec> items;
+		mutex amutex;
 
 		void pushData(void* dataPtr, uint64_t size, types type);
 
@@ -21,6 +23,7 @@ namespace red {
 		array();
 		array(array& copy);
 		array(json value);
+		~array();
 
 		uint64_t getSize();
 		void pop();
@@ -34,6 +37,8 @@ namespace red {
 		avec::iterator begin();
 		avec::iterator end();
 		void erase(avec::iterator i);
+		avec::iterator find(var item);
+		avec::iterator find(var item, avec::iterator start);
 
 		array& operator+=(var item);
 		array& operator-=(var item);
@@ -50,8 +55,8 @@ namespace red {
 		void pushDouble(double value);
 		void pushFloat(float value);
 		void pushBool(bool value);
-		void pushArray(array* value);
-		void pushObject(object* value);
+		void pushArray(array value);
+		void pushObject(object value);
 		void pushPtr(void* value);
 		void pushNull();
 
@@ -67,8 +72,8 @@ namespace red {
 		void setDouble(uint64_t index, double value);
 		void setFloat(uint64_t index, float value);
 		void setBool(uint64_t index, bool value);
-		void setArray(uint64_t index, array* value);
-		void setObject(uint64_t index, object* value);
+		void setArray(uint64_t index, array value);
+		void setObject(uint64_t index, object value);
 		void setPtr(uint64_t index, void* value);
 		void setNull(uint64_t index);
 

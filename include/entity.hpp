@@ -16,6 +16,9 @@ namespace red {
 
 	 public:
 		entity();
-		entity(object& config);
+		entity(object config);
+
+		entity& operator+=(var args);
+		entity& operator-=(var args);
 	};
 }  // namespace red

@@ -9,9 +9,12 @@ file(REMOVE_RECURSE
   "CMakeFiles/RED2D.dir/src/object.cpp.o"
   "CMakeFiles/RED2D.dir/src/renderable.cpp.o"
   "CMakeFiles/RED2D.dir/src/sprite.cpp.o"
+  "CMakeFiles/RED2D.dir/src/texture.cpp.o"
+  "CMakeFiles/RED2D.dir/src/transform.cpp.o"
   "CMakeFiles/RED2D.dir/src/types.cpp.o"
   "CMakeFiles/RED2D.dir/src/var.cpp.o"
   "CMakeFiles/RED2D.dir/src/window.cpp.o"
+  "CMakeFiles/RED2D.dir/src/worker.cpp.o"
   "RED2D.pdb"
   "RED2D"
 )

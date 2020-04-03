@@ -12,7 +12,7 @@ namespace red {
 	class object;
 	class array;
 	class var;
-	typedef var (*method)(object&, var&);
+	typedef var (*method)(object&, var);
 	typedef vector<uint8_t> binary;
 
 	typedef enum types_t {

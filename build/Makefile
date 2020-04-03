@@ -56,16 +56,17 @@ CMAKE_BINARY_DIR = /home/corynull/Projects/red-c/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
 
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,6 +78,51 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -122,6 +168,864 @@ RED2D: cmake_check_build_system
 RED2D/fast:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/build
 .PHONY : RED2D/fast
+
+#=============================================================================
+# Target rules for targets named example-39-assao
+
+# Build rule for target.
+example-39-assao: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-39-assao
+.PHONY : example-39-assao
+
+# fast build rule for target.
+example-39-assao/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-39-assao.dir/build.make 3rdParty/CMakeFiles/example-39-assao.dir/build
+.PHONY : example-39-assao/fast
+
+#=============================================================================
+# Target rules for targets named example-38-bloom
+
+# Build rule for target.
+example-38-bloom: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-38-bloom
+.PHONY : example-38-bloom
+
+# fast build rule for target.
+example-38-bloom/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-38-bloom.dir/build.make 3rdParty/CMakeFiles/example-38-bloom.dir/build
+.PHONY : example-38-bloom/fast
+
+#=============================================================================
+# Target rules for targets named example-36-sky
+
+# Build rule for target.
+example-36-sky: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-36-sky
+.PHONY : example-36-sky
+
+# fast build rule for target.
+example-36-sky/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-36-sky.dir/build.make 3rdParty/CMakeFiles/example-36-sky.dir/build
+.PHONY : example-36-sky/fast
+
+#=============================================================================
+# Target rules for targets named example-35-dynamic
+
+# Build rule for target.
+example-35-dynamic: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-35-dynamic
+.PHONY : example-35-dynamic
+
+# fast build rule for target.
+example-35-dynamic/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-35-dynamic.dir/build.make 3rdParty/CMakeFiles/example-35-dynamic.dir/build
+.PHONY : example-35-dynamic/fast
+
+#=============================================================================
+# Target rules for targets named example-34-mvs
+
+# Build rule for target.
+example-34-mvs: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-34-mvs
+.PHONY : example-34-mvs
+
+# fast build rule for target.
+example-34-mvs/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-34-mvs.dir/build.make 3rdParty/CMakeFiles/example-34-mvs.dir/build
+.PHONY : example-34-mvs/fast
+
+#=============================================================================
+# Target rules for targets named example-33-pom
+
+# Build rule for target.
+example-33-pom: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-33-pom
+.PHONY : example-33-pom
+
+# fast build rule for target.
+example-33-pom/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-33-pom.dir/build.make 3rdParty/CMakeFiles/example-33-pom.dir/build
+.PHONY : example-33-pom/fast
+
+#=============================================================================
+# Target rules for targets named example-32-particles
+
+# Build rule for target.
+example-32-particles: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-32-particles
+.PHONY : example-32-particles
+
+# fast build rule for target.
+example-32-particles/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-32-particles.dir/build.make 3rdParty/CMakeFiles/example-32-particles.dir/build
+.PHONY : example-32-particles/fast
+
+#=============================================================================
+# Target rules for targets named example-26-occlusion
+
+# Build rule for target.
+example-26-occlusion: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-26-occlusion
+.PHONY : example-26-occlusion
+
+# fast build rule for target.
+example-26-occlusion/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-26-occlusion.dir/build.make 3rdParty/CMakeFiles/example-26-occlusion.dir/build
+.PHONY : example-26-occlusion/fast
+
+#=============================================================================
+# Target rules for targets named example-24-nbody
+
+# Build rule for target.
+example-24-nbody: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-24-nbody
+.PHONY : example-24-nbody
+
+# fast build rule for target.
+example-24-nbody/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-24-nbody.dir/build.make 3rdParty/CMakeFiles/example-24-nbody.dir/build
+.PHONY : example-24-nbody/fast
+
+#=============================================================================
+# Target rules for targets named example-23-vectordisplay
+
+# Build rule for target.
+example-23-vectordisplay: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-23-vectordisplay
+.PHONY : example-23-vectordisplay
+
+# fast build rule for target.
+example-23-vectordisplay/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-23-vectordisplay.dir/build.make 3rdParty/CMakeFiles/example-23-vectordisplay.dir/build
+.PHONY : example-23-vectordisplay/fast
+
+#=============================================================================
+# Target rules for targets named example-22-windows
+
+# Build rule for target.
+example-22-windows: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-22-windows
+.PHONY : example-22-windows
+
+# fast build rule for target.
+example-22-windows/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-22-windows.dir/build.make 3rdParty/CMakeFiles/example-22-windows.dir/build
+.PHONY : example-22-windows/fast
+
+#=============================================================================
+# Target rules for targets named example-20-nanovg
+
+# Build rule for target.
+example-20-nanovg: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-20-nanovg
+.PHONY : example-20-nanovg
+
+# fast build rule for target.
+example-20-nanovg/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-20-nanovg.dir/build.make 3rdParty/CMakeFiles/example-20-nanovg.dir/build
+.PHONY : example-20-nanovg/fast
+
+#=============================================================================
+# Target rules for targets named example-19-oit
+
+# Build rule for target.
+example-19-oit: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-19-oit
+.PHONY : example-19-oit
+
+# fast build rule for target.
+example-19-oit/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-19-oit.dir/build.make 3rdParty/CMakeFiles/example-19-oit.dir/build
+.PHONY : example-19-oit/fast
+
+#=============================================================================
+# Target rules for targets named example-12-lod
+
+# Build rule for target.
+example-12-lod: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-12-lod
+.PHONY : example-12-lod
+
+# fast build rule for target.
+example-12-lod/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-12-lod.dir/build.make 3rdParty/CMakeFiles/example-12-lod.dir/build
+.PHONY : example-12-lod/fast
+
+#=============================================================================
+# Target rules for targets named example-10-font
+
+# Build rule for target.
+example-10-font: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-10-font
+.PHONY : example-10-font
+
+# fast build rule for target.
+example-10-font/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-10-font.dir/build.make 3rdParty/CMakeFiles/example-10-font.dir/build
+.PHONY : example-10-font/fast
+
+#=============================================================================
+# Target rules for targets named example-09-hdr
+
+# Build rule for target.
+example-09-hdr: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-09-hdr
+.PHONY : example-09-hdr
+
+# fast build rule for target.
+example-09-hdr/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-09-hdr.dir/build.make 3rdParty/CMakeFiles/example-09-hdr.dir/build
+.PHONY : example-09-hdr/fast
+
+#=============================================================================
+# Target rules for targets named example-15-shadowmaps-simple
+
+# Build rule for target.
+example-15-shadowmaps-simple: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-15-shadowmaps-simple
+.PHONY : example-15-shadowmaps-simple
+
+# fast build rule for target.
+example-15-shadowmaps-simple/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-15-shadowmaps-simple.dir/build.make 3rdParty/CMakeFiles/example-15-shadowmaps-simple.dir/build
+.PHONY : example-15-shadowmaps-simple/fast
+
+#=============================================================================
+# Target rules for targets named example-07-callback
+
+# Build rule for target.
+example-07-callback: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-07-callback
+.PHONY : example-07-callback
+
+# fast build rule for target.
+example-07-callback/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-07-callback.dir/build.make 3rdParty/CMakeFiles/example-07-callback.dir/build
+.PHONY : example-07-callback/fast
+
+#=============================================================================
+# Target rules for targets named example-06-bump
+
+# Build rule for target.
+example-06-bump: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-06-bump
+.PHONY : example-06-bump
+
+# fast build rule for target.
+example-06-bump/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-06-bump.dir/build.make 3rdParty/CMakeFiles/example-06-bump.dir/build
+.PHONY : example-06-bump/fast
+
+#=============================================================================
+# Target rules for targets named example-08-update
+
+# Build rule for target.
+example-08-update: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-08-update
+.PHONY : example-08-update
+
+# fast build rule for target.
+example-08-update/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-08-update.dir/build.make 3rdParty/CMakeFiles/example-08-update.dir/build
+.PHONY : example-08-update/fast
+
+#=============================================================================
+# Target rules for targets named tools
+
+# Build rule for target.
+tools: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 tools
+.PHONY : tools
+
+# fast build rule for target.
+tools/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/tools.dir/build.make 3rdParty/CMakeFiles/tools.dir/build
+.PHONY : tools/fast
+
+#=============================================================================
+# Target rules for targets named bgfx
+
+# Build rule for target.
+bgfx: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 bgfx
+.PHONY : bgfx
+
+# fast build rule for target.
+bgfx/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/bgfx.dir/build.make 3rdParty/CMakeFiles/bgfx.dir/build
+.PHONY : bgfx/fast
+
+#=============================================================================
+# Target rules for targets named shaderc
+
+# Build rule for target.
+shaderc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 shaderc
+.PHONY : shaderc
+
+# fast build rule for target.
+shaderc/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/shaderc.dir/build.make 3rdParty/CMakeFiles/shaderc.dir/build
+.PHONY : shaderc/fast
+
+#=============================================================================
+# Target rules for targets named nvtt
+
+# Build rule for target.
+nvtt: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 nvtt
+.PHONY : nvtt
+
+# fast build rule for target.
+nvtt/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/nvtt.dir/build.make 3rdParty/CMakeFiles/nvtt.dir/build
+.PHONY : nvtt/fast
+
+#=============================================================================
+# Target rules for targets named iqa
+
+# Build rule for target.
+iqa: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 iqa
+.PHONY : iqa
+
+# fast build rule for target.
+iqa/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/iqa.dir/build.make 3rdParty/CMakeFiles/iqa.dir/build
+.PHONY : iqa/fast
+
+#=============================================================================
+# Target rules for targets named etc2
+
+# Build rule for target.
+etc2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 etc2
+.PHONY : etc2
+
+# fast build rule for target.
+etc2/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/etc2.dir/build.make 3rdParty/CMakeFiles/etc2.dir/build
+.PHONY : etc2/fast
+
+#=============================================================================
+# Target rules for targets named bimg
+
+# Build rule for target.
+bimg: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 bimg
+.PHONY : bimg
+
+# fast build rule for target.
+bimg/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/bimg.dir/build.make 3rdParty/CMakeFiles/bimg.dir/build
+.PHONY : bimg/fast
+
+#=============================================================================
+# Target rules for targets named glcpp
+
+# Build rule for target.
+glcpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glcpp
+.PHONY : glcpp
+
+# fast build rule for target.
+glcpp/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/glcpp.dir/build.make 3rdParty/CMakeFiles/glcpp.dir/build
+.PHONY : glcpp/fast
+
+#=============================================================================
+# Target rules for targets named example-05-instancing
+
+# Build rule for target.
+example-05-instancing: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-05-instancing
+.PHONY : example-05-instancing
+
+# fast build rule for target.
+example-05-instancing/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-05-instancing.dir/build.make 3rdParty/CMakeFiles/example-05-instancing.dir/build
+.PHONY : example-05-instancing/fast
+
+#=============================================================================
+# Target rules for targets named spirv-cross
+
+# Build rule for target.
+spirv-cross: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 spirv-cross
+.PHONY : spirv-cross
+
+# fast build rule for target.
+spirv-cross/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/spirv-cross.dir/build.make 3rdParty/CMakeFiles/spirv-cross.dir/build
+.PHONY : spirv-cross/fast
+
+#=============================================================================
+# Target rules for targets named example-14-shadowvolumes
+
+# Build rule for target.
+example-14-shadowvolumes: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-14-shadowvolumes
+.PHONY : example-14-shadowvolumes
+
+# fast build rule for target.
+example-14-shadowvolumes/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-14-shadowvolumes.dir/build.make 3rdParty/CMakeFiles/example-14-shadowvolumes.dir/build
+.PHONY : example-14-shadowvolumes/fast
+
+#=============================================================================
+# Target rules for targets named etc1
+
+# Build rule for target.
+etc1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 etc1
+.PHONY : etc1
+
+# fast build rule for target.
+etc1/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/etc1.dir/build.make 3rdParty/CMakeFiles/etc1.dir/build
+.PHONY : etc1/fast
+
+#=============================================================================
+# Target rules for targets named example-31-rsm
+
+# Build rule for target.
+example-31-rsm: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-31-rsm
+.PHONY : example-31-rsm
+
+# fast build rule for target.
+example-31-rsm/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-31-rsm.dir/build.make 3rdParty/CMakeFiles/example-31-rsm.dir/build
+.PHONY : example-31-rsm/fast
+
+#=============================================================================
+# Target rules for targets named example-01-cubes
+
+# Build rule for target.
+example-01-cubes: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-01-cubes
+.PHONY : example-01-cubes
+
+# fast build rule for target.
+example-01-cubes/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-01-cubes.dir/build.make 3rdParty/CMakeFiles/example-01-cubes.dir/build
+.PHONY : example-01-cubes/fast
+
+#=============================================================================
+# Target rules for targets named example-25-c99
+
+# Build rule for target.
+example-25-c99: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-25-c99
+.PHONY : example-25-c99
+
+# fast build rule for target.
+example-25-c99/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-25-c99.dir/build.make 3rdParty/CMakeFiles/example-25-c99.dir/build
+.PHONY : example-25-c99/fast
+
+#=============================================================================
+# Target rules for targets named squish
+
+# Build rule for target.
+squish: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 squish
+.PHONY : squish
+
+# fast build rule for target.
+squish/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/squish.dir/build.make 3rdParty/CMakeFiles/squish.dir/build
+.PHONY : squish/fast
+
+#=============================================================================
+# Target rules for targets named bx
+
+# Build rule for target.
+bx: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 bx
+.PHONY : bx
+
+# fast build rule for target.
+bx/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/bx.dir/build.make 3rdParty/CMakeFiles/bx.dir/build
+.PHONY : bx/fast
+
+#=============================================================================
+# Target rules for targets named example-30-picking
+
+# Build rule for target.
+example-30-picking: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-30-picking
+.PHONY : example-30-picking
+
+# fast build rule for target.
+example-30-picking/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-30-picking.dir/build.make 3rdParty/CMakeFiles/example-30-picking.dir/build
+.PHONY : example-30-picking/fast
+
+#=============================================================================
+# Target rules for targets named astc-codec
+
+# Build rule for target.
+astc-codec: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 astc-codec
+.PHONY : astc-codec
+
+# fast build rule for target.
+astc-codec/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/astc-codec.dir/build.make 3rdParty/CMakeFiles/astc-codec.dir/build
+.PHONY : astc-codec/fast
+
+#=============================================================================
+# Target rules for targets named astc
+
+# Build rule for target.
+astc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 astc
+.PHONY : astc
+
+# fast build rule for target.
+astc/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/astc.dir/build.make 3rdParty/CMakeFiles/astc.dir/build
+.PHONY : astc/fast
+
+#=============================================================================
+# Target rules for targets named texturev
+
+# Build rule for target.
+texturev: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 texturev
+.PHONY : texturev
+
+# fast build rule for target.
+texturev/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/texturev.dir/build.make 3rdParty/CMakeFiles/texturev.dir/build
+.PHONY : texturev/fast
+
+#=============================================================================
+# Target rules for targets named meshoptimizer
+
+# Build rule for target.
+meshoptimizer: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 meshoptimizer
+.PHONY : meshoptimizer
+
+# fast build rule for target.
+meshoptimizer/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/meshoptimizer.dir/build.make 3rdParty/CMakeFiles/meshoptimizer.dir/build
+.PHONY : meshoptimizer/fast
+
+#=============================================================================
+# Target rules for targets named example-28-wireframe
+
+# Build rule for target.
+example-28-wireframe: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-28-wireframe
+.PHONY : example-28-wireframe
+
+# fast build rule for target.
+example-28-wireframe/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-28-wireframe.dir/build.make 3rdParty/CMakeFiles/example-28-wireframe.dir/build
+.PHONY : example-28-wireframe/fast
+
+#=============================================================================
+# Target rules for targets named example-common
+
+# Build rule for target.
+example-common: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-common
+.PHONY : example-common
+
+# fast build rule for target.
+example-common/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-common.dir/build.make 3rdParty/CMakeFiles/example-common.dir/build
+.PHONY : example-common/fast
+
+#=============================================================================
+# Target rules for targets named example-29-debugdraw
+
+# Build rule for target.
+example-29-debugdraw: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-29-debugdraw
+.PHONY : example-29-debugdraw
+
+# fast build rule for target.
+example-29-debugdraw/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-29-debugdraw.dir/build.make 3rdParty/CMakeFiles/example-29-debugdraw.dir/build
+.PHONY : example-29-debugdraw/fast
+
+#=============================================================================
+# Target rules for targets named geometryc
+
+# Build rule for target.
+geometryc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 geometryc
+.PHONY : geometryc
+
+# fast build rule for target.
+geometryc/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/geometryc.dir/build.make 3rdParty/CMakeFiles/geometryc.dir/build
+.PHONY : geometryc/fast
+
+#=============================================================================
+# Target rules for targets named example-17-drawstress
+
+# Build rule for target.
+example-17-drawstress: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-17-drawstress
+.PHONY : example-17-drawstress
+
+# fast build rule for target.
+example-17-drawstress/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-17-drawstress.dir/build.make 3rdParty/CMakeFiles/example-17-drawstress.dir/build
+.PHONY : example-17-drawstress/fast
+
+#=============================================================================
+# Target rules for targets named example-02-metaballs
+
+# Build rule for target.
+example-02-metaballs: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-02-metaballs
+.PHONY : example-02-metaballs
+
+# fast build rule for target.
+example-02-metaballs/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-02-metaballs.dir/build.make 3rdParty/CMakeFiles/example-02-metaballs.dir/build
+.PHONY : example-02-metaballs/fast
+
+#=============================================================================
+# Target rules for targets named fcpp
+
+# Build rule for target.
+fcpp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 fcpp
+.PHONY : fcpp
+
+# fast build rule for target.
+fcpp/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/fcpp.dir/build.make 3rdParty/CMakeFiles/fcpp.dir/build
+.PHONY : fcpp/fast
+
+#=============================================================================
+# Target rules for targets named example-16-shadowmaps
+
+# Build rule for target.
+example-16-shadowmaps: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-16-shadowmaps
+.PHONY : example-16-shadowmaps
+
+# fast build rule for target.
+example-16-shadowmaps/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-16-shadowmaps.dir/build.make 3rdParty/CMakeFiles/example-16-shadowmaps.dir/build
+.PHONY : example-16-shadowmaps/fast
+
+#=============================================================================
+# Target rules for targets named example-00-helloworld
+
+# Build rule for target.
+example-00-helloworld: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-00-helloworld
+.PHONY : example-00-helloworld
+
+# fast build rule for target.
+example-00-helloworld/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-00-helloworld.dir/build.make 3rdParty/CMakeFiles/example-00-helloworld.dir/build
+.PHONY : example-00-helloworld/fast
+
+#=============================================================================
+# Target rules for targets named example-18-ibl
+
+# Build rule for target.
+example-18-ibl: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-18-ibl
+.PHONY : example-18-ibl
+
+# fast build rule for target.
+example-18-ibl/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-18-ibl.dir/build.make 3rdParty/CMakeFiles/example-18-ibl.dir/build
+.PHONY : example-18-ibl/fast
+
+#=============================================================================
+# Target rules for targets named mesa
+
+# Build rule for target.
+mesa: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 mesa
+.PHONY : mesa
+
+# fast build rule for target.
+mesa/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/mesa.dir/build.make 3rdParty/CMakeFiles/mesa.dir/build
+.PHONY : mesa/fast
+
+#=============================================================================
+# Target rules for targets named example-13-stencil
+
+# Build rule for target.
+example-13-stencil: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-13-stencil
+.PHONY : example-13-stencil
+
+# fast build rule for target.
+example-13-stencil/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-13-stencil.dir/build.make 3rdParty/CMakeFiles/example-13-stencil.dir/build
+.PHONY : example-13-stencil/fast
+
+#=============================================================================
+# Target rules for targets named texturec
+
+# Build rule for target.
+texturec: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 texturec
+.PHONY : texturec
+
+# fast build rule for target.
+texturec/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/texturec.dir/build.make 3rdParty/CMakeFiles/texturec.dir/build
+.PHONY : texturec/fast
+
+#=============================================================================
+# Target rules for targets named glsl-optimizer
+
+# Build rule for target.
+glsl-optimizer: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glsl-optimizer
+.PHONY : glsl-optimizer
+
+# fast build rule for target.
+glsl-optimizer/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/glsl-optimizer.dir/build.make 3rdParty/CMakeFiles/glsl-optimizer.dir/build
+.PHONY : glsl-optimizer/fast
+
+#=============================================================================
+# Target rules for targets named spirv-tools
+
+# Build rule for target.
+spirv-tools: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 spirv-tools
+.PHONY : spirv-tools
+
+# fast build rule for target.
+spirv-tools/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/spirv-tools.dir/build.make 3rdParty/CMakeFiles/spirv-tools.dir/build
+.PHONY : spirv-tools/fast
+
+#=============================================================================
+# Target rules for targets named edtaa3
+
+# Build rule for target.
+edtaa3: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 edtaa3
+.PHONY : edtaa3
+
+# fast build rule for target.
+edtaa3/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/edtaa3.dir/build.make 3rdParty/CMakeFiles/edtaa3.dir/build
+.PHONY : edtaa3/fast
+
+#=============================================================================
+# Target rules for targets named glslang
+
+# Build rule for target.
+glslang: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glslang
+.PHONY : glslang
+
+# fast build rule for target.
+glslang/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/glslang.dir/build.make 3rdParty/CMakeFiles/glslang.dir/build
+.PHONY : glslang/fast
+
+#=============================================================================
+# Target rules for targets named pvrtc
+
+# Build rule for target.
+pvrtc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 pvrtc
+.PHONY : pvrtc
+
+# fast build rule for target.
+pvrtc/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/pvrtc.dir/build.make 3rdParty/CMakeFiles/pvrtc.dir/build
+.PHONY : pvrtc/fast
+
+#=============================================================================
+# Target rules for targets named dear-imgui
+
+# Build rule for target.
+dear-imgui: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 dear-imgui
+.PHONY : dear-imgui
+
+# fast build rule for target.
+dear-imgui/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/dear-imgui.dir/build.make 3rdParty/CMakeFiles/dear-imgui.dir/build
+.PHONY : dear-imgui/fast
+
+#=============================================================================
+# Target rules for targets named example-27-terrain
+
+# Build rule for target.
+example-27-terrain: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-27-terrain
+.PHONY : example-27-terrain
+
+# fast build rule for target.
+example-27-terrain/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-27-terrain.dir/build.make 3rdParty/CMakeFiles/example-27-terrain.dir/build
+.PHONY : example-27-terrain/fast
+
+#=============================================================================
+# Target rules for targets named example-11-fontsdf
+
+# Build rule for target.
+example-11-fontsdf: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-11-fontsdf
+.PHONY : example-11-fontsdf
+
+# fast build rule for target.
+example-11-fontsdf/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-11-fontsdf.dir/build.make 3rdParty/CMakeFiles/example-11-fontsdf.dir/build
+.PHONY : example-11-fontsdf/fast
+
+#=============================================================================
+# Target rules for targets named examples
+
+# Build rule for target.
+examples: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 examples
+.PHONY : examples
+
+# fast build rule for target.
+examples/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/examples.dir/build.make 3rdParty/CMakeFiles/examples.dir/build
+.PHONY : examples/fast
+
+#=============================================================================
+# Target rules for targets named example-03-raymarch
+
+# Build rule for target.
+example-03-raymarch: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-03-raymarch
+.PHONY : example-03-raymarch
+
+# fast build rule for target.
+example-03-raymarch/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-03-raymarch.dir/build.make 3rdParty/CMakeFiles/example-03-raymarch.dir/build
+.PHONY : example-03-raymarch/fast
+
+#=============================================================================
+# Target rules for targets named example-04-mesh
+
+# Build rule for target.
+example-04-mesh: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example-04-mesh
+.PHONY : example-04-mesh
+
+# fast build rule for target.
+example-04-mesh/fast:
+	$(MAKE) -f 3rdParty/CMakeFiles/example-04-mesh.dir/build.make 3rdParty/CMakeFiles/example-04-mesh.dir/build
+.PHONY : example-04-mesh/fast
 
 src/array.o: src/array.cpp.o
 
@@ -393,6 +1297,60 @@ src/sprite.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/sprite.cpp.s
 .PHONY : src/sprite.cpp.s
 
+src/texture.o: src/texture.cpp.o
+
+.PHONY : src/texture.o
+
+# target to build an object file
+src/texture.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/texture.cpp.o
+.PHONY : src/texture.cpp.o
+
+src/texture.i: src/texture.cpp.i
+
+.PHONY : src/texture.i
+
+# target to preprocess a source file
+src/texture.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/texture.cpp.i
+.PHONY : src/texture.cpp.i
+
+src/texture.s: src/texture.cpp.s
+
+.PHONY : src/texture.s
+
+# target to generate assembly for a file
+src/texture.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/texture.cpp.s
+.PHONY : src/texture.cpp.s
+
+src/transform.o: src/transform.cpp.o
+
+.PHONY : src/transform.o
+
+# target to build an object file
+src/transform.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/transform.cpp.o
+.PHONY : src/transform.cpp.o
+
+src/transform.i: src/transform.cpp.i
+
+.PHONY : src/transform.i
+
+# target to preprocess a source file
+src/transform.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/transform.cpp.i
+.PHONY : src/transform.cpp.i
+
+src/transform.s: src/transform.cpp.s
+
+.PHONY : src/transform.s
+
+# target to generate assembly for a file
+src/transform.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/transform.cpp.s
+.PHONY : src/transform.cpp.s
+
 src/types.o: src/types.cpp.o
 
 .PHONY : src/types.o
@@ -474,15 +1432,112 @@ src/window.cpp.s:
 	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/window.cpp.s
 .PHONY : src/window.cpp.s
 
+src/worker.o: src/worker.cpp.o
+
+.PHONY : src/worker.o
+
+# target to build an object file
+src/worker.cpp.o:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/worker.cpp.o
+.PHONY : src/worker.cpp.o
+
+src/worker.i: src/worker.cpp.i
+
+.PHONY : src/worker.i
+
+# target to preprocess a source file
+src/worker.cpp.i:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/worker.cpp.i
+.PHONY : src/worker.cpp.i
+
+src/worker.s: src/worker.cpp.s
+
+.PHONY : src/worker.s
+
+# target to generate assembly for a file
+src/worker.cpp.s:
+	$(MAKE) -f CMakeFiles/RED2D.dir/build.make CMakeFiles/RED2D.dir/src/worker.cpp.s
+.PHONY : src/worker.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
-	@echo "... RED2D"
+	@echo "... install/strip"
 	@echo "... edit_cache"
+	@echo "... RED2D"
+	@echo "... rebuild_cache"
+	@echo "... list_install_components"
+	@echo "... install/local"
+	@echo "... install"
+	@echo "... example-39-assao"
+	@echo "... example-38-bloom"
+	@echo "... example-36-sky"
+	@echo "... example-35-dynamic"
+	@echo "... example-34-mvs"
+	@echo "... example-33-pom"
+	@echo "... example-32-particles"
+	@echo "... example-26-occlusion"
+	@echo "... example-24-nbody"
+	@echo "... example-23-vectordisplay"
+	@echo "... example-22-windows"
+	@echo "... example-20-nanovg"
+	@echo "... example-19-oit"
+	@echo "... example-12-lod"
+	@echo "... example-10-font"
+	@echo "... example-09-hdr"
+	@echo "... example-15-shadowmaps-simple"
+	@echo "... example-07-callback"
+	@echo "... example-06-bump"
+	@echo "... example-08-update"
+	@echo "... tools"
+	@echo "... bgfx"
+	@echo "... shaderc"
+	@echo "... nvtt"
+	@echo "... iqa"
+	@echo "... etc2"
+	@echo "... bimg"
+	@echo "... glcpp"
+	@echo "... example-05-instancing"
+	@echo "... spirv-cross"
+	@echo "... example-14-shadowvolumes"
+	@echo "... etc1"
+	@echo "... example-31-rsm"
+	@echo "... example-01-cubes"
+	@echo "... example-25-c99"
+	@echo "... squish"
+	@echo "... bx"
+	@echo "... example-30-picking"
+	@echo "... astc-codec"
+	@echo "... astc"
+	@echo "... texturev"
+	@echo "... meshoptimizer"
+	@echo "... example-28-wireframe"
+	@echo "... example-common"
+	@echo "... example-29-debugdraw"
+	@echo "... geometryc"
+	@echo "... example-17-drawstress"
+	@echo "... example-02-metaballs"
+	@echo "... fcpp"
+	@echo "... example-16-shadowmaps"
+	@echo "... example-00-helloworld"
+	@echo "... example-18-ibl"
+	@echo "... mesa"
+	@echo "... example-13-stencil"
+	@echo "... texturec"
+	@echo "... glsl-optimizer"
+	@echo "... spirv-tools"
+	@echo "... edtaa3"
+	@echo "... glslang"
+	@echo "... pvrtc"
+	@echo "... dear-imgui"
+	@echo "... example-27-terrain"
+	@echo "... example-11-fontsdf"
+	@echo "... examples"
+	@echo "... example-03-raymarch"
+	@echo "... example-04-mesh"
 	@echo "... src/array.o"
 	@echo "... src/array.i"
 	@echo "... src/array.s"
@@ -513,6 +1568,12 @@ help:
 	@echo "... src/sprite.o"
 	@echo "... src/sprite.i"
 	@echo "... src/sprite.s"
+	@echo "... src/texture.o"
+	@echo "... src/texture.i"
+	@echo "... src/texture.s"
+	@echo "... src/transform.o"
+	@echo "... src/transform.i"
+	@echo "... src/transform.s"
 	@echo "... src/types.o"
 	@echo "... src/types.i"
 	@echo "... src/types.s"
@@ -522,6 +1583,9 @@ help:
 	@echo "... src/window.o"
 	@echo "... src/window.i"
 	@echo "... src/window.s"
+	@echo "... src/worker.o"
+	@echo "... src/worker.i"
+	@echo "... src/worker.s"
 .PHONY : help
 
 

@@ -1,23 +1,44 @@
 
 #include "object.hpp"
 
+#include <stdarg.h>
 #include <string.h>
 
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <memory>
 
 #include "array.hpp"
 
 namespace red {
+	using namespace std;
 
-	object::object(object* p) : items(new omap()) { setParent(p); }
+	uint64_t newId() {
+		static uint64_t current = 0;
+		return current++;
+	}
 
-	object::object(object& copy) : items(copy.items), parent(copy.parent) {}
+	object::object(object* p)
+		: items(new omap()), parent(p), id(newId()), omutex() {}
 
-	object::object(object& c, object p) : items(new omap(*c.items)), parent(p) {}
+	object::object(const object& copy)
+		: id(copy.id),
+			items(copy.items),
+			parent(copy.parent),
+			omutex() {}
 
-	object::object(json value) : items(new omap()) {
-		setParent(nullptr);
+	object::object(object c, object* p)
+		: items(new omap(*c.items)),
+			parent(p),
+			id(newId()),
+			omutex() {}
+
+	object::object(json value)
+		: items(new omap()),
+			parent(nullptr),
+			id(hash<object*>()(this)),
+			omutex() {
 		if (value.is_object()) {
 			for (auto it = value.begin(); it != value.end(); ++it) {
 				auto name = it.key();
@@ -58,15 +79,28 @@ namespace red {
 		}
 	}
 
-	object::object(object_list list, object* p) : items(new omap(list)), parent(p) {}
+	object::object(object_list list, object* p)
+		: items(new omap(list)), parent(p), id(newId()), omutex() {}
 
-	object::omap::iterator object::begin() { return std::begin(*items); }
+	object::~object() {}
 
-	object::omap::iterator object::end() { return std::end(*items); }
+	object::omap::iterator object::begin() {
+		unique_lock<mutex> gaurd(omutex);
+		return std::begin(*items);
+	}
 
-	uint64_t object::getSize() { return items->size(); }
+	object::omap::iterator object::end() {
+		unique_lock<mutex> gaurd(omutex);
+		return std::end(*items);
+	}
+
+	uint64_t object::getSize() {
+		unique_lock<mutex> gaurd(omutex);
+		return items->size();
+	}
 
 	types object::getType(string name) {
+		unique_lock<mutex> gaurd(omutex);
 		uint64_t index;
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getType();
@@ -74,6 +108,7 @@ namespace red {
 	}
 
 	json object::getJSON() {
+		unique_lock<mutex> gaurd(omutex);
 		json j = json::object();
 		auto end = items->end();
 		for (auto i = items->begin(); i != end; ++i) {
@@ -140,13 +175,17 @@ namespace red {
 
 	binary object::getCBOR() { return json::to_cbor(getJSON()); }
 
-	binary object::getMsgPack() { return json::to_msgpack(getJSON()); }
+	binary object::getMsgPack() {
+		return json::to_msgpack(getJSON());
+	}
 
-	binary object::getUBJSON() { return json::to_ubjson(getJSON()); }
+	binary object::getUBJSON() {
+		return json::to_ubjson(getJSON());
+	}
 
 	var object::callMethod(string name) {
 		method method = this->getMethod(name, 0);
-		static var nullVar;
+		static var nullVar = var();
 		var resp;
 		if (method != nullptr) resp = (*method)(*this, nullVar);
 		return resp;
@@ -161,153 +200,221 @@ namespace red {
 
 	void object::copy(object& other) {
 		auto end = other.end();
-		for (auto it = other.begin(); it != end; ++it) this->setVar(it->first, it->second);
+		for (auto it = other.begin(); it != end; ++it)
+			this->setVar(it->first, it->second);
 	}
 
 	void object::setParent(object* other) {
-		if (other)
-			this->parent = var(*other);
-		else
-			this->parent = var();
+		unique_lock<mutex> gaurd(omutex);
+		this->parent = other;
 	}
 
-	object* object::getParent() { return this->parent.getObject(); }
+	object* object::getParent() { return this->parent; }
 
-	void object::setString(string name, char* value) { (*items)[name] = var(value); }
+	void object::setString(string name, char* value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setInt64(string name, int64_t value) { (*items)[name] = var(value); }
+	void object::setInt64(string name, int64_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setInt32(string name, int32_t value) { (*items)[name] = var(value); }
+	void object::setInt32(string name, int32_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setInt16(string name, int16_t value) { (*items)[name] = var(value); }
+	void object::setInt16(string name, int16_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setInt8(string name, int8_t value) { (*items)[name] = var(value); }
+	void object::setInt8(string name, int8_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setUInt64(string name, uint64_t value) { (*items)[name] = var(value); }
+	void object::setUInt64(string name, uint64_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setUInt32(string name, uint32_t value) { (*items)[name] = var(value); }
+	void object::setUInt32(string name, uint32_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setUInt16(string name, uint16_t value) { (*items)[name] = var(value); }
+	void object::setUInt16(string name, uint16_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setUInt8(string name, uint8_t value) { (*items)[name] = var(value); }
+	void object::setUInt8(string name, uint8_t value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setDouble(string name, double value) { (*items)[name] = var(value); }
+	void object::setDouble(string name, double value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setFloat(string name, float value) { (*items)[name] = var(value); }
+	void object::setFloat(string name, float value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setBool(string name, bool value) { (*items)[name] = var(value); }
+	void object::setBool(string name, bool value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setArray(string name, array value) { (*items)[name] = var(value); }
+	void object::setArray(string name, array value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setObject(string name, object value) { (*items)[name] = var(value); }
+	void object::setObject(string name, object value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setMethod(string name, method value) { (*items)[name] = var(value); }
+	void object::setMethod(string name, method value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setPtr(string name, void* value) { (*items)[name] = var(value); }
+	void object::setPtr(string name, void* value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setVar(string name, var value) { (*items)[name] = value; }
+	void object::setVar(string name, var value) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = value;
+	}
 
-	void object::setNull(string name) { (*items)[name] = var(); }
+	void object::setNull(string name) {
+		unique_lock<mutex> gaurd(omutex);
+		(*items)[name] = var();
+	}
 
 	const char* object::getString(string name, char* def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getString();
-		if (this->parent.isObject()) return this->parent.getObject()->getString(name, def);
+		if (this->parent) return this->parent->getString(name, def);
 		return def;
 	}
 
 	int64_t object::getInt64(string name, int64_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getInt64();
-		if (this->parent.isObject()) return this->parent.getObject()->getInt64(name, def);
+		if (this->parent) return this->parent->getInt64(name, def);
 		return def;
 	}
 
 	int32_t object::getInt32(string name, int32_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getInt32();
-		if (this->parent.isObject()) return this->parent.getObject()->getInt32(name, def);
+		if (this->parent) return this->parent->getInt32(name, def);
 		return def;
 	}
 
 	int16_t object::getInt16(string name, int16_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getInt16();
-		if (this->parent.isObject()) return this->parent.getObject()->getInt16(name, def);
+		if (this->parent) return this->parent->getInt16(name, def);
 		return def;
 	}
 
 	int8_t object::getInt8(string name, int8_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getInt8();
-		if (this->parent.isObject()) return this->parent.getObject()->getInt8(name, def);
+		if (this->parent) return this->parent->getInt8(name, def);
 		return def;
 	}
 
 	uint64_t object::getUInt64(string name, uint64_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getUInt64();
-		if (this->parent.isObject()) return this->parent.getObject()->getUInt64(name, def);
+		if (this->parent) return this->parent->getUInt64(name, def);
 		return def;
 	}
 
 	uint32_t object::getUInt32(string name, uint32_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getUInt32();
-		if (this->parent.isObject()) return this->parent.getObject()->getUInt32(name, def);
+		if (this->parent) return this->parent->getUInt32(name, def);
 		return def;
 	}
 
 	uint16_t object::getUInt16(string name, uint16_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getUInt16();
-		if (this->parent.isObject()) return this->parent.getObject()->getUInt16(name, def);
+		if (this->parent) return this->parent->getUInt16(name, def);
 		return def;
 	}
 
 	uint8_t object::getUInt8(string name, uint8_t def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getUInt8();
-		if (this->parent.isObject()) return this->parent.getObject()->getUInt8(name, def);
+		if (this->parent) return this->parent->getUInt8(name, def);
 		return def;
 	}
 
 	double object::getDouble(string name, double def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getDouble();
-		if (this->parent.isObject()) return this->parent.getObject()->getDouble(name, def);
+		if (this->parent) return this->parent->getDouble(name, def);
 		return def;
 	}
 
 	float object::getFloat(string name, float def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getFloat();
-		if (this->parent.isObject()) return this->parent.getObject()->getFloat(name, def);
+		if (this->parent) return this->parent->getFloat(name, def);
 		return def;
 	}
 
 	bool object::getBool(string name, bool def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getBool();
-		if (this->parent.isObject()) return this->parent.getObject()->getBool(name, def);
+		if (this->parent) return this->parent->getBool(name, def);
 		return def;
 	}
 
 	array* object::getArray(string name, array* def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getArray();
-		if (this->parent.isObject()) return this->parent.getObject()->getArray(name, def);
+		if (this->parent) return this->parent->getArray(name, def);
 		return def;
 	}
 
 	object* object::getObject(string name, object* def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getObject();
-		if (this->parent.isObject()) return this->parent.getObject()->getObject(name, def);
+		if (this->parent) return this->parent->getObject(name, def);
 		return def;
 	}
 
 	method object::getMethod(string name, method def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto end = items->end();
 		auto it = items->begin();
 		while (it != end) {
@@ -315,33 +422,62 @@ namespace red {
 			if (key == name) break;
 			it++;
 		}
-		if (it != items->end()) return it->second.getMethod();
-		if (this->parent.isObject()) return this->parent.getObject()->getMethod(name, def);
+		if (it != end) return it->second.getMethod();
+		if (this->parent) return this->parent->getMethod(name, def);
 		return def;
 	}
 
 	void* object::getPtr(string name, void* def) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second.getPtr();
-		if (this->parent.isObject()) return this->parent.getObject()->getPtr(name, def);
+		if (this->parent) return this->parent->getPtr(name, def);
 		return def;
 	}
 
-	var object::operator[](string name) {
+	var object::getVar(string name) {
+		unique_lock<mutex> gaurd(omutex);
 		auto it = items->find(name);
 		if (it != items->end()) return it->second;
-		if (this->parent.isObject()) return this->parent.getObject()->operator[](name);
+		if (this->parent) return this->parent->getVar(name);
 		return var();
 	}
 
-	var object::operator()(string name, var& args) { return this->callMethod(name, args); }
+	var object::operator[](string name) {
+		unique_lock<mutex> gaurd(omutex);
+		auto it = items->find(name);
+		if (it != items->end()) return it->second;
+		if (this->parent) return this->parent->operator[](name);
+		return var();
+	}
 
-	var object::operator()(string name) { return this->callMethod(name); }
+	var object::operator()(string name, var args) {
+		return this->callMethod(name, args);
+	}
+
+	var object::operator()(string name) {
+		return this->callMethod(name);
+	}
+
+	bool object::operator==(const object& other) {
+		if (this->id == other.id) return true;
+		if (this->items == other.items) return true;
+		if (this->items.get() == other.items.get()) return true;
+		if (this == &other) return true;
+		return false;
+	}
+
+	object& object::operator=(const object rhs) {
+		items = rhs.items;
+		parent = rhs.parent;
+		id = rhs.id;
+	}
 
 	var object::loadJSON(string path) {
 		try {
 			ifstream ss(path);
-			if (!ss.good()) return var(runtime_error("file doesn't exist"));
+			if (!ss.good())
+				return var(runtime_error("file doesn't exist"));
 			json j = json();
 			ss >> j;
 			ss.close();
@@ -355,7 +491,7 @@ namespace red {
 		}
 	}
 
-	void object::saveJSON(string path, object& value) {
+	void object::saveJSON(string path, object value) {
 		ofstream ss(path);
 		json j = value.getJSON();
 		ss << j.dump(1, '\t') << endl;
@@ -373,7 +509,7 @@ namespace red {
 			ss.close();
 			json j = json::from_bson(data);
 			if (j.is_object())
-				return var(new object(j));
+				return var(object(j));
 			else
 				return var(logic_error("failed to parse"));
 		} catch (exception err) {
@@ -381,7 +517,7 @@ namespace red {
 		}
 	}
 
-	void object::saveBSON(string path, object& value) {
+	void object::saveBSON(string path, object value) {
 		ofstream ss(path);
 		auto data = value.getBSON();
 		ss.write((char*)data.data(), data.size());
@@ -399,7 +535,7 @@ namespace red {
 			ss.close();
 			json j = json::from_cbor(data);
 			if (j.is_object())
-				return var(new object(j));
+				return object(j);
 			else
 				return var();
 		} catch (exception err) {
@@ -407,7 +543,7 @@ namespace red {
 		}
 	}
 
-	void object::saveCBOR(string path, object& value) {
+	void object::saveCBOR(string path, object value) {
 		ofstream ss(path);
 		auto data = value.getCBOR();
 		ss.write((char*)data.data(), data.size());
@@ -425,7 +561,7 @@ namespace red {
 			ss.close();
 			json j = json::from_msgpack(data);
 			if (j.is_object())
-				return var(new object(j));
+				return object(j);
 			else
 				return var();
 		} catch (exception err) {
@@ -433,7 +569,7 @@ namespace red {
 		}
 	}
 
-	void object::saveMsgPack(string path, object& value) {
+	void object::saveMsgPack(string path, object value) {
 		ofstream ss(path);
 		auto data = value.getMsgPack();
 		ss.write((char*)data.data(), data.size());
@@ -451,7 +587,7 @@ namespace red {
 			ss.close();
 			json j = json::from_ubjson(data);
 			if (j.is_object())
-				return var(new object(j));
+				return object(j);
 			else
 				return var();
 		} catch (exception err) {
@@ -459,7 +595,7 @@ namespace red {
 		}
 	}
 
-	void object::saveUBJSON(string path, object& value) {
+	void object::saveUBJSON(string path, object value) {
 		ofstream ss(path);
 		auto data = value.getUBJSON();
 		ss.write((char*)data.data(), data.size());

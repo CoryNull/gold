@@ -1,8 +1,8 @@
 #include "component.hpp"
 
 namespace red {
-	object component::proto =
-			object({{"draw", component::draw}, {"update", component::update}});
+	object component::proto = object(
+		{{"draw", component::draw}, {"update", component::update}});
 
 	var component::draw(object& self, var args) {}
 
@@ -10,5 +10,6 @@ namespace red {
 
 	component::component() : object(proto) {}
 
-	component::component(object& config) : object(config, &proto) {}
+	component::component(object config)
+		: object(config, &proto) {}
 }  // namespace red
