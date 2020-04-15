@@ -10,3 +10,6 @@
 [submodule "3rdParty/bimg"]
 	path = 3rdParty/bimg
 	url = https://github.com/bkaradzic/bimg.git
+[submodule "3rdParty/cpp-httplib"]
+	path = 3rdParty/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git

@@ -3,15 +3,15 @@
 #include "object.hpp"
 #include "renderable.hpp"
 
-namespace red {
+namespace gold {
 	class sprite : public renderable {
 	 protected:
 		static object proto;
 
-		static var draw(object& self, var args);
-
 	 public:
 		sprite();
 		sprite(object config);
+
+		var draw(varList args = {});
 	};
-}  // namespace red
+}  // namespace gold

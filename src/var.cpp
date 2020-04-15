@@ -5,7 +5,7 @@
 #include "array.hpp"
 #include "object.hpp"
 
-namespace red {
+namespace gold {
 	using namespace std;
 
 	class varContainer {
@@ -26,18 +26,27 @@ namespace red {
 			uint16_t u16;
 			uint8_t u8;
 			bool b;
+			method* m;
+			func* fu;
+			genericError* e;
 		};
 		types type;
 		~varContainer() {
-			switch (this->type) {
+			switch (type) {
+				case typeException:
+					if (e) delete e;
+					break;
+				case typeFunction:
+					if (fu) delete fu;
+					break;
 				case typeArray:
-					if (this->a) delete this->a;
+					if (a) delete a;
 					break;
 				case typeObject:
-					if (this->o) delete this->o;
+					if (o) delete o;
 					break;
 				case typeString:
-					if (this->str) delete this->str;
+					if (str) delete str;
 					break;
 				default:
 					break;
@@ -45,45 +54,54 @@ namespace red {
 		}
 
 		varContainer(varContainer& other) {
-			this->type = other.type;
-			switch (this->type) {
+			type = other.type;
+			switch (type) {
+				case typeException:
+					e = new genericError(*other.e);
+					break;
+				case typeFunction:
+					fu = new func(*other.fu);
+					break;
 				case typeArray:
-					this->a = new array(*other.a);
+					a = new array(*other.a);
 					break;
 				case typeObject:
-					this->o = new object(*other.o);
+					o = new object(*other.o);
 					break;
 				case typeString:
-					this->str = new string(*other.str);
+					str = new string(*other.str);
 					break;
 				default:
-					this->ptr = other.ptr;
+					ptr = other.ptr;
 					break;
 			}
 		}
 
-		varContainer(string str) {
-			this->str = new string(str);
-			this->type = typeString;
-		}
+		varContainer(string value)
+			: str(new string(value)), type(typeString) {}
 
-		varContainer(object& value) {
-			this->o = new object(value);
-			this->type = typeObject;
-		}
+		varContainer(object& value)
+			: o(new object(value)), type(typeObject) {}
 
-		varContainer(array& value) {
-			this->a = new array(value);
-			this->type = typeArray;
-		}
+		varContainer(array& value)
+			: a(new array(value)), type(typeArray) {}
 
-		template <typename T> varContainer(T value, types type) {
-			if (sizeof(T) <= sizeof(uint64_t))
-				this->ptr = (void*)(uint64_t)value;
-			else
-				this->ptr = new T(value);
-			this->type = type;
-		}
+		varContainer(func value)
+			: fu(new func(value)), type(typeFunction) {}
+
+		varContainer(method value)
+			: m(new method(value)), type(typeMethod) {}
+
+		varContainer(genericError value)
+			: e(new genericError(value)), type(typeException) {}
+
+		template <typename T>
+		varContainer(T value, types t)
+			: ptr(
+					(sizeof(T) <= sizeof(uint64_t))
+						? (void*)(uint64_t)value
+						: new T(value)),
+				type(t) {}
 	};
 
 	auto autoNull =
@@ -91,14 +109,10 @@ namespace red {
 
 	var::var() : sPtr(autoNull) {}
 
-	var::var(const var& copy) { this->sPtr = copy.sPtr; }
+	var::var(const var& copy) : sPtr(copy.sPtr) {}
 
-	var::var(void* v) {
-		if (v != nullptr)
-			this->sPtr = make_shared<varContainer>(v, typePtr);
-		else
-			this->sPtr = autoNull;
-	}
+	var::var(void* v, types t)
+		: sPtr(make_shared<varContainer>(v, t)) {}
 
 	var::var(char* value)
 		: sPtr(make_shared<varContainer>(string(value))) {}
@@ -139,37 +153,37 @@ namespace red {
 	var::var(float v)
 		: sPtr(make_shared<varContainer>(v, typeFloat)) {}
 
-	var::var(bool v)
-		: sPtr(make_shared<varContainer>(v, typeBool)) {}
-
 	var::var(array v) : sPtr(make_shared<varContainer>(v)) {}
 
 	var::var(object v) : sPtr(make_shared<varContainer>(v)) {}
 
-	var::var(method v)
-		: sPtr(make_shared<varContainer>(v, typeMethod)) {}
+	var::var(method v) : sPtr(make_shared<varContainer>(v)) {}
 
-	var::var(exception v)
-		: sPtr(make_shared<varContainer>(&v, typeException)) {}
+	var::var(func v) : sPtr(make_shared<varContainer>(v)) {}
+
+	var::var(bool v)
+		: sPtr(make_shared<varContainer>(v, typeBool)) {}
+
+	var::var(genericError v) : sPtr(make_shared<varContainer>(v)) {}
 
 	var::~var() {}
 
 	var& var::operator=(const var& rhs) {
 		auto rPtr = rhs.sPtr.get();
-		this->sPtr = rPtr ? make_shared<varContainer>(*rPtr) : autoNull;
+		sPtr = rPtr ? make_shared<varContainer>(*rPtr) : autoNull;
 		return *this;
 	}
 
-	bool var::operator==(const var& rhs) {
+	bool var::operator==(const var& rhs) const {
 		auto rCon = rhs.sPtr.get();
 		if (rCon) {
 			switch (rCon->type) {
 				case typeNull:
-					return this->isEmpty();
+					return isEmpty();
 				case typeObject:
-					return rCon->o == this->getObject();
+					return rCon->o == getObject();
 				case typeArray:
-					return rCon->a == this->getArray();
+					return rCon->a == getArray();
 				case typeString:
 					return *rCon->str == (string) * this;
 				case typeDouble:
@@ -195,37 +209,38 @@ namespace red {
 				case typeBool:
 					return rCon->b == (bool)*this;
 				default:
+					return rCon->ptr == (void*)*this;
 					break;
 			}
 		}
 		return false;
 	}
 
-	bool var::operator!=(const var& rhs) {
+	bool var::operator!=(const var& rhs) const {
 		return !operator==(rhs);
 	}
 
-	types var::getType() {
-		auto container = this->sPtr.get();
+	types var::getType() const {
+		auto container = sPtr.get();
 		if (container) return container->type;
 		return typeNull;
 	}
 
-	const char* var::getTypeString() {
+	const char* var::getTypeString() const {
 		types type = typeNull;
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) type = container->type;
-		return red::getTypeString(type);
+		return gold::getTypeString(type);
 	}
 
-	bool var::isString() {
-		auto container = this->sPtr.get();
+	bool var::isString() const {
+		auto container = sPtr.get();
 		if (container && container->type == typeString) return true;
 		return false;
 	}
 
-	bool var::isNumber() {
-		auto container = this->sPtr.get();
+	bool var::isNumber() const {
+		auto container = sPtr.get();
 		if (
 			container && (container->type == typeDouble ||
 										container->type == typeFloat ||
@@ -242,8 +257,8 @@ namespace red {
 		return false;
 	}
 
-	bool var::isFloating() {
-		auto container = this->sPtr.get();
+	bool var::isFloating() const {
+		auto container = sPtr.get();
 		if (
 			container && (container->type == typeDouble ||
 										container->type == typeFloat))
@@ -251,8 +266,8 @@ namespace red {
 		return false;
 	}
 
-	bool var::isSigned() {
-		auto container = this->sPtr.get();
+	bool var::isSigned() const {
+		auto container = sPtr.get();
 		if (
 			container && (container->type == typeDouble ||
 										container->type == typeFloat ||
@@ -264,38 +279,38 @@ namespace red {
 		return false;
 	}
 
-	bool var::isBool() {
-		auto container = this->sPtr.get();
+	bool var::isBool() const {
+		auto container = sPtr.get();
 		if (container && container->type != typeNull) return true;
 		return false;
 	}
 
-	bool var::isObject() {
-		auto container = this->sPtr.get();
+	bool var::isObject() const {
+		auto container = sPtr.get();
 		if (container && container->type == typeObject) return true;
 		return false;
 	}
 
-	bool var::isObject(object proto) {
-		auto container = this->sPtr.get();
+	bool var::isObject(object proto) const {
+		auto container = sPtr.get();
 		if (container && container->type == typeObject) {
 			auto p = container->o;
 			while (p != nullptr) {
-				if (p->id == proto.id) return true;
+				if (p->data->id == proto.data->id) return true;
 				p = p->getParent();
 			}
 		}
 		return false;
 	}
 
-	bool var::isArray() {
-		auto container = this->sPtr.get();
+	bool var::isArray() const {
+		auto container = sPtr.get();
 		if (container && container->type == typeArray) return true;
 		return false;
 	}
 
-	bool var::isEmpty() {
-		auto container = this->sPtr.get();
+	bool var::isEmpty() const {
+		auto container = sPtr.get();
 		if (container) {
 			if (container->type == typeArray)
 				return container->a->getSize() == 0;
@@ -303,99 +318,108 @@ namespace red {
 				return container->o->getSize() == 0;
 			else if (container->type == typeString)
 				return container->str->length() == 0;
-			else if (
-				container->type == typeDouble && container->d == 0.0)
-				return true;
-			else if (
-				container->type == typeFloat && container->f == 0.0)
-				return true;
-			else if (
-				container->type == typeUInt64 && container->u64 == 0)
-				return true;
-			else if (
-				container->type == typeUInt32 && container->u32 == 0)
-				return true;
-			else if (
-				container->type == typeUInt16 && container->u16 == 0)
-				return true;
-			else if (
-				container->type == typeUInt8 && container->u8 == 0)
-				return true;
-			else if (
-				container->type == typeInt64 && container->i64 == 0)
-				return true;
-			else if (
-				container->type == typeInt32 && container->i32 == 0)
-				return true;
-			else if (
-				container->type == typeInt16 && container->i16 == 0)
-				return true;
-			else if (
-				container->type == typeInt8 && container->i8 == 0)
-				return true;
-			else if (
-				container->type == typeBool && container->b == false)
-				return true;
-			else if (
-				container->type == typePtr && container->ptr == nullptr)
-				return true;
-			else if (
-				container->type == typeException &&
-				container->ptr == nullptr)
-				return true;
+			else if (container->type == typeFunction)
+				return container->ptr == 0;
+			else if (container->type == typeMethod)
+				return container->ptr == 0;
+			else if (container->type == typeDouble)
+				return container->d == 0.0;
+			else if (container->type == typeFloat)
+				return container->f == 0.0;
+			else if (container->type == typeUInt64)
+				return container->u64 == 0;
+			else if (container->type == typeUInt32)
+				return container->u32 == 0;
+			else if (container->type == typeUInt16)
+				return container->u16 == 0;
+			else if (container->type == typeUInt8)
+				return container->u8 == 0;
+			else if (container->type == typeInt64)
+				return container->i64 == 0;
+			else if (container->type == typeInt32)
+				return container->i32 == 0;
+			else if (container->type == typeInt16)
+				return container->i16 == 0;
+			else if (container->type == typeInt8)
+				return container->i8 == 0;
+			else if (container->type == typeBool)
+				return container->b == false;
+			else if (container->type == typePtr)
+				return container->ptr == nullptr;
+			else if (container->type == typeException)
+				return container->ptr == nullptr;
 			else
 				return false;
 		}
 		return true;
 	}
 
-	bool var::isError() {
-		auto container = this->sPtr.get();
-		if (container && container->type == typeException)
-			return true;
-		return false;
+	bool var::isError() const {
+		auto container = sPtr.get();
+		return container && container->type == typeException;
 	}
 
-	const char* var::getString() { return (const char*)*this; }
+	bool var::isFunction() const {
+		auto container = sPtr.get();
+		return container && container->type == typeFunction;
+	}
 
-	int64_t var::getInt64() { return (int64_t) * this; }
+	bool var::isMethod() const {
+		auto container = sPtr.get();
+		return container && container->type == typeMethod;
+	}
 
-	int32_t var::getInt32() { return (int32_t) * this; }
+	string var::getString() const { return (string) * this; }
 
-	int16_t var::getInt16() { return (int16_t) * this; }
+	int64_t var::getInt64() const { return (int64_t) * this; }
 
-	int8_t var::getInt8() { return (int8_t) * this; }
+	int32_t var::getInt32() const { return (int32_t) * this; }
 
-	uint64_t var::getUInt64() { return (uint64_t) * this; }
+	int16_t var::getInt16() const { return (int16_t) * this; }
 
-	uint32_t var::getUInt32() { return (uint32_t) * this; }
+	int8_t var::getInt8() const { return (int8_t) * this; }
 
-	uint16_t var::getUInt16() { return (uint16_t) * this; }
+	uint64_t var::getUInt64() const { return (uint64_t) * this; }
 
-	uint8_t var::getUInt8() { return (uint8_t) * this; }
+	uint32_t var::getUInt32() const { return (uint32_t) * this; }
 
-	double var::getDouble() { return (double)*this; }
+	uint16_t var::getUInt16() const { return (uint16_t) * this; }
 
-	float var::getFloat() { return (float)*this; }
+	uint8_t var::getUInt8() const { return (uint8_t) * this; }
 
-	bool var::getBool() { return (bool)*this; }
+	double var::getDouble() const { return (double)*this; }
 
-	array* var::getArray() { return (array*)*this; }
+	float var::getFloat() const { return (float)*this; }
 
-	object* var::getObject() { return (object*)*this; }
+	bool var::getBool() const { return (bool)*this; }
 
-	method var::getMethod() { return (method)(*this); }
+	array* var::getArray() const { return (array*)*this; }
 
-	void* var::getPtr() { return (void*)*this; }
+	object* var::getObject() const { return (object*)*this; }
+
+	method var::getMethod() const { return (method)(*this); }
+
+	func var::getFunction() const { return (func)(*this); }
+
+	void* var::getPtr() const { return (void*)*this; }
+
+	genericError* var::getError() const { return (genericError*)*this; }
+
+	var::operator string() const {
+		auto container = sPtr.get();
+		if (container && container->type == typeString)
+			return *container->str;
+		return "";
+	}
 
 	var::operator const char*() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) return container->str->c_str();
 		return nullptr;
 	}
 
 	var::operator int64_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeInt64:
@@ -436,7 +460,7 @@ namespace red {
 	}
 
 	var::operator int32_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeInt32:
@@ -476,7 +500,7 @@ namespace red {
 	}
 
 	var::operator int16_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeInt16:
@@ -516,7 +540,7 @@ namespace red {
 	}
 
 	var::operator int8_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeInt8:
@@ -556,7 +580,7 @@ namespace red {
 	}
 
 	var::operator uint64_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeUInt64:
@@ -598,7 +622,7 @@ namespace red {
 	}
 
 	var::operator uint32_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeUInt32:
@@ -639,7 +663,7 @@ namespace red {
 	}
 
 	var::operator uint16_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeUInt16:
@@ -680,7 +704,7 @@ namespace red {
 	}
 
 	var::operator uint8_t() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeUInt8:
@@ -721,7 +745,7 @@ namespace red {
 	}
 
 	var::operator double() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeDouble:
@@ -762,7 +786,7 @@ namespace red {
 	}
 
 	var::operator float() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeFloat:
@@ -803,7 +827,7 @@ namespace red {
 	}
 
 	var::operator bool() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container) {
 			switch (container->type) {
 				case typeBool:
@@ -850,43 +874,63 @@ namespace red {
 	}
 
 	var::operator array*() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container && container->type == typeArray)
 			return container->a;
 		return nullptr;
 	}
 
 	var::operator object*() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container && container->type == typeObject)
 			return container->o;
 		return nullptr;
 	}
 
 	var::operator void*() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container && container->type == typePtr)
 			return container->ptr;
 		return nullptr;
 	}
 
 	var::operator method() const {
-		auto container = this->sPtr.get();
+		auto container = sPtr.get();
 		if (container && container->type == typeMethod)
-			return (method)container->ptr;
+			return *container->m;
 		return nullptr;
 	}
 
-	var var::operator()(object& self, var args) {
-		auto func = this->getMethod();
-		if (func != nullptr) return func(self, args);
+	var::operator func() const {
+		auto container = sPtr.get();
+		if (container && container->type == typeFunction)
+			return *container->fu;
+		return nullptr;
+	}
+
+	var::operator genericError*() const {
+		auto container = sPtr.get();
+		if (container && container->type == typeException)
+			return container->e;
+		return nullptr;
+	}
+
+	var var::operator()(object& self, varList args) const {
+		auto func = getMethod();
+		if (func != nullptr) return (self.*func)(args);
 		return var();
 	}
 
-	var var::operator()(object& self) {
-		auto func = this->getMethod();
-		auto nullArg = var();
-		if (func != nullptr) return func(self, nullArg);
+	var var::operator()(object& self) const {
+		auto func = getMethod();
+		if (func != nullptr) return (self.*func)(varList());
 		return var();
 	}
-}  // namespace red
+
+	var var::operator()(varList args) const {
+		auto container = sPtr.get();
+		if (container && container->type == typeFunction)
+			return (*container->fu)(args);
+		return var();
+	}
+}  // namespace gold

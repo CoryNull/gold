@@ -5,7 +5,7 @@
 #include "object.hpp"
 #include "var.hpp"
 
-namespace red {
+namespace gold {
 	class worker {
 		protected:
 			class job;
@@ -22,10 +22,10 @@ namespace red {
 		public:
 		worker();
 
-		jobPtr add(method m, object& o, var args);
+		jobPtr add(method m, object& o, varList args);
 		void wait();
 		void clear();
 		void killAll();
 		void useAll();
 	};
-}  // namespace red
+}  // namespace gold

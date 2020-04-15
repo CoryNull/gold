@@ -2,7 +2,6 @@
 
 add_subdirectory(json)
 
-
 # bgfx.cmake - bgfx building in cmake
 # Written in 2017 by Joshua Brookover <joshua.al.brookover@gmail.com>
 
@@ -17,9 +16,7 @@ cmake_minimum_required( VERSION 3.0 )
 project( bgfx )
 
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+
 
 # Makefile generators on apple need this flag to compile mixed objective/c++
 if( APPLE AND NOT XCODE )

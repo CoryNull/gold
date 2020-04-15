@@ -1,27 +1,30 @@
 #include "worker.hpp"
 
-namespace red {
+#include <iostream>
+
+namespace gold {
 	class worker::job {
 	 public:
 		method m;
-		object o;
-		var a;
-		job() {}
-		job(method me, object& ob, var ar) : m(me), o(ob), a(ar) {}
-		job(const job& copy) {
-			m = copy.m;
-			o = copy.o;
-			a = copy.a;
-		}
+		object& o;
+		varList a;
+		job(method me, object& ob, varList ar)
+			: m(me), o(ob), a(ar) {}
+		job(const job& copy) : m(copy.m), o(copy.o), a(copy.a) {}
 		~job() {}
-		void call() { m(o, a); }
+		void call() {
+			auto ret = (o.*m)(varList());
+			if (ret.isError()) {
+				auto err = ret.getError();
+				cerr << *err << endl;
+			}
+		}
 	};
 
 	int worker::workerProcess(worker* w) {
 		do {
 			auto job = w->nextJob();
 			if (job) job->call();
-			this_thread::sleep_for(std::chrono::milliseconds(10));
 		} while (!w->shouldDie());
 		return 0;
 	}
@@ -46,7 +49,8 @@ namespace red {
 		useAll();
 	}
 
-	worker::jobPtr worker::add(method m, object& o, var args) {
+	worker::jobPtr worker::add(
+		method m, object& o, varList args) {
 		auto j = make_shared<job>(m, o, args);
 		mtx.lock();
 		jobs.push_back(j);
@@ -90,4 +94,4 @@ namespace red {
 		jobs.clear();
 		mtx.unlock();
 	}
-}  // namespace red
+}  // namespace gold

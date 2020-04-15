@@ -1,17 +1,18 @@
 #include "sprite.hpp"
 
-namespace red {
+namespace gold {
 
-	object sprite::proto =
-		object({{"draw", sprite::draw}}, &renderable::proto);
+	object sprite::proto = object(
+		{
+			{"draw", method(&sprite::draw)},
+		},
+		&renderable::proto);
 
-	var sprite::draw(object& self, var args) {
-		return logic_error("Needs to overriden");
+	var sprite::draw(varList args) {
+		return genericError("Needs to overriden");
 	}
 
-	sprite::sprite() : renderable(proto) {}
+	sprite::sprite() : renderable(&proto) {}
 
-	sprite::sprite(object config) : renderable(config) {
-		setParent(&proto);
-	}
-}  // namespace red
+	sprite::sprite(object config) : renderable(config, &proto) {}
+}  // namespace gold

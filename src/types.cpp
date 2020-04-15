@@ -2,7 +2,7 @@
 
 #include "var.hpp"
 
-namespace red {
+namespace gold {
 
 	const var nullVar = var();
 
@@ -25,6 +25,8 @@ namespace red {
 				return "Object";
 			case typeMethod:
 				return "Method";
+			case typeFunction:
+				return "Function";
 			case typePtr:
 				return "Pointer";
 			case typeString:
@@ -56,5 +58,27 @@ namespace red {
 			case typeException:
 				return "Exception";
 		}
+		return "Undefined";
 	}
-}  // namespace red
+
+	genericError::genericError(
+		const exception& copy, const sourceLocation& l)
+		: exception(copy), msg(), loc(l) {}
+
+	genericError::genericError(const genericError& copy)
+		: exception(copy), msg(copy.msg), loc(copy.loc) {}
+
+	genericError::genericError(
+		string_view message, const sourceLocation& l)
+		: exception(), msg(message), loc(l) {}
+
+	genericError::operator const char*() const {
+		return msg.c_str();
+	}
+
+	ostream& operator<<(ostream& os, const genericError& dt) {
+		return os << dt.loc.file_name() << ":" << dt.loc.line()
+							<< ":" << dt.loc.column() << ":" << dt.msg;
+	}
+
+}  // namespace gold

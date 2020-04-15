@@ -8,28 +8,29 @@
 #include "worker.hpp"
 /* </Includes> */
 
-namespace red {
+namespace gold {
 	class engine : public object {
 	 protected:
 		static object proto;
-		static string getSettingsDir();
-		static string getSettingsPath();
-
-		static var destroy(object& self, var args);
-		static var start(object& self, var args);
-		static var loadSettings(object& self, var args);
-		static var saveSettings(object& self, var args);
-		static var handleEntity(object& self, var args);
-		static var addElement(object& self, var args);
 
 		worker updateWorker;
 		worker drawWorker;
 
 	 public:
-		engine();
+		string getSettingsDir();
+		string getSettingsPath();
+
+		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
 
-		engine& operator+=(var element);
-		engine& operator-=(var element);
+		var destroy(varList args = {});
+		var start(varList args = {});
+		var loadSettings(varList args = {});
+		var saveSettings(varList args = {});
+		var handleEntity(varList args);
+		var addElement(varList args);
+
+		engine& operator+=(varList element);
+		engine& operator-=(varList element);
 	};
-}  // namespace red
+}  // namespace gold

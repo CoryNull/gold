@@ -19,26 +19,28 @@
 
 #include "SDL2/SDL.h"
 
-namespace red {
+namespace gold {
 	bgfx::PlatformData pd = bgfx::PlatformData();
-	object backend::proto =
-		object({{"backend", "OpenGL"},
-						{"vSync", true},
-						{"maxAnisotropy", false},
-						{"stats", false},
-						{"debug", false},
-						{"initialize", (method)backend::initialize},
-						{"renderFrame", (method)backend::renderFrame},
-						{"preFrame", (method)backend::preFrame},
-						{"destroy", (method)backend::destroy},
-						{"getConfig", (method)backend::getConfig}});
+	object backend::proto = object({
+		{"backend", "OpenGL"},
+		{"vSync", true},
+		{"maxAnisotropy", false},
+		{"stats", false},
+		{"debug", false},
+		{"initialize", method(&backend::initialize)},
+		{"renderFrame", method(&backend::renderFrame)},
+		{"preFrame", method(&backend::preFrame)},
+		{"destroy", method(&backend::destroy)},
+		{"getConfig", method(&backend::getConfig)},
+	});
 
-	object defaultBackendConfig =
-		object({{"backend", "OpenGL"},
-						{"vSync", true},
-						{"maxAnisotropy", false},
-						{"stats", false},
-						{"debug", false}});
+	object defaultBackendConfig = object({
+		{"backend", "OpenGL"},
+		{"vSync", true},
+		{"maxAnisotropy", false},
+		{"stats", false},
+		{"debug", false},
+	});
 
 	bgfx::RendererType::Enum varToRenderType(var arg) {
 		if (arg.isNumber()) {
@@ -72,11 +74,11 @@ namespace red {
 		return bgfx::RendererType::Noop;
 	}
 
-	var backend::initialize(object& self, var args) {
+	var backend::initialize(varList args) {
 		cout << "Starting BGFX" << endl;
-		auto win = (window*)args.getObject();
+		auto win = (window*)args[0].getObject();
 		auto handle = (SDL_Window*)win->getPtr("handle");
-		self.setObject("window", *win);
+		setObject("window", *win);
 		SDL_SysWMinfo wmi;
 		SDL_VERSION(&wmi.version);
 		SDL_GetWindowWMInfo(handle, &wmi);
@@ -113,9 +115,9 @@ namespace red {
 		bgfx::setPlatformData(pd);
 		bgfx::Init init = bgfx::Init();
 		init.platformData = pd;
-		auto vSync = self.getBool("vSync");
-		auto maxAni = self.getBool("maxAnisotropy");
-		auto bType = self.getVar("backend");
+		auto vSync = getBool("vSync");
+		auto maxAni = getBool("maxAnisotropy");
+		auto bType = getVar("backend");
 		init.type = varToRenderType(bType);
 		init.vendorId = BGFX_PCI_ID_NONE;
 		init.resolution.width = win->getUInt32("width");
@@ -123,10 +125,9 @@ namespace red {
 		init.resolution.reset =
 			(vSync ? BGFX_RESET_VSYNC : 0) |
 			(maxAni ? BGFX_RESET_MAXANISOTROPY : 0);
-		auto success = bgfx::init(init);
-		if (success) {
-			auto debug = self.getBool("debug");
-			auto stats = self.getBool("stats");
+		if (bgfx::init(init)) {
+			auto debug = getBool("debug");
+			auto stats = getBool("stats");
 			bgfx::setDebug(
 				(debug ? BGFX_DEBUG_TEXT : 0) |
 				(stats ? BGFX_DEBUG_STATS : 0));
@@ -136,16 +137,17 @@ namespace red {
 		} else {
 			cerr << "Failed to start BGFX" << endl;
 		}
+		return var();
 	}
 
-	var backend::renderFrame(object& self, var args) {
+	var backend::renderFrame(varList args) {
 		return bgfx::frame(false);
 	}
 
-	var backend::getConfig(object& self, var args) {
+	var backend::getConfig(varList args) {
 		auto allowed = defaultBackendConfig;
 		auto config = object();
-		for (auto it = self.begin(); it != self.end(); ++it) {
+		for (auto it = begin(); it != end(); ++it) {
 			auto def = allowed[it->first];
 			if (def.getType() != typeNull && it->second != def)
 				config.setVar(it->first, it->second);
@@ -153,19 +155,21 @@ namespace red {
 		return config;
 	}
 
-	var backend::destroy(object& self, var args) {
+	var backend::destroy(varList args) {
 		bgfx::shutdown();
+		return var();
 	}
 
-	var backend::preFrame(object& self, var args) {
-		auto win = self.getObject("window");
+	var backend::preFrame(varList args) {
+		auto win = getObject("window");
 		auto width = win->getUInt16("width");
 		auto height = win->getUInt16("height");
 		bgfx::setViewRect(0, 0, 0, width, height);
 		bgfx::touch(0);
+		return var();
 	}
 
 	backend::backend() : object(&proto) {}
 
 	backend::backend(object config) : object(config, &proto) {}
-}  // namespace red
+}  // namespace gold

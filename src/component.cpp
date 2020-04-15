@@ -1,15 +1,22 @@
 #include "component.hpp"
 
-namespace red {
-	object component::proto = object(
-		{{"draw", component::draw}, {"update", component::update}});
+#include <functional>
 
-	var component::draw(object& self, var args) {}
+#include "object.hpp"
+#include "types.hpp"
 
-	var component::update(object& self, var args) {}
+namespace gold {
+	object component::proto = object({
+		{"draw", method(&component::draw)},
+		{"update", method(&component::update)},
+	});
+
+	var component::draw(varList args) { return var(); }
+
+	var component::update(varList args) { return var(); }
 
 	component::component() : object(proto) {}
 
 	component::component(object config)
 		: object(config, &proto) {}
-}  // namespace red
+}  // namespace gold

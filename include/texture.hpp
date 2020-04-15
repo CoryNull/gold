@@ -2,7 +2,7 @@
 
 #include "object.hpp"
 
-namespace red {
+namespace gold {
 	class texture : public object {
 	 protected:
 		static object proto;
@@ -11,4 +11,4 @@ namespace red {
 		texture();
 		texture(object config);
 	};
-}  // namespace red
+}  // namespace gold

@@ -37,6 +37,14 @@ endif()
 # Create the bgfx target
 add_library( bgfx ${BGFX_SOURCES} )
 
+set_target_properties(
+	bgfx 
+	PROPERTIES
+		CXX_STANDARD 17
+		CXX_STANDARD_REQUIRED YES
+		CXX_EXTENSIONS OFF
+)
+
 # Enable BGFX_CONFIG_DEBUG in Debug configuration
 target_compile_definitions( bgfx PRIVATE "$<$<CONFIG:Debug>:BGFX_CONFIG_DEBUG=1>" )
 if(BGFX_CONFIG_DEBUG)

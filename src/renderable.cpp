@@ -2,17 +2,20 @@
 
 #include "component.hpp"
 
-namespace red {
+namespace gold {
 
-	object renderable::proto =
-		object({{"draw", renderable::draw}}, &component::proto);
+	object renderable::proto = object(
+		{
+			{"draw", method(&renderable::draw)},
+		},
+		&component::proto);
 
-	var renderable::draw(object& self, var args) {
-		return logic_error("Needs to overriden");
+	var renderable::draw(varList args) {
+		return genericError("Needs to overriden");
 	}
 
-	renderable::renderable() : object(proto) {}
+	renderable::renderable(object* parent) : object(parent) {}
 
-	renderable::renderable(object config)
-		: object(config, &proto) {}
-}  // namespace red
+	renderable::renderable(object data, object* parent)
+		: object(data, parent) {}
+}  // namespace gold

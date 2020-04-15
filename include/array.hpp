@@ -3,19 +3,23 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <initializer_list>
 
 #include "types.hpp"
 #include "var.hpp"
 
-namespace red {
+namespace gold {
 	using namespace std;
 	using namespace nlohmann;
 	/* <Array> */
 	class array {
 	 protected:
 		typedef std::vector<var> avec;
-		shared_ptr<avec> items;
-		mutex amutex;
+		struct arrData {
+			avec items;
+			mutex amutex;
+		};
+		shared_ptr<arrData> data;
 
 		void pushData(void* dataPtr, uint64_t size, types type);
 
@@ -23,6 +27,8 @@ namespace red {
 		array();
 		array(array& copy);
 		array(json value);
+		array(initializer_list<var> list);
+		array(var value);
 		~array();
 
 		uint64_t getSize();
@@ -44,6 +50,8 @@ namespace red {
 		array& operator-=(var item);
 
 		void pushString(char* value);
+		void pushString(const char* value);
+		void pushString(string value);
 		void pushInt64(int64_t value);
 		void pushInt32(int32_t value);
 		void pushInt16(int16_t value);
@@ -58,9 +66,11 @@ namespace red {
 		void pushArray(array value);
 		void pushObject(object value);
 		void pushPtr(void* value);
+		void pushVar(var value);
 		void pushNull();
 
 		void setString(uint64_t index, char* value);
+		void setString(uint64_t index, string value);
 		void setInt64(uint64_t index, int64_t value);
 		void setInt32(uint64_t index, int32_t value);
 		void setInt16(uint64_t index, int16_t value);
@@ -78,6 +88,7 @@ namespace red {
 		void setNull(uint64_t index);
 
 		const char* getString(uint64_t index, char* def = 0);
+		string getString(uint64_t index, string def);
 		int64_t getInt64(uint64_t index, int64_t def = 0);
 		int32_t getInt32(uint64_t index, int32_t def = 0);
 		int16_t getInt16(uint64_t index, int16_t def = 0);
@@ -95,4 +106,4 @@ namespace red {
 	};
 
 	/* </Array> */
-}  // namespace red
+}  // namespace gold

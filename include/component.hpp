@@ -2,15 +2,15 @@
 
 #include "object.hpp"
 
-namespace red {
+namespace gold {
 	class component : public object {
 	 protected:
-		static var update(object& self, var args);
-		static var draw(object& self, var args);
+		var update(varList args);
+		var draw(varList args);
 
 	 public:
 		static object proto;
 		component();
 		component(object config);
 	};
-}  // namespace red
+}  // namespace gold

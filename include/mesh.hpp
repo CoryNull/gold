@@ -5,7 +5,7 @@
 #include "object.hpp"
 #include "renderable.hpp"
 
-namespace red {
+namespace gold {
 	using namespace std;
 	class mesh : public renderable {
 	 protected:
@@ -13,4 +13,4 @@ namespace red {
 		mesh();
 		mesh(object config);
 	};
-}  // namespace red
+}  // namespace gold

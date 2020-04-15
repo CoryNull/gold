@@ -1,5 +1,5 @@
 #include "texture.hpp"
 
-namespace red {
+namespace gold {
 	
 }

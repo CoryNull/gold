@@ -2,14 +2,13 @@
 
 #include "object.hpp"
 
-namespace red {
+namespace gold {
 	class renderable : public object {
-	 protected:
-		static var draw(object& self, var args);
-
 	 public:
 		static object proto;
-		renderable();
-		renderable(object config);
+		renderable(object* parent = nullptr);
+		renderable(object data, object* parent);
+
+		var draw(varList args = {});
 	};
-}  // namespace red
+}  // namespace gold

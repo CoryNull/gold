@@ -5,7 +5,7 @@
 
 #include "types.hpp"
 
-namespace red {
+namespace gold {
 	using namespace std;
 	class var {
 	 protected:
@@ -28,50 +28,57 @@ namespace red {
 		var(uint8_t v);
 		var(double v);
 		var(float v);
-		var(bool v);
 		var(array v);
 		var(object v);
-		var(void* v);
+		var(void* v, types t);
 		var(method v);
-		var(exception v);
+		var(func v);
+		var(genericError v);
+		var(bool v);
+		template <class T> var(T* v, types t) : var(v, t) {}
 		~var();
 
 		var& operator=(const var& rhs);
-		bool operator==(const var& rhs);
-		bool operator!=(const var& rhs);
+		bool operator==(const var& rhs) const;
+		bool operator!=(const var& rhs) const;
 
-		types getType();
-		const char* getTypeString();
+		types getType() const;
+		const char* getTypeString() const;
 
-		bool isString();
-		bool isNumber();
-		bool isFloating();
-		bool isSigned();
-		bool isBool();
-		bool isObject();
-		bool isObject(object proto);
-		bool isArray();
-		bool isEmpty();
-		bool isError();
+		bool isString() const;
+		bool isNumber() const;
+		bool isFloating() const;
+		bool isSigned() const;
+		bool isBool() const;
+		bool isObject() const;
+		bool isObject(object proto) const;
+		bool isArray() const;
+		bool isEmpty() const;
+		bool isError() const;
+		bool isFunction() const;
+		bool isMethod() const;
 
-		const char* getString();
-		int64_t getInt64();
-		int32_t getInt32();
-		int16_t getInt16();
-		int8_t getInt8();
-		uint64_t getUInt64();
-		uint32_t getUInt32();
-		uint16_t getUInt16();
-		uint8_t getUInt8();
-		double getDouble();
-		float getFloat();
-		bool getBool();
-		array* getArray();
-		object* getObject();
-		method getMethod();
-		void* getPtr();
+		string getString() const;
+		int64_t getInt64() const;
+		int32_t getInt32() const;
+		int16_t getInt16() const;
+		int8_t getInt8() const;
+		uint64_t getUInt64() const;
+		uint32_t getUInt32() const;
+		uint16_t getUInt16() const;
+		uint8_t getUInt8() const;
+		double getDouble() const;
+		float getFloat() const;
+		bool getBool() const;
+		array* getArray() const;
+		object* getObject() const;
+		method getMethod() const;
+		func getFunction() const;
+		void* getPtr() const;
+		genericError* getError() const;
 
 		operator const char*() const;
+		operator string() const;
 		operator int64_t() const;
 		operator int32_t() const;
 		operator int16_t() const;
@@ -86,9 +93,12 @@ namespace red {
 		operator array*() const;
 		operator object*() const;
 		operator method() const;
+		operator func() const;
 		operator void*() const;
-		var operator()(object&, var);
-		var operator()(object&);
+		operator genericError*() const;
+		var operator()(object&, varList) const;
+		var operator()(object&) const;
+		var operator()(varList) const;
 	};
 
-}  // namespace red
+}  // namespace gold

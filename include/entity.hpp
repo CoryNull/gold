@@ -2,23 +2,23 @@
 
 #include "object.hpp"
 
-namespace red {
+namespace gold {
 	class entity : public object {
 	 protected:
 		friend class engine;
 		static object proto;
 
-		static var initialize(object& self, var args);
-		static var add(object& self, var args);
-		static var remove(object& self, var args);
-		static var enable(object& self, var args);
-		static var disable(object& self, var args);
-
 	 public:
 		entity();
 		entity(object config);
 
-		entity& operator+=(var args);
-		entity& operator-=(var args);
+		var initialize(varList args = {});
+		var add(varList args);
+		var remove(varList args);
+		var enable(varList args);
+		var disable(varList args);
+
+		entity& operator+=(varList args);
+		entity& operator-=(varList args);
 	};
-}  // namespace red
+}  // namespace gold

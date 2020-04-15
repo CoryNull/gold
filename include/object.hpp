@@ -2,16 +2,16 @@
 
 /* <Includes> */
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <mutex>
 
 #include "types.hpp"
 #include "var.hpp"
 /* </Includes> */
 
-namespace red {
+namespace gold {
 	using namespace std;
 	using namespace nlohmann;
 	typedef string key;
@@ -21,10 +21,15 @@ namespace red {
 	 protected:
 		friend class var;
 		typedef map<key, var> omap;
-		shared_ptr<omap> items;
-		object* parent;
-		uint64_t id;
-		mutex omutex;
+		struct objData {
+			omap items;
+			object* parent;
+			uint64_t id;
+			mutex omutex;
+		};
+		shared_ptr<objData> data;
+		static shared_ptr<objData> newObjData(
+			object* p = nullptr, omap m = {}, uint64_t id = 0);
 
 	 public:
 		typedef initializer_list<omap::value_type> object_list;
@@ -33,6 +38,7 @@ namespace red {
 		object(object copy, object* parent);
 		object(object_list list, object* parent = nullptr);
 		object(json value);
+		object(var value);
 		~object();
 
 		omap::iterator begin();
@@ -46,12 +52,13 @@ namespace red {
 		binary getMsgPack();
 		binary getUBJSON();
 		var callMethod(string name);
-		var callMethod(string name, var args);
+		var callMethod(string name, varList args);
 		void copy(object& other);
 		void setParent(object* other);
 		object* getParent();
 
 		void setString(string name, char* value);
+		void setString(string name, string value);
 		void setInt64(string name, int64_t value);
 		void setInt32(string name, int32_t value);
 		void setInt16(string name, int16_t value);
@@ -65,12 +72,12 @@ namespace red {
 		void setBool(string name, bool value);
 		void setArray(string name, array value);
 		void setObject(string name, object value);
-		void setMethod(string name, method value);
+		void setMethod(string name, method& value);
 		void setPtr(string name, void* value);
 		void setVar(string name, var var);
 		void setNull(string name);
 
-		const char* getString(string name, char* def = 0);
+		string getString(string name, char* def = 0);
 		int64_t getInt64(string name, int64_t def = 0);
 		int32_t getInt32(string name, int32_t def = 0);
 		int16_t getInt16(string name, int16_t def = 0);
@@ -84,12 +91,12 @@ namespace red {
 		bool getBool(string name, bool def = false);
 		array* getArray(string name, array* def = 0);
 		object* getObject(string name, object* def = 0);
-		method getMethod(string name, method def = 0);
+		method getMethod(string name);
 		void* getPtr(string name, void* def = 0);
 		var getVar(string name);
 
 		var operator[](string name);
-		var operator()(string name, var);
+		var operator()(string name, varList);
 		var operator()(string name);
 		bool operator==(const object& other);
 		object& operator=(const object rhs);
@@ -118,4 +125,4 @@ namespace red {
 	};
 
 	/* </Object> */
-}  // namespace red
+}  // namespace gold

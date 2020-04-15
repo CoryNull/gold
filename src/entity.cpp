@@ -3,82 +3,90 @@
 #include "array.hpp"
 #include "component.hpp"
 
-namespace red {
-	object entity::proto =
-		object({{"id", var()},
-						{"name", "New Object"},
-						{"initialize", entity::initialize},
-						{"add", entity::add},
-						{"remove", entity::remove},
-						{"enable", entity::enable},
-						{"disable", entity::disable}});
+namespace gold {
+	object entity::proto = object({
+		{"name", "New Object"},
+		{"enabled", true},
+		{"initialize", method(&entity::initialize)},
+		{"add", method(&entity::add)},
+		{"remove", method(&entity::remove)},
+		{"enable", method(&entity::enable)},
+		{"disable", method(&entity::disable)},
+	});
 
-	var entity::add(object& self, var args) {
-		auto comps = self.getArray("components");
-		auto children = self.getArray("children");
+	var entity::add(varList args) {
+		auto comps = getArray("components");
+		auto children = getArray("children");
 		if (!comps) return var();
 		if (!children) return var();
-		if (args.isObject(proto))
-			children->pushObject(*args.getObject());
-		if (args.isObject(component::proto))
-			comps->pushObject(*args.getObject());
+		for (auto it = args.begin(); it != args.end(); ++it) {
+			if (it->isObject(proto))
+				children->pushObject(*it->getObject());
+			else if (it->isObject(component::proto))
+				comps->pushObject(*it->getObject());
+		}
+		return var();
 	}
 
-	var entity::remove(object& self, var args) {
-		auto comps = self.getArray("components");
-		auto children = self.getArray("children");
+	var entity::remove(varList args) {
+		auto comps = getArray("components");
+		auto children = getArray("children");
 		if (!comps) return var();
 		if (!children) return var();
-		if (args.isObject(proto)) {
-			auto obj = args.getObject();
-			auto it = children->find(obj);
-			if (it != children->end()) children->erase(it);
+		for (auto it = args.begin(); it != args.end(); ++it) {
+			if (it->isObject(proto)) {
+				auto obj = it->getObject();
+				auto it = children->find(*obj);
+				if (it != children->end()) children->erase(it);
+			} else if (it->isObject(component::proto)) {
+				auto obj = it->getObject();
+				auto it = comps->find(*obj);
+				if (it != comps->end()) comps->erase(it);
+			}
 		}
-		if (args.isObject(component::proto)) {
-			auto obj = args.getObject();
-			auto it = comps->find(obj);
-			if (it != comps->end()) comps->erase(it);
-		}
+
+		return var();
 	}
 
-	var entity::initialize(object& self, var args) {
-		if (self.getArray("components") == nullptr)
-			self.setArray("components", array());
-		if (self.getArray("children") == nullptr)
-			self.setArray("children", array());
-		if (self.getType("enabled") != typeBool)
-			self.setBool("enabled", true);
+	var entity::initialize(varList args) {
+		if (getArray("components") == nullptr)
+			setArray("components", array());
+		if (getArray("children") == nullptr)
+			setArray("children", array());
+		if (getType("enabled") != typeBool)
+			setBool("enabled", true);
+		return var();
 	}
 
-	var entity::enable(object& self, var args) {
-		if (!self.getBool("enabled")) {
-			self.setBool("enabled", true);
+	var entity::enable(varList args) {
+		if (!getBool("enabled")) {
+			setBool("enabled", true);
 			// Do something
 		}
+		return var();
 	}
 
-	var entity::disable(object& self, var args) {
-		if (self.getBool("enabled")) {
-			self.setBool("enabled", false);
+	var entity::disable(varList args) {
+		if (getBool("enabled")) {
+			setBool("enabled", false);
 			// Do something
 		}
+		return var();
 	}
 
-	entity::entity() : object(proto) {
-		this->callMethod("initialize");
-	}
+	entity::entity() : object(proto) { initialize(); }
 
 	entity::entity(object config) : object(config, &proto) {
-		this->callMethod("initialize");
+		initialize();
 	}
 
-	entity& entity::operator+=(var args) {
-		this->callMethod("add", args);
+	entity& entity::operator+=(varList args) {
+		add(args);
 		return *this;
 	}
 
-	entity& entity::operator-=(var args) {
-		this->callMethod("remove", args);
+	entity& entity::operator-=(varList args) {
+		remove(args);
 		return *this;
 	}
-}  // namespace red
+}  // namespace gold
