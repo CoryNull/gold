@@ -48,7 +48,7 @@ namespace gold {
 		return var();
 	}
 
-	var entity::initialize(varList args) {
+	var entity::initialize(varList) {
 		if (getArray("components") == nullptr)
 			setArray("components", array());
 		if (getArray("children") == nullptr)
@@ -58,7 +58,7 @@ namespace gold {
 		return var();
 	}
 
-	var entity::enable(varList args) {
+	var entity::enable(varList) {
 		if (!getBool("enabled")) {
 			setBool("enabled", true);
 			// Do something
@@ -66,7 +66,7 @@ namespace gold {
 		return var();
 	}
 
-	var entity::disable(varList args) {
+	var entity::disable(varList) {
 		if (getBool("enabled")) {
 			setBool("enabled", false);
 			// Do something

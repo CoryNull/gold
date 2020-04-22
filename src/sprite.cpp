@@ -8,7 +8,7 @@ namespace gold {
 		},
 		&renderable::proto);
 
-	var sprite::draw(varList args) {
+	var sprite::draw(varList) {
 		return genericError("Needs to overriden");
 	}
 

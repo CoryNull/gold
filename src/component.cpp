@@ -11,9 +11,9 @@ namespace gold {
 		{"update", method(&component::update)},
 	});
 
-	var component::draw(varList args) { return var(); }
+	var component::draw(varList) { return var(); }
 
-	var component::update(varList args) { return var(); }
+	var component::update(varList) { return var(); }
 
 	component::component() : object(proto) {}
 

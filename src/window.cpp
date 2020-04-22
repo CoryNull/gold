@@ -47,7 +47,8 @@ namespace gold {
 
 	var window::setSize(varList args) {
 		auto handle = (SDL_Window*)getPtr("handle");
-		int32_t width, height = SDL_WINDOWPOS_CENTERED;
+		int32_t width = SDL_WINDOWPOS_CENTERED;
+		int32_t height = SDL_WINDOWPOS_CENTERED;
 
 		if (args[0].getType() == typeArray) {
 			auto array = args[0].getArray();
@@ -65,7 +66,8 @@ namespace gold {
 
 	var window::setPos(varList args) {
 		auto handle = (SDL_Window*)getPtr("handle");
-		int32_t x, y = SDL_WINDOWPOS_CENTERED;
+		int32_t x = SDL_WINDOWPOS_CENTERED;
+		int32_t y = SDL_WINDOWPOS_CENTERED;
 
 		if (args[0].getType() == typeArray) {
 			auto array = args[0].getArray();
@@ -131,13 +133,12 @@ namespace gold {
 		return var();
 	}
 
-	var window::create(varList args) {
+	var window::create(varList) {
 		if (getType("handle") == typePtr) callMethod("destroy");
 		int32_t windowX = getInt32("x");
 		int32_t windowY = getInt32("y");
 		int32_t width = getInt32("width");
 		int32_t height = getInt32("height");
-		int32_t refreshRate = getInt32("refreshRate");
 		bool fullscreen = getBool("fullscreen");
 		bool borderless = getBool("borderless");
 		bool maximize = getBool("maximize");
@@ -160,7 +161,7 @@ namespace gold {
 		return var();
 	}
 
-	var window::destroy(varList args) {
+	var window::destroy(varList) {
 		SDL_Window* window = (SDL_Window*)getPtr("handle");
 		if (window != nullptr) SDL_DestroyWindow(window);
 		return var();
@@ -219,7 +220,7 @@ namespace gold {
 		return var();
 	}
 
-	var window::getConfig(varList args) {
+	var window::getConfig(varList) {
 		auto allowed = windowConfigDefault;
 		auto config = object();
 		for (auto it = begin(); it != end(); ++it) {

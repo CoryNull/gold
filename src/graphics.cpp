@@ -140,11 +140,11 @@ namespace gold {
 		return var();
 	}
 
-	var backend::renderFrame(varList args) {
+	var backend::renderFrame(varList) {
 		return bgfx::frame(false);
 	}
 
-	var backend::getConfig(varList args) {
+	var backend::getConfig(varList) {
 		auto allowed = defaultBackendConfig;
 		auto config = object();
 		for (auto it = begin(); it != end(); ++it) {
@@ -155,12 +155,12 @@ namespace gold {
 		return config;
 	}
 
-	var backend::destroy(varList args) {
+	var backend::destroy(varList) {
 		bgfx::shutdown();
 		return var();
 	}
 
-	var backend::preFrame(varList args) {
+	var backend::preFrame(varList) {
 		auto win = getObject("window");
 		auto width = win->getUInt16("width");
 		auto height = win->getUInt16("height");

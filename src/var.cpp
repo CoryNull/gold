@@ -164,7 +164,8 @@ namespace gold {
 	var::var(bool v)
 		: sPtr(make_shared<varContainer>(v, typeBool)) {}
 
-	var::var(genericError v) : sPtr(make_shared<varContainer>(v)) {}
+	var::var(genericError v)
+		: sPtr(make_shared<varContainer>(v)) {}
 
 	var::~var() {}
 
@@ -281,7 +282,7 @@ namespace gold {
 
 	bool var::isBool() const {
 		auto container = sPtr.get();
-		if (container && container->type != typeNull) return true;
+		if (container && container->type == typeBool) return true;
 		return false;
 	}
 
@@ -403,12 +404,57 @@ namespace gold {
 
 	void* var::getPtr() const { return (void*)*this; }
 
-	genericError* var::getError() const { return (genericError*)*this; }
+	genericError* var::getError() const {
+		return (genericError*)*this;
+	}
 
 	var::operator string() const {
 		auto container = sPtr.get();
-		if (container && container->type == typeString)
-			return *container->str;
+		if (container) {
+			switch (container->type) {
+				case typeInt64:
+					return to_string(container->i64);
+				case typePtr:
+					return "0x" + to_string((uint64_t)container->ptr);
+				case typeInt32:
+					return to_string(container->i32);
+				case typeInt16:
+					return to_string(container->i16);
+				case typeInt8:
+					return to_string(container->i8);
+				case typeUInt64:
+					return to_string(container->u64);
+				case typeUInt32:
+					return to_string(container->u32);
+				case typeUInt16:
+					return to_string(container->u16);
+				case typeUInt8:
+					return to_string(container->u8);
+				case typeDouble:
+					return to_string(container->d);
+				case typeFloat:
+					return to_string(container->f);
+				case typeBool:
+					return container->b ? "true" : "false";
+				case typeString:
+					return *container->str;
+				case typeNull:
+					return "null";
+				case typeArray:
+					return container->a->getJSON();
+				case typeObject:
+					return container->o->getJSON();
+				case typeFunction:
+					return "0x" + to_string((uint64_t)container->fu);
+				case typeMethod:
+					return "0x" + to_string((uint64_t)container->m);
+				case typeException:
+					return string(*container->e);
+				default:
+					break;
+			}
+		}
+
 		return "";
 	}
 
@@ -913,6 +959,11 @@ namespace gold {
 		if (container && container->type == typeException)
 			return container->e;
 		return nullptr;
+	}
+
+	ostream& operator<<(ostream& os, const var& v){
+		os << string(v);
+		return os;
 	}
 
 	var var::operator()(object& self, varList args) const {

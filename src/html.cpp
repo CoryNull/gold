@@ -56,7 +56,7 @@ namespace gold {
 			return gold::var();
 		}
 
-		gold::var iHTML::getAttribute(varList args) {
+		gold::var iHTML::getAttribute(varList) {
 			auto attr = getObject("attr");
 			if (attr) return gold::var(*attr);
 			return gold::var();
@@ -92,8 +92,11 @@ namespace gold {
 			buffer += "<" + tag;
 			if (attr->getSize() > 0) buffer += " ";
 			for (auto it = attr->begin(); it != attr->end(); ++it) {
-				buffer +=
-					it->first + "=\"" + it->second.getString() + "\" ";
+				if (it->second.isBool()) {
+					if (it->second.getBool()) buffer += it->first + " ";
+				} else
+					buffer +=
+						it->first + "=\"" + it->second.getString() + "\" ";
 			}
 			buffer += ">";
 			for (auto it = items->begin(); it != items->end(); ++it) {
@@ -123,120 +126,120 @@ namespace gold {
 			return *this;
 		}
 
-		DefineElementTypeTag(hTemplate, "template");
-		DefineElementTypeTag(hObject, "object");
+		DefineElementTypeTag(hTemplate, "template")
+		DefineElementTypeTag(hObject, "object")
 
-		DefineElementType(html);
-		DefineElementType(head);
-		DefineElementType(body);
+		DefineElementType(html)
+		DefineElementType(head)
+		DefineElementType(body)
 
-		DefineElementType(meta);
-		DefineElementType(script);
-		DefineElementType(style);
+		DefineElementType(meta)
+		DefineElementType(script)
+		DefineElementType(style)
 
-		DefineElementType(nav);
-		DefineElementType(base);
-		DefineElementType(br);
-		DefineElementType(param);
-		DefineElementType(link);
-		DefineElementType(title);
-		DefineElementType(span);
-		DefineElementType(p);
-		DefineElementType(a);
-		DefineElementType(img);
-		DefineElementType(area);
-		DefineElementType(audio);
-		DefineElementType(canvas);
-		DefineElementType(embed);
-		DefineElementType(source);
-		DefineElementType(track);
-		DefineElementType(video);
-		DefineElementType(map);
-		DefineElementType(input);
-		DefineElementType(h1);
-		DefineElementType(h2);
-		DefineElementType(h3);
-		DefineElementType(h4);
-		DefineElementType(h5);
-		DefineElementType(h6);
+		DefineElementType(nav)
+		DefineElementType(base)
+		DefineElementType(br)
+		DefineElementType(param)
+		DefineElementType(link)
+		DefineElementType(title)
+		DefineElementType(span)
+		DefineElementType(p)
+		DefineElementType(a)
+		DefineElementType(img)
+		DefineElementType(area)
+		DefineElementType(audio)
+		DefineElementType(canvas)
+		DefineElementType(embed)
+		DefineElementType(source)
+		DefineElementType(track)
+		DefineElementType(video)
+		DefineElementType(map)
+		DefineElementType(input)
+		DefineElementType(h1)
+		DefineElementType(h2)
+		DefineElementType(h3)
+		DefineElementType(h4)
+		DefineElementType(h5)
+		DefineElementType(h6)
 
-		DefineElementType(dl);
-		DefineElementType(dt);
-		DefineElementType(dd);
-		DefineElementType(ol);
-		DefineElementType(ul);
-		DefineElementType(li);
+		DefineElementType(dl)
+		DefineElementType(dt)
+		DefineElementType(dd)
+		DefineElementType(ol)
+		DefineElementType(ul)
+		DefineElementType(li)
 
-		DefineElementType(adress);
-		DefineElementType(article);
-		DefineElementType(aside);
-		DefineElementType(blockquote);
-		DefineElementType(del);
-		DefineElementType(div);
-		DefineElementType(figure);
-		DefineElementType(figcaption);
-		DefineElementType(footer);
-		DefineElementType(header);
-		DefineElementType(hr);
-		DefineElementType(ins);
-		DefineElementType(main);
-		DefineElementType(pre);
-		DefineElementType(section);
-		DefineElementType(bdi);
-		DefineElementType(bdo);
-		DefineElementType(cite);
-		DefineElementType(data);
+		DefineElementType(adress)
+		DefineElementType(article)
+		DefineElementType(aside)
+		DefineElementType(blockquote)
+		DefineElementType(del)
+		DefineElementType(div)
+		DefineElementType(figure)
+		DefineElementType(figcaption)
+		DefineElementType(footer)
+		DefineElementType(header)
+		DefineElementType(hr)
+		DefineElementType(ins)
+		DefineElementType(main)
+		DefineElementType(pre)
+		DefineElementType(section)
+		DefineElementType(bdi)
+		DefineElementType(bdo)
+		DefineElementType(cite)
+		DefineElementType(data)
 
-		DefineElementType(b);
-		DefineElementType(abbr);
-		DefineElementType(dfn);
-		DefineElementType(q);
-		DefineElementType(i);
-		DefineElementType(u);
-		DefineElementType(s);
-		DefineElementType(small);
-		DefineElementType(strong);
-		DefineElementType(em);
-		DefineElementType(mark);
-		DefineElementType(rp);
-		DefineElementType(sub);
-		DefineElementType(rb);
-		DefineElementType(rt);
-		DefineElementType(ruby);
-		DefineElementType(time);
-		DefineElementType(wbr);
+		DefineElementType(b)
+		DefineElementType(abbr)
+		DefineElementType(dfn)
+		DefineElementType(q)
+		DefineElementType(i)
+		DefineElementType(u)
+		DefineElementType(s)
+		DefineElementType(small)
+		DefineElementType(strong)
+		DefineElementType(em)
+		DefineElementType(mark)
+		DefineElementType(rp)
+		DefineElementType(sub)
+		DefineElementType(rb)
+		DefineElementType(rt)
+		DefineElementType(ruby)
+		DefineElementType(time)
+		DefineElementType(wbr)
 
-		DefineElementType(code);
-		DefineElementType(kbd);
-		DefineElementType(samp);
-		DefineElementType(var);
+		DefineElementType(code)
+		DefineElementType(kbd)
+		DefineElementType(samp)
+		DefineElementType(var)
 
-		DefineElementType(form);
-		DefineElementType(button);
-		DefineElementType(datalist);
-		DefineElementType(fieldlist);
-		DefineElementType(label);
-		DefineElementType(legend);
-		DefineElementType(meter);
-		DefineElementType(option);
-		DefineElementType(optgroup);
-		DefineElementType(output);
-		DefineElementType(progress);
-		DefineElementType(select);
-		DefineElementType(textarea);
+		DefineElementType(form)
+		DefineElementType(button)
+		DefineElementType(datalist)
+		DefineElementType(fieldlist)
+		DefineElementType(label)
+		DefineElementType(legend)
+		DefineElementType(meter)
+		DefineElementType(option)
+		DefineElementType(optgroup)
+		DefineElementType(output)
+		DefineElementType(progress)
+		DefineElementType(select)
+		DefineElementType(textarea)
 
-		DefineElementType(table);
-		DefineElementType(tr);
-		DefineElementType(th);
-		DefineElementType(td);
-		DefineElementType(colgroup);
-		DefineElementType(col);
-		DefineElementType(caption);
-		DefineElementType(thead);
-		DefineElementType(tbody);
-		DefineElementType(tfoot);
+		DefineElementType(table)
+		DefineElementType(tr)
+		DefineElementType(th)
+		DefineElementType(td)
+		DefineElementType(colgroup)
+		DefineElementType(col)
+		DefineElementType(caption)
+		DefineElementType(thead)
+		DefineElementType(tbody)
+		DefineElementType(tfoot)
 
-		DefineElementType(iframe);
+		DefineElementType(iframe)
 
 	}  // namespace HTML
 }  // namespace gold

@@ -86,6 +86,9 @@ namespace gold {
 		for (auto i = data->items.begin(); i != data->items.end();
 				 ++i) {
 			switch (i->getType()) {
+				case typeException:
+					j.push_back(string(*i->getError()));
+					break;
 				case typeNull:
 					j.push_back(nullptr);
 					break;
@@ -179,18 +182,22 @@ namespace gold {
 	array::avec::iterator array::find(var item) {
 		if (!data) return array::avec::iterator();
 		unique_lock<mutex> gaurd(data->amutex);
-		for (auto it = begin(); it != end(); ++it)
+		auto e = data->items.end();
+		auto it = data->items.begin();
+		for (; it != e; ++it)
 			if ((*it) == item) return it;
-		return end();
+		return e;
 	}
 
 	array::avec::iterator array::find(
 		var item, avec::iterator start) {
 		if (!data) return array::avec::iterator();
 		unique_lock<mutex> gaurd(data->amutex);
-		for (auto it = start; it != end(); ++it)
+		auto e = data->items.end();
+		auto it = start;
+		for (; it != e; ++it)
 			if ((*it) == item) return it;
-		return end();
+		return e;
 	}
 
 	array& array::operator+=(var item) {

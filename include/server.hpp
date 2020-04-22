@@ -1,12 +1,9 @@
 #pragma once
 
-#include "object.hpp"
+#include <App.h>
+#include <HttpResponse.h>
 
-// Forward declares
-namespace httplib {
-	class Request;
-	class Response;
-}  // namespace httplib
+#include "object.hpp"
 
 namespace gold {
 	class request;
@@ -27,7 +24,7 @@ namespace gold {
 		var del(varList args);
 		var options(varList args);
 		var setMountPoint(varList args);
-		var removeMountPoint(varList args);
+		var setErrorHandler(varList args);
 		var initialize(varList args = {});
 		var destroy(varList args = {});
 	};
@@ -37,22 +34,22 @@ namespace gold {
 		static object proto;
 
 	 public:
-		var hasHeader(varList args);
-		var getHeaderValue(varList args);
-		var getHeaderValueCount(varList args);
 
-		var hasParam(varList args);
-		var getParamValue(varList args);
-		var getParamValueCount(varList args);
+		var getAllHeaders(varList args = {});
 
-		var isMultipartFormData(varList args);
+		var getHeader(varList args);
+		var getMethod(varList args = {});
+		var getParameter(varList args);
+		var getQuery(varList args);
+		var getUrl(varList args);
+		var getYield(varList args);
+		var setParameters(varList args);
+		var setYield(varList args);
 
-		var hasFile(varList args);
-		var getFileValue(varList args);
+		bool isWWWFormURLEncoded();
+		bool isJSON();
 
-		var getMatches(varList args = {});
-
-		request(const httplib::Request& req);
+		request(uWS::HttpRequest& req);
 	};
 
 	class response : public object {
@@ -60,17 +57,20 @@ namespace gold {
 		static object proto;
 
 	 public:
-		response(httplib::Response& res);
+		response(uWS::HttpResponse<false>& res);
+		response(uWS::HttpResponse<true>& res);
 
-		var hasHeader(varList args);
-		var getHeaderValue(varList args);
-		var getHeaderValueCount(varList args);
-		var setHeader(varList args);
-
-		var setRedirect(varList args);
-		var setContent(varList args);
-
-		var setContentProvider(varList args);
-		var setChunkedContentProvider(varList args);
+		var writeContinue(varList args = {});
+		var writeStatus(varList args);
+		var writeHeader(varList args);
+		var end(varList args = {});
+		var tryEnd(varList args = {});
+		var write(varList args);
+		var getWriteOffset(varList args = {});
+		var hasResponded(varList args = {});
+		var cork(varList args);
+		var onWritable(varList args);
+		var onAborted(varList args);
+		var onData(varList args);
 	};
 }  // namespace gold

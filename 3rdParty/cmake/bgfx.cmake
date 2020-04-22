@@ -9,6 +9,10 @@
 # this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
 # Ensure the directory exists
+
+cmake_policy(SET CMP0072 NEW)
+set(OpenGL_GL_PREFERENCE "GLVND")
+
 if( NOT IS_DIRECTORY ${BGFX_DIR} )
 	message( SEND_ERROR "Could not load bgfx, directory does not exist. ${BGFX_DIR}" )
 	return()

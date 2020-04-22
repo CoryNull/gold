@@ -10,7 +10,7 @@ namespace gold {
 		},
 		&component::proto);
 
-	var renderable::draw(varList args) {
+	var renderable::draw(varList) {
 		return genericError("Needs to overriden");
 	}
 

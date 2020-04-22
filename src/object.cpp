@@ -84,7 +84,10 @@ namespace gold {
 	object::object(object_list list, object* p)
 		: data(newObjData(p, omap(list))) {}
 
-	object::~object() {}
+	object::~object() {
+		auto uses = data.use_count();
+		if (uses == 0) this->callMethod("destroy");
+	}
 
 	object::omap::iterator object::begin() {
 		unique_lock<mutex> gaurd(data->omutex);
@@ -103,7 +106,6 @@ namespace gold {
 
 	types object::getType(string name) {
 		unique_lock<mutex> gaurd(data->omutex);
-		uint64_t index;
 		auto it = data->items.find(name);
 		if (it != data->items.end()) return it->second.getType();
 		if (data->parent) return data->parent->getType(name);
@@ -309,11 +311,18 @@ namespace gold {
 	}
 
 	string object::getString(string name, char* def) {
-		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getString();
-		if (data->parent) return data->parent->getString(name, def);
-		return def;
+		try {
+			if (data == nullptr) return def;
+			unique_lock<mutex> gaurd(data->omutex);
+			auto it = data->items.find(name);
+			if (it != data->items.end())
+				return it->second.getString();
+			if (data->parent)
+				return data->parent->getString(name, def);
+			return string(def);
+		} catch (exception& e) {
+			return string();
+		}
 	}
 
 	int64_t object::getInt64(string name, int64_t def) {
@@ -413,11 +422,17 @@ namespace gold {
 	}
 
 	object* object::getObject(string name, object* def) {
-		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getObject();
-		if (data->parent) return data->parent->getObject(name, def);
-		return def;
+		try {
+			unique_lock<mutex> gaurd(data->omutex);
+			auto it = data->items.find(name);
+			if (it != data->items.end())
+				return it->second.getObject();
+			if (data->parent)
+				return data->parent->getObject(name, def);
+			return def;
+		} catch (exception& e) {
+			return def;
+		}
 	}
 
 	method object::getMethod(string name) {
@@ -435,6 +450,7 @@ namespace gold {
 	}
 
 	void* object::getPtr(string name, void* def) {
+		if (!data) return def;
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
 		if (it != data->items.end()) return it->second.getPtr();
@@ -479,6 +495,48 @@ namespace gold {
 		return *this;
 	}
 
+	object object::parseURLEncoded(string value) {
+		auto ret = object();
+		auto it = value.begin();
+		string buffer = "";
+		string key = "";
+		while (it != value.end()) {
+			if (isalnum(*it))
+				buffer += *it;
+			else if (*it == '=') {
+				key = buffer;
+				buffer = "";
+			} else if (*it == '&') {
+				auto vType = ret.getType(key);
+				if (vType == typeString) {
+					auto copy = ret.getString(key);
+					ret.setArray(key, array({copy, buffer}));
+				} else if (vType == typeArray) {
+					auto arr = ret.getArray(key);
+					arr->pushString(buffer);
+				} else {
+					ret.setString(key, buffer);
+				}
+				buffer = "";
+				key = "";
+			} else if (*it == '.') {
+				buffer += ".";
+			} else if (*it == '+') {
+				buffer += " ";
+			} else if (*it == '%') {
+				string h = "0x";
+				h += *(++it);
+				h += *(++it);
+				auto c = (char)stoul(h, nullptr, 16);
+				buffer += string(&c, 1);
+			}
+			++it;
+		}
+		if (key.size() > 0 && buffer.size() > 0)
+			ret.setString(key, buffer);
+		return ret;
+	}
+
 	var object::loadJSON(string path) {
 		try {
 			ifstream ss(path);
@@ -492,7 +550,7 @@ namespace gold {
 				return var(obj);
 			} else
 				return var(genericError("not object"));
-		} catch (exception err) {
+		} catch (exception& err) {
 			return var(genericError(err));
 		}
 	}
@@ -518,7 +576,7 @@ namespace gold {
 				return var(object(j));
 			else
 				return var(genericError("failed to parse"));
-		} catch (exception err) {
+		} catch (exception& err) {
 			return var(genericError(err));
 		}
 	}
@@ -544,7 +602,7 @@ namespace gold {
 				return object(j);
 			else
 				return var();
-		} catch (exception err) {
+		} catch (exception& err) {
 			return var();
 		}
 	}
@@ -570,7 +628,7 @@ namespace gold {
 				return object(j);
 			else
 				return var();
-		} catch (exception err) {
+		} catch (exception& err) {
 			return var();
 		}
 	}
@@ -596,7 +654,7 @@ namespace gold {
 				return object(j);
 			else
 				return var();
-		} catch (exception err) {
+		} catch (exception& err) {
 			return var();
 		}
 	}

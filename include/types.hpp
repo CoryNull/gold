@@ -33,7 +33,7 @@ namespace gold {
 		genericError(
 			string_view message,
 			const sourceLocation& l = sourceLocation::current());
-		operator const char*() const;
+		operator string() const;
 		friend ostream& operator<<(ostream& os, const genericError& dt);
 	};
 

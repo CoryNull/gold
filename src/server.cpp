@@ -1,13 +1,18 @@
 #include "server.hpp"
 
+#include <App.h>
+
+#include <filesystem>
+#include <fstream>
 #include <functional>
+#include <iostream>
 
 #include "array.hpp"
-#include "httplib.h"
 
 namespace gold {
 	using namespace std;
-	using namespace httplib;
+	using namespace uWS;
+	namespace fs = std::filesystem;
 
 	object server::proto = object({
 		{"host", "localhost"},
@@ -20,166 +25,264 @@ namespace gold {
 		{"del", method(&server::del)},
 		{"options", method(&server::options)},
 		{"setMountPoint", method(&server::setMountPoint)},
-		{"removeMountPoint", method(&server::removeMountPoint)},
+		{"setErrorHandler", method(&server::setErrorHandler)},
 		{"initialize", method(&server::initialize)},
 		{"destroy", method(&server::destroy)},
 	});
 
 	object response::proto = object({
-		{"hasHeader", method(&response::hasHeader)},
-		{"getHeaderValue", method(&response::getHeaderValue)},
-		{"getHeaderValueCount",
-		 method(&response::getHeaderValueCount)},
-		{"setHeader", method(&response::setHeader)},
-
-		{"setRedirect", method(&response::setRedirect)},
-		{"setContent", method(&response::setContent)},
-		{"setContentProvider",
-		 method(&response::setContentProvider)},
-		{"setChunkedContentProvider",
-		 method(&response::setChunkedContentProvider)},
+		{"writeContinue", method(&response::writeContinue)},
+		{"writeStatus", method(&response::writeStatus)},
+		{"writeHeader", method(&response::writeHeader)},
+		{"end", method(&response::end)},
+		{"tryEnd", method(&response::tryEnd)},
+		{"write", method(&response::write)},
+		{"getWriteOffset", method(&response::getWriteOffset)},
+		{"hasResponded", method(&response::hasResponded)},
+		{"cork", method(&response::cork)},
+		{"onWritable", method(&response::onWritable)},
+		{"onAborted", method(&response::onAborted)},
+		{"onData", method(&response::onData)},
 	});
 
 	object request::proto = object({
-		{"hasHeader", method(&request::hasHeader)},
-		{"getHeaderValue", method(&request::getHeaderValue)},
-		{"getHeaderValueCount",
-		 method(&request::getHeaderValueCount)},
-		{"hasParam", method(&request::hasParam)},
-		{"getParamValue", method(&request::getParamValue)},
-		{"getParamValueCount",
-		 method(&request::getParamValueCount)},
-		{"isMultipartFormData",
-		 method(&request::isMultipartFormData)},
-		{"hasFile", method(&request::hasFile)},
-		{"getFileValue", method(&request::getFileValue)},
-		{"getMatches", method(&request::getMatches)},
+		{"getAllHeaders", method(&request::getAllHeaders)},
+		{"getHeader", method(&request::getHeader)},
+		{"getMethod", method(&request::getMethod)},
+		{"getParameter", method(&request::getParameter)},
+		{"getQuery", method(&request::getQuery)},
+		{"getUrl", method(&request::getUrl)},
+		{"getYield", method(&request::getYield)},
+		{"setParameters", method(&request::setParameters)},
+		{"setYield", method(&request::setYield)},
 	});
 
-	var server::start(varList args) {
+	var server::start(varList) {
 		auto host = getString("host");
 		auto port = getInt32("port");
-		auto handle = (Server*)getPtr("handle");
-		if (handle) return handle->listen(host.c_str(), port);
-		return var();
+		auto handle = (App*)getPtr("handle");
+		if (handle != nullptr) {
+			handle
+				->listen(
+					port,
+					[port, host](auto* token) {
+						if (token) {
+							std::cout << "Serving " << host << " over "
+												<< port << std::endl;
+						}
+					})
+				.run();
+			return var(true);
+		}
+		return var(false);
 	}
 
 	var server::get(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
+
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Get(
+			handle->get(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::post(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Post(
+			handle->post(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::put(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Put(
+			handle->put(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::patch(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Patch(
+			handle->patch(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::del(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Delete(
+			handle->del(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::options(varList args) {
-		auto handle = (Server*)getPtr("handle");
+		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
 		auto func = args[1].getFunction();
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->Options(
+			handle->options(
 				pattern.c_str(),
-				[func](const Request& req, Response& res) {
-					func({request(req), response(res)});
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
 				});
 		return var();
 	}
 
 	var server::setMountPoint(varList args) {
-		auto handle = (Server*)getPtr("handle");
-		auto point = args[0].getString();
-		auto dir = args[1].getString();
-		return handle->set_mount_point(point.c_str(), dir.c_str());
-	}
+		auto handle = (App*)getPtr("handle");
+		auto mounts = getObject("mounts");
+		auto point = fs::path(args[0].getString());
+		if (!handle) return genericError("server handle null");
 
-	var server::removeMountPoint(varList args) {
-		auto handle = (Server*)getPtr("handle");
-		auto point = args[0].getString();
-		return handle->remove_mount_point(point.c_str());
-	}
+		point = fs::canonical(point);
+		for (auto& p : fs::recursive_directory_iterator(point)) {
+			std::string url = fs::relative(p.path().string());
+			if (p.path().extension() != "") {
+				if (url.find("index.html") != string::npos)
+					url =
+						url.substr(0, url.size() - strlen("index.html"));
+				auto key = string(url.data(), url.length());
+				auto buffer = string();
+				ifstream fin(p.path().string(), std::ios::binary);
+				fin.seekg(0, fin.end);
+				auto fileSize = (size_t)fin.tellg();
+				buffer.resize(fileSize);
+				fin.seekg(0, fin.beg);
+				fin.read(buffer.data(), buffer.length());
+				mounts->setString(key, buffer);
 
-	var server::initialize(varList args) {
-		setPtr("handle", new Server());
+				handle->get(
+					"/" + url,
+					[=](HttpResponse<false>* res, HttpRequest* req) {
+						try {
+							auto url = req->getUrl();
+							auto file = mounts->getVar(string(url.substr(1)));
+							if (file.getType() == typeString) {
+								auto data = file.getString();
+								res->writeStatus(HTTP_200_OK);
+								auto ext = fs::path(url).extension().string();
+								if (ext.find(".svg") != string::npos) {
+									res->writeHeader(
+										"Content-Type", "image/svg+xml");
+								} else if (ext.find(".js") != string::npos) {
+									res->writeHeader(
+										"Content-Type", "text/javascript");
+								} else if (ext.find(".css") != string::npos) {
+									res->writeHeader("Content-Type", "text/css");
+								}
+								res->end({file});
+							} else {
+								res->writeStatus("404 Not Found");
+								res->end();
+							}
+						} catch (genericError& e) {
+							cerr << e << endl;
+						}
+					});
+			}
+		}
+
 		return var();
 	}
 
-	var server::destroy(varList args) {
-		auto handle = (Server*)getPtr("handle");
+	var server::setErrorHandler(varList args) {
+		auto handle = (App*)getPtr("handle");
+		if (!handle) return genericError("server handle null");
+		auto func = args[0].getFunction();
+
+		if (!func)
+			return genericError("missing callback");
+		else
+			handle->get(
+				"/*",
+				[func](HttpResponse<false>* res, HttpRequest* req) {
+					try {
+						func({request(*req), response(*res)});
+					} catch (genericError& e) {
+						cerr << e << endl;
+					}
+				});
+		return var();
+	}
+
+	var server::initialize(varList) {
+		setPtr("handle", new App());
+		setObject("mounts", object());
+		return var();
+	}
+
+	var server::destroy(varList) {
+		auto handle = (App*)getPtr("handle");
 		if (handle) delete handle;
 		return var();
 	}
@@ -190,153 +293,268 @@ namespace gold {
 		initialize({});
 	}
 
-	response::response(httplib::Response& r) : object(&proto) {
-		setPtr("handle", &r);
+	response::response(HttpResponse<true>& res) : object(&proto) {
+		setPtr("handle", &res);
+		setBool("ssl", true);
 	}
 
-	var response::hasHeader(varList args) {
-		auto name = args[0].getString();
-		auto res = (httplib::Response*)getPtr("handle");
-		return res->has_header(name.c_str());
+	response::response(HttpResponse<false>& res)
+		: object(&proto) {
+		setPtr("handle", &res);
+		setBool("ssl", false);
 	}
 
-	var response::getHeaderValue(varList args) {
-		auto name = args[0].getString();
-		auto id = args[1].getUInt64();
-		auto res = (httplib::Response*)getPtr("handle");
-		return res->get_header_value(name.c_str(), id);
-	}
-
-	var response::getHeaderValueCount(varList args) {
-		auto name = args[0].getString();
-		auto res = (httplib::Response*)getPtr("handle");
-		return res->get_header_value_count(name.c_str());
-	}
-
-	var response::setHeader(varList args) {
-		auto name = args[0].getString();
-		auto value = args[1].getString();
-		auto res = (httplib::Response*)getPtr("handle");
-		res->set_header(name.c_str(), value);
+	var response::writeContinue(varList) {
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->writeContinue();
+		} else {
+			auto res = (HttpResponse<false>*)getPtr("handle");
+			res->writeContinue();
+		}
 		return var();
 	}
 
-	var response::setRedirect(varList args) {
-		auto url = args[0].getString();
-		auto res = (httplib::Response*)getPtr("handle");
-		res->set_redirect(url.c_str());
+	var response::writeStatus(varList args) {
+		auto status = args[0].getString();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->writeStatus(status);
+		} else {
+			auto res = (HttpResponse<false>*)getPtr("handle");
+			res->writeStatus(status);
+		}
 		return var();
 	}
 
-	var response::setContent(varList args) {
-		auto content = args[0].getString();
-		auto type = args[1].getString();
-		if (type.size() == 0) {
-			// TODO: Maybe check content more?
-			if (content[0] == '[' || content[0] == '{')
-				type = "application/json";
+	var response::writeHeader(varList args) {
+		auto key = args[0].getString();
+		auto value = args[1];
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			if (value.isString()) {
+				auto strValue = value.getString();
+				res->writeHeader(key, strValue);
+			} else if (value.isNumber()) {
+				auto uValue = value.getUInt32();
+				res->writeHeader(key, uValue);
+			}
+		} else {
+			auto res = (HttpResponse<false>*)getPtr("handle");
+			if (value.isString()) {
+				auto strValue = value.getString();
+				res->writeHeader(key, strValue);
+			} else if (value.isNumber()) {
+				auto uValue = value.getUInt32();
+				res->writeHeader(key, uValue);
+			}
+		}
+		return var();
+	}
+
+	var response::end(varList args) {
+		auto data = args[0].getString();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->end(data);
+		} else {
+			auto res = (HttpResponse<false>*)getPtr("handle");
+			res->end(data);
+		}
+		return var();
+	}
+
+	var response::tryEnd(varList args) {
+		auto data = args[0].getString();
+		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			auto p = res->tryEnd(data, size);
+			return var(gold::array({p.first, p.second}));
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		auto p = res->tryEnd(data, size);
+		return var(gold::array({p.first, p.second}));
+	}
+
+	var response::write(varList args) {
+		auto data = args[0].getString();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			return res->write(data);
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		return res->write(data);
+	}
+
+	var response::getWriteOffset(varList) {
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			return res->getWriteOffset();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		return res->getWriteOffset();
+	}
+
+	var response::hasResponded(varList) {
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			return res->hasResponded();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		return res->hasResponded();
+	}
+
+	var response::cork(varList args) {
+		auto handler = args[0].getFunction();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->cork([handler]() { handler({}); });
+			return var();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		res->cork([handler]() { handler({}); });
+		return var();
+	}
+
+	var response::onWritable(varList args) {
+		auto handler = args[0].getFunction();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->onWritable(
+				[handler](int v) { return handler({v}); });
+			return var();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		res->onWritable([handler](int v) { return handler({v}); });
+		return var();
+	}
+
+	var response::onAborted(varList args) {
+		auto handler = args[0].getFunction();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->onAborted([handler]() { handler({}); });
+			return var();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		res->onAborted([handler]() { handler({}); });
+		return var();
+	}
+
+	var response::onData(varList args) {
+		auto handler = args[0].getFunction();
+		auto ssl = getBool("ssl");
+		if (ssl) {
+			auto res = (HttpResponse<true>*)getPtr("handle");
+			res->onData([handler](string_view v, bool b) {
+				handler({string(v), var(b)});
+			});
+			return var();
+		}
+		auto res = (HttpResponse<false>*)getPtr("handle");
+		res->onData([handler](string_view v, bool b) {
+			handler({string(v), var(b)});
+		});
+		return var();
+	}
+
+	request::request(uWS::HttpRequest& req) : object(&proto) {
+		setPtr("handle", (void*)&req);
+		setString("path", string(req.getUrl()));
+	}
+
+	var request::getAllHeaders(varList) {
+		auto req = (HttpRequest*)getPtr("handle");
+		auto obj = object();
+		auto it = req->begin();
+		for (; it != req->end(); ++it) {
+			auto k = string(it.ptr->key);
+			auto v = string(it.ptr->value);
+			auto exist = obj.getVar(k);
+			if (exist.isString())
+				obj.setArray(k, array({exist.getString(), v}));
+			else if (exist.isArray())
+				exist.getArray()->pushString(v);
 			else
-				type = "text/plain";
+				obj.setString(k, v);
 		}
-		auto res = (httplib::Response*)getPtr("handle");
-		res->set_content(content, type.c_str());
+		return obj;
+	}
+
+	var request::getHeader(varList args) {
+		auto req = (HttpRequest*)getPtr("handle");
+		auto lch = args[0].getString();
+		return string(req->getHeader(lch));
+	}
+
+	var request::getMethod(varList) {
+		auto req = (HttpRequest*)getPtr("handle");
+		return string(req->getMethod());
+	}
+
+	var request::getParameter(varList args) {
+		auto req = (HttpRequest*)getPtr("handle");
+		auto in = args[0].getUInt32();
+		return string(req->getParameter(in));
+	}
+
+	var request::getQuery(varList) {
+		auto req = (HttpRequest*)getPtr("handle");
+		return string(req->getQuery());
+	}
+
+	var request::getUrl(varList) {
+		auto req = (HttpRequest*)getPtr("handle");
+		return string(req->getUrl());
+	}
+
+	var request::getYield(varList) {
+		auto req = (HttpRequest*)getPtr("handle");
+		return req->getYield();
+	}
+
+	var request::setParameters(varList args) {
+		auto req = (HttpRequest*)getPtr("handle");
+		int in = args[0].getInt32();
+		auto v = args[1].getString();
+		auto pam = string_view(v);
+		auto p = pair<int, std::string_view*>(in, &pam);
+		req->setParameters(p);
 		return var();
 	}
 
-	var response::setContentProvider(varList args) {
-		auto size = args[0].getUInt64();
-		auto provider = ContentProvider((void (*)(
-			size_t offset, size_t length, DataSink & sink)) args[1]
-																			.getPtr());
-		auto releaser =
-			function<void()>((void (*)())args[2].getPtr());
-		auto res = (httplib::Response*)getPtr("handle");
-		res->set_content_provider(size, provider, releaser);
+	var request::setYield(varList args) {
+		auto req = (HttpRequest*)getPtr("handle");
+		auto y = args[0].getBool();
+		req->setYield(y);
 		return var();
 	}
 
-	var response::setChunkedContentProvider(varList args) {
-		auto provider = function<void(size_t, DataSink&)>(
-			(void (*)(size_t, DataSink&))args[0].getPtr());
-		auto releaser =
-			function<void()>((void (*)())args[1].getPtr());
-		auto res = (httplib::Response*)getPtr("handle");
-		res->set_chunked_content_provider(provider, releaser);
-		return var();
+	bool request::isWWWFormURLEncoded() {
+		auto wwwFormURLEncodedType =
+			"application/x-www-form-urlencoded";
+		auto contentType = getHeader({"Content-Type"}).getString();
+		return contentType.find(wwwFormURLEncodedType) !=
+					 string::npos;
 	}
 
-	request::request(const httplib::Request& r) : object(&proto) {
-		setPtr("handle", (void*)&r);
-		setString("path", r.path);
+	bool request::isJSON() {
+		auto wwwFormURLEncodedType = "application/json";
+		auto contentType = getHeader({"Content-Type"}).getString();
+		return contentType.find(wwwFormURLEncodedType) !=
+					 string::npos;
 	}
 
-	var request::hasHeader(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->has_header(name.c_str());
-	}
-
-	var request::getHeaderValue(varList args) {
-		auto name = args[0].getString();
-		auto id = args.size() >= 2 ? args[1].getUInt64() : 0;
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->get_header_value(name.c_str(), id);
-	}
-
-	var request::getHeaderValueCount(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->get_header_value_count(name.c_str());
-	}
-
-	var request::hasParam(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->has_param(name.c_str());
-	}
-
-	var request::getParamValue(varList args) {
-		auto name = args[0].getString();
-		auto id = args.size() >= 2 ? args[1].getUInt64() : 0;
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->get_param_value(name.c_str(), id);
-	}
-
-	var request::getParamValueCount(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->get_param_value_count(name.c_str());
-	}
-
-	var request::isMultipartFormData(varList args) {
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->is_multipart_form_data();
-	}
-
-	var request::hasFile(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		return req->has_file(name.c_str());
-	}
-
-	var request::getFileValue(varList args) {
-		auto name = args[0].getString();
-		auto req = (httplib::Request*)getPtr("handle");
-		auto formData = req->get_file_value(name.c_str());
-		return object({{"name", formData.name},
-									 {"content", formData.content},
-									 {"filename", formData.filename},
-									 {"contentType", formData.content_type}});
-	}
-
-	var request::getMatches(varList args) {
-		auto req = (httplib::Request*)getPtr("handle");
-		auto arr = array();
-		for (auto it = req->matches.begin();
-				 it != req->matches.end();
-				 ++it) {
-			arr.pushString(it->str());
-		}
-		return arr;
-	}
 }  // namespace gold

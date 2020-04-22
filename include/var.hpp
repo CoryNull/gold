@@ -96,6 +96,7 @@ namespace gold {
 		operator func() const;
 		operator void*() const;
 		operator genericError*() const;
+		friend ostream& operator<<(ostream& os, const var& v);
 		var operator()(object&, varList) const;
 		var operator()(object&) const;
 		var operator()(varList) const;

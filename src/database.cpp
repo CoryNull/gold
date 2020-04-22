@@ -5,9 +5,20 @@
 #include <array.hpp>
 #include <cstdint>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 namespace gold {
+
+	typedef struct {
+		union {
+			struct {
+				uint32_t stamp;
+				uint32_t inc;
+			} pair;
+			uint64_t data;
+		} u;
+	} timeStamp;
 
 	array arrayFromBSON(bson_t* b);
 	object objectFromBSON(bson_t* b);
@@ -98,16 +109,10 @@ namespace gold {
 						a.setInt32(key, bson_iter_int32(&iter));
 						break;
 					case BSON_TYPE_TIMESTAMP: {
-						union {
-							struct {
-								uint32_t stamp;
-								uint32_t inc;
-							} pair;
-							uint64_t data;
-						};
-
-						bson_iter_timestamp(&iter, &pair.stamp, &pair.inc);
-						a.setUInt64(key, data);
+						timeStamp ts;
+						bson_iter_timestamp(
+							&iter, &ts.u.pair.stamp, &ts.u.pair.inc);
+						a.setUInt64(key, ts.u.data);
 						break;
 					}
 					case BSON_TYPE_INT64:
@@ -220,16 +225,10 @@ namespace gold {
 						obj.setInt32(key, bson_iter_int32(&iter));
 						break;
 					case BSON_TYPE_TIMESTAMP: {
-						union {
-							struct {
-								uint32_t stamp;
-								uint32_t inc;
-							} pair;
-							uint64_t data;
-						};
-
-						bson_iter_timestamp(&iter, &pair.stamp, &pair.inc);
-						obj.setUInt64(key, data);
+						timeStamp ts;
+						bson_iter_timestamp(
+							&iter, &ts.u.pair.stamp, &ts.u.pair.inc);
+						obj.setUInt64(key, ts.u.data);
 						break;
 					}
 					case BSON_TYPE_INT64:
@@ -283,7 +282,7 @@ namespace gold {
 
 	database::database(object config) : object(config, &proto) {}
 
-	var database::connect(varList args) {
+	var database::connect(varList) {
 		static bool inited = false;
 		if (inited == false) {
 			inited = true;
@@ -298,20 +297,21 @@ namespace gold {
 					 << "error message:				" << error.message << endl;
 			return genericError(error.message);
 		}
+		auto dbName = getString("name");
+		mongoc_uri_set_database(uri, dbName.c_str());
+		mongoc_uri_set_option_as_bool(uri, "retryreads", true);
 		auto pool = mongoc_client_pool_new(uri);
 		if (!pool) return genericError("failed to create pool");
 		auto appName = getString("appName");
 		mongoc_client_pool_set_appname(pool, appName.c_str());
 		setPtr("pool", pool);
 		auto namesReturn = getDatabaseNames();
-		auto dbName = getString("name");
 		if (namesReturn.isArray()) {
 			auto dbNames = namesReturn.getArray();
 			cout << "connection made: " << uriString << endl
 					 << "databases: " << dbNames->getJSON() << endl;
 		} else {
-			auto exc = namesReturn.getError();
-			cerr << *exc << endl;
+			cerr << namesReturn << endl;
 		}
 		auto client = mongoc_client_pool_pop(pool);
 		auto db =
@@ -322,7 +322,7 @@ namespace gold {
 		return var();
 	}
 
-	var database::disconnect(varList args) {
+	var database::disconnect(varList) {
 		auto pool = (mongoc_client_pool_t*)getPtr("pool");
 		auto db = (mongoc_database_t*)getPtr("handle");
 		mongoc_database_destroy(db);
@@ -330,7 +330,7 @@ namespace gold {
 		return var();
 	}
 
-	var database::destroy(varList args) {
+	var database::destroy(varList) {
 		disconnect();
 		mongoc_cleanup();
 		return var();
@@ -354,7 +354,8 @@ namespace gold {
 			auto i = 0;
 			auto str = strV[i];
 			while (str != nullptr) {
-				strings.pushString(str);
+				auto found = strings.find(str);
+				if (found == strings.end()) strings.pushString(str);
 				str = strV[i++];
 			}
 			bson_strfreev(strV);
@@ -373,7 +374,7 @@ namespace gold {
 		auto col = (struct _mongoc_collection_t*)
 			mongoc_database_create_collection(
 				db, name.c_str(), opts, &error);
-		if (col) return var(collection(this, col));
+		if (col) return var(collection(*this, col));
 		return genericError(error.message);
 	}
 
@@ -386,7 +387,7 @@ namespace gold {
 			mongoc_client_get_collection(
 				client, dbName.c_str(), name.c_str());
 		mongoc_client_pool_push(pool, client);
-		if (col) return var(collection(this, col));
+		if (col) return collection(*this, col);
 		return var();
 	}
 
@@ -409,10 +410,10 @@ namespace gold {
 	collection::collection() : object(&proto) {}
 
 	collection::collection(
-		database* d, struct _mongoc_collection_t* c)
+		database& d, struct _mongoc_collection_t* c)
 		: object(&proto) {
 		setPtr("handle", c);
-		setObject("database", *d);
+		setObject("database", d);
 		setString(
 			"name",
 			mongoc_collection_get_name((mongoc_collection_t*)c));
@@ -428,31 +429,30 @@ namespace gold {
 				"Missing collection name for first arg");
 		if (!keys)
 			return genericError("Missing keys from second arg");
-		bson_t* opts =
-			optsObj ? newBSONFromObject(*optsObj) : nullptr;
 		auto bKeys = newBSONFromObject(*keys);
 		auto indexName =
 			mongoc_collection_keys_to_index_string(bKeys);
+		auto indexObj = object{
+			{"key", (*keys)},
+			{"name", (indexName)},
+		};
+		if (optsObj) indexObj.copy(*optsObj);
 		auto command = object({
 			{"createIndexes", cName},
 			{
 				"indexes",
-				var(array({object({
-					{"key", (*keys)},
-					{"name", (indexName)},
-				})})),
+				var(array{
+					indexObj,
+				}),
 			},
 		});
 		bson_error_t error;
 		auto cBson = newBSONFromObject(command);
 		bson_t replyBson;
 		auto success = mongoc_collection_write_command_with_opts(
-			handle, cBson, opts, &replyBson, &error);
+			handle, cBson, 0, &replyBson, &error);
 		bson_destroy(cBson);
-		if (opts) bson_destroy(opts);
-		if (!success) {
-			return genericError(error.message);
-		}
+		if (!success) return genericError(error.message);
 		auto reply = varFromBSON(&replyBson);
 		return reply;
 	}
@@ -516,14 +516,13 @@ namespace gold {
 		auto optObj =
 			args.size() >= 2 ? args[1].getObject() : nullptr;
 		if (optObj)
-			optObj->setInt32("limit", 1);
+			optObj->copy(def);
 		else
 			optObj = &def;
 		if (!selObj)
 			return genericError("Missing selector for first arg");
 		bson_t* opts = newBSONFromObject(*optObj);
 		auto sel = newBSONFromObject(*selObj);
-		bson_t replyBson;
 		bson_error_t err;
 		auto cursor = mongoc_collection_find_with_opts(
 			handle, sel, opts, nullptr);
@@ -552,7 +551,6 @@ namespace gold {
 		bson_t* opts =
 			optObj ? newBSONFromObject(*optObj) : nullptr;
 		auto sel = newBSONFromObject(*selObj);
-		bson_t replyBson;
 		bson_error_t err;
 		auto cursor = mongoc_collection_find_with_opts(
 			handle, sel, opts, nullptr);
@@ -635,7 +633,8 @@ namespace gold {
 	var collection::insert(varList args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto objData = args[0].getObject();
-		auto optObj = args[1].getObject();
+		auto optObj =
+			args.size() >= 2 ? args[1].getObject() : nullptr;
 		if (!objData)
 			return genericError("Missing object for first arg");
 		auto obj = newBSONFromObject(*objData);
@@ -695,7 +694,7 @@ namespace gold {
 		return newName;
 	}
 
-	var collection::destroy(varList args) {
+	var collection::destroy(varList) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		mongoc_collection_destroy(handle);
 		return var();
@@ -703,6 +702,16 @@ namespace gold {
 
 	database* collection::getDatabase() {
 		return (database*)getObject("database");
+	}
+
+	var& collection::setParentModel(var& args, object* parent) {
+		if (args.isArray()) {
+			auto arr = *args.getArray();
+			for (auto it = arr.begin(); it != arr.end(); ++it)
+				if (it->isObject()) it->getObject()->setParent(parent);
+		} else if (args.isObject())
+			args.getObject()->setParent(parent);
+		return args;
 	}
 
 	object model::proto = object({
@@ -713,20 +722,23 @@ namespace gold {
 		{"remove", method(&model::remove)},
 	});
 
-	model::model(collection* c, object* parent) : object(parent) {
-		if (parent) parent->setObject("col", *c);
+	model::model(collection& c, object* parent) : object(parent) {
+		if (parent) parent->setObject("col", c);
 	}
 
-	model::model(collection* c, object data, object* parent)
+	model::model(collection& c, object data, object* parent)
 		: object(data, parent) {
-		if (parent) parent->setObject("col", *c);
+		if (parent) parent->setObject("col", c);
 	}
 
-	var model::save(varList args) {
+	var model::save(varList) {
 		auto col = getCollection();
 		auto id = getString("_id");
 		setInt64("updated", getMonoTime());
 		if (id.empty()) {
+			id = newID();
+			setString("_id", id);
+			setInt64("created", getMonoTime());
 			auto res = col->insert({*this});
 			if (res.isError())
 				return res;
@@ -734,7 +746,6 @@ namespace gold {
 				this->copy(*res.getObject());
 			return *this;
 		}
-		setInt64("created", getMonoTime());
 		auto res = col->updateOne({object{{"_id", id}}, *this});
 		if (res.isError())
 			return res;
@@ -743,7 +754,7 @@ namespace gold {
 		return *this;
 	}
 
-	var model::remove(varList args) {
+	var model::remove(varList) {
 		auto col = getCollection();
 		return col->deleteOne({object{{"_id", getString("_id")}}});
 	}
@@ -757,6 +768,15 @@ namespace gold {
 	}
 
 	string model::getID() { return getString("_id"); }
+
+	string model::newID() {
+		bson_oid_t oid;
+		auto ss = stringstream();
+		bson_oid_init(&oid, nullptr);
+		for (uint64_t i = 0; i < 12; ++i)
+			ss << hex << (int)oid.bytes[i];
+		return ss.str();
+	}
 
 	int64_t getMonoTime() { return bson_get_monotonic_time(); }
 

@@ -1,5 +1,7 @@
 #include "types.hpp"
 
+#include <sstream>
+
 #include "var.hpp"
 
 namespace gold {
@@ -72,8 +74,10 @@ namespace gold {
 		string_view message, const sourceLocation& l)
 		: exception(), msg(message), loc(l) {}
 
-	genericError::operator const char*() const {
-		return msg.c_str();
+	genericError::operator string() const {
+		auto ss = stringstream();
+		ss << (*this) << endl;
+		return ss.str();
 	}
 
 	ostream& operator<<(ostream& os, const genericError& dt) {

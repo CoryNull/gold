@@ -101,6 +101,8 @@ namespace gold {
 		bool operator==(const object& other);
 		object& operator=(const object rhs);
 
+		static object parseURLEncoded(string value);
+
 		static var loadJSON(string path);
 		static void saveJSON(string path, object value);
 

@@ -24,7 +24,7 @@ namespace gold {
 		{"addElement", method(&engine::addElement)},
 	});
 
-	var engine::destroy(varList args) {
+	var engine::destroy(varList) {
 		auto window = getObject("window");
 		if (window != nullptr) (*window)("destroy");
 		setNull("window");
@@ -46,7 +46,7 @@ namespace gold {
 		return string(engine::getSettingsDir() + "config.json");
 	}
 
-	var engine::loadSettings(varList args) {
+	var engine::loadSettings(varList) {
 		auto configPath = getSettingsPath();
 		auto configJSON = object::loadJSON(configPath);
 		object config;
@@ -60,7 +60,7 @@ namespace gold {
 		return var(config);
 	}
 
-	var engine::saveSettings(varList args) {
+	var engine::saveSettings(varList) {
 		auto config = getObject("config");
 		auto win = (window*)getObject("window");
 		auto gfx = (backend*)getObject("graphics");
@@ -120,7 +120,7 @@ namespace gold {
 		return var();
 	}
 
-	var engine::start(varList args) {
+	var engine::start(varList) {
 		SDL_SetMainReady();
 		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
 			cout << "[SDL2]" << SDL_GetError() << endl;

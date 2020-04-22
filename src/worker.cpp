@@ -14,10 +14,7 @@ namespace gold {
 		~job() {}
 		void call() {
 			auto ret = (o.*m)(varList());
-			if (ret.isError()) {
-				auto err = ret.getError();
-				cerr << *err << endl;
-			}
+			if (ret.isError()) cerr << ret << endl;
 		}
 	};
 
@@ -85,7 +82,7 @@ namespace gold {
 	}
 
 	void worker::useAll() {
-		for (auto i = 0; i < thread::hardware_concurrency(); ++i)
+		for (uint32_t i = 0; i < thread::hardware_concurrency(); ++i)
 			threads.push_back(thread(workerProcess, this));
 	}
 

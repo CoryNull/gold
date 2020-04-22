@@ -27,8 +27,8 @@ namespace gold {
 		static object proto;
 
 	 public:
-	 	collection();
-		collection(database* db, struct _mongoc_collection_t*);
+		collection();
+		collection(database& db, struct _mongoc_collection_t*);
 
 		var addIndexes(varList args);
 		var dropIndex(varList args);
@@ -44,14 +44,16 @@ namespace gold {
 		var destroy(varList args);
 
 		database* getDatabase();
+
+		static var& setParentModel(var& args, object* parent);
 	};
 
 	class model : public object {
 	 public:
 		static object proto;
-		model(collection* col, object* parent = nullptr);
+		model(collection& col, object* parent = nullptr);
 		model(
-			collection* col, object data, object* parent = nullptr);
+			collection& col, object data, object* parent = nullptr);
 
 		var save(varList args = {});
 		var remove(varList args = {});
@@ -59,6 +61,7 @@ namespace gold {
 		database* getDatabase();
 		collection* getCollection();
 		string getID();
+		static string newID();
 	};
 
 	int64_t getMonoTime();
