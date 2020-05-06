@@ -1,14 +1,13 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
-	class renderable : public object {
-	 public:
-		static object proto;
-		renderable(object* parent = nullptr);
-		renderable(object data, object* parent);
 
-		var draw(varList args = {});
+	struct renderable : public object {
+	 public:
+		static object& getPrototype();
+
+		var draw(list args = {});
 	};
 }  // namespace gold

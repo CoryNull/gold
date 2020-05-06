@@ -1,28 +1,29 @@
 #pragma once
 
-#include <thread>
 #include <mutex>
-#include "object.hpp"
-#include "var.hpp"
+#include <thread>
+
+#include "types.hpp"
 
 namespace gold {
-	class worker {
-		protected:
-			class job;
-			typedef shared_ptr<worker::job> jobPtr;
-			vector<jobPtr> jobs;
-			vector<thread> threads;
-			bool kill;
-			mutex mtx; 
+	struct worker {
+	 protected:
+		struct job;
+		typedef shared_ptr<worker::job> jobPtr;
+		vector<jobPtr> jobs;
+		vector<thread> threads;
+		bool kill;
+		mutex mtx;
 
-			static int workerProcess(worker*);
+		static int workerProcess(worker*);
 
-			jobPtr nextJob();
-			bool shouldDie();
-		public:
+		jobPtr nextJob();
+		bool shouldDie();
+
+	 public:
 		worker();
 
-		jobPtr add(method m, object& o, varList args);
+		jobPtr add(const method& m, object& o, const list& args);
 		void wait();
 		void clear();
 		void killAll();

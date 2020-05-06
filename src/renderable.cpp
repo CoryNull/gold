@@ -4,18 +4,16 @@
 
 namespace gold {
 
-	object renderable::proto = object(
-		{
+	obj& renderable::getPrototype() {
+		static auto proto = obj({
 			{"draw", method(&renderable::draw)},
-		},
-		&component::proto);
+			{"proto", component::getPrototype()},
+		});
+		return proto;
+	}
 
-	var renderable::draw(varList) {
+	var renderable::draw(list) {
 		return genericError("Needs to overriden");
 	}
 
-	renderable::renderable(object* parent) : object(parent) {}
-
-	renderable::renderable(object data, object* parent)
-		: object(data, parent) {}
 }  // namespace gold

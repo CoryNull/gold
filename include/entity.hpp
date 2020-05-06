@@ -1,24 +1,24 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
-	class entity : public object {
+	struct entity : public object {
 	 protected:
-		friend class engine;
-		static object proto;
+		friend struct engine;
+		static object& getPrototype();
 
 	 public:
 		entity();
-		entity(object config);
+		entity(initList config);
 
-		var initialize(varList args = {});
-		var add(varList args);
-		var remove(varList args);
-		var enable(varList args);
-		var disable(varList args);
+		var initialize(list args = {});
+		var add(list args);
+		var remove(list args);
+		var enable(list args);
+		var disable(list args);
 
-		entity& operator+=(varList args);
-		entity& operator-=(varList args);
+		entity& operator+=(list args);
+		entity& operator-=(list args);
 	};
 }  // namespace gold

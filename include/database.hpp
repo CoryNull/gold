@@ -1,65 +1,64 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
-	class database : public object {
+	struct database : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		database();
-		database(object config);
+		database(initList config);
 
-		var connect(varList args = {});
-		var disconnect(varList args = {});
-		var destroy(varList args = {});
+		var connect(list args = {});
+		var disconnect(list args = {});
+		var destroy(list args = {});
 
-		var getDatabaseNames(varList args = {});
+		var getDatabaseNames(list args = {});
 
-		var createCollection(varList args);
-		var getCollection(varList args);
+		var createCollection(list args);
+		var getCollection(list args);
 	};
 
-	class collection : public object {
+	struct collection : public object {
 	 protected:
-		friend class model;
-		static object proto;
+		friend struct model;
+		static object& getPrototype();
 
 	 public:
 		collection();
-		collection(database& db, struct _mongoc_collection_t*);
+		collection(database db, struct _mongoc_collection_t*);
 
-		var addIndexes(varList args);
-		var dropIndex(varList args);
-		var deleteOne(varList args);
-		var deleteMany(varList args);
-		var findOne(varList args);
-		var findMany(varList args);
-		var updateOne(varList args);
-		var updateMany(varList args);
-		var insert(varList args);
-		var replace(varList args);
-		var rename(varList args);
-		var destroy(varList args);
+		var addIndexes(list args);
+		var dropIndex(list args);
+		var deleteOne(list args);
+		var deleteMany(list args);
+		var findOne(list args);
+		var findMany(list args);
+		var updateOne(list args);
+		var updateMany(list args);
+		var insert(list args);
+		var replace(list args);
+		var rename(list args);
+		var destroy(list args);
 
-		database* getDatabase();
+		void getDatabase(database& db);
 
-		static var& setParentModel(var& args, object* parent);
+		static var& setParentModel(var& args, object parent);
 	};
 
-	class model : public object {
+	struct model : public object {
 	 public:
-		static object proto;
-		model(collection& col, object* parent = nullptr);
-		model(
-			collection& col, object data, object* parent = nullptr);
+		static object& getPrototype();
+		model();
+		model(collection col, object data = {});
 
-		var save(varList args = {});
-		var remove(varList args = {});
+		var save(list args = {});
+		var remove(list args = {});
 
-		database* getDatabase();
-		collection* getCollection();
+		void getDatabase(database& db);
+		void getCollection(collection& col);
 		string getID();
 		static string newID();
 	};

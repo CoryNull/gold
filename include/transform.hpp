@@ -1,24 +1,27 @@
 #pragma once
 
+#include "types.hpp"
 #include "component.hpp"
 
 namespace gold {
-	class transform : public component {
+	struct transform : public component {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		transform();
 		transform(object config);
 
-		var initialize(varList args = {});
-		var setPosition(varList args);
-		var setRotation(varList args);
-		var setScale(varList args);
-		var getPosition(varList args = {});
-		var getRotation(varList args = {});
-		var getScale(varList args = {});
-		var getMatrix(varList args = {});
-		var reset(varList args = {});
+		//Low level
+		void getMatrix(float* results);
+		void getWorldMatrix(float* results);
+
+		var setPosition(list args);
+		var setRotation(list args);
+		var setScale(list args);
+		var getPosition(list args = {});
+		var getRotation(list args = {});
+		var getScale(list args = {});
+		var reset(list args = {});
 	};
 }  // namespace gold

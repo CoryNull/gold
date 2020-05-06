@@ -3,74 +3,79 @@
 #include <App.h>
 #include <HttpResponse.h>
 
-#include "object.hpp"
+#include "types.hpp"
+
+#define serveArgs(args, req, res)          \
+	auto req = args[0].getObject<request>(); \
+	auto res = args[1].getObject<response>();
 
 namespace gold {
-	class request;
-	class response;
-	class server : public object {
+	struct request;
+	struct response;
+	struct server : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		server();
 		server(object config);
 
-		var start(varList args = {});
-		var get(varList args);
-		var post(varList args);
-		var put(varList args);
-		var patch(varList args);
-		var del(varList args);
-		var options(varList args);
-		var setMountPoint(varList args);
-		var setErrorHandler(varList args);
-		var initialize(varList args = {});
-		var destroy(varList args = {});
+		var start(list args = {});
+		var get(list args);
+		var post(list args);
+		var put(list args);
+		var patch(list args);
+		var del(list args);
+		var options(list args);
+		var setMountPoint(list args);
+		var setErrorHandler(list args);
+		var initialize(list args = {});
+		var destroy(list args = {});
 	};
 
-	class request : public object {
+	struct request : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
+		var getAllHeaders(list args = {});
 
-		var getAllHeaders(varList args = {});
-
-		var getHeader(varList args);
-		var getMethod(varList args = {});
-		var getParameter(varList args);
-		var getQuery(varList args);
-		var getUrl(varList args);
-		var getYield(varList args);
-		var setParameters(varList args);
-		var setYield(varList args);
+		var getHeader(list args);
+		var getMethod(list args = {});
+		var getParameter(list args);
+		var getQuery(list args);
+		var getUrl(list args);
+		var getYield(list args);
+		var setParameters(list args);
+		var setYield(list args);
 
 		bool isWWWFormURLEncoded();
 		bool isJSON();
 
+		request();
 		request(uWS::HttpRequest& req);
 	};
 
-	class response : public object {
+	struct response : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
+		response();
 		response(uWS::HttpResponse<false>& res);
 		response(uWS::HttpResponse<true>& res);
 
-		var writeContinue(varList args = {});
-		var writeStatus(varList args);
-		var writeHeader(varList args);
-		var end(varList args = {});
-		var tryEnd(varList args = {});
-		var write(varList args);
-		var getWriteOffset(varList args = {});
-		var hasResponded(varList args = {});
-		var cork(varList args);
-		var onWritable(varList args);
-		var onAborted(varList args);
-		var onData(varList args);
+		var writeContinue(list args = {});
+		var writeStatus(list args);
+		var writeHeader(list args);
+		var end(list args = {});
+		var tryEnd(list args = {});
+		var write(list args);
+		var getWriteOffset(list args = {});
+		var hasResponded(list args = {});
+		var cork(list args);
+		var onWritable(list args);
+		var onAborted(list args);
+		var onData(list args);
 	};
 }  // namespace gold

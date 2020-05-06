@@ -3,18 +3,14 @@
 /* <Includes> */
 #include <set>
 
-#include "object.hpp"
+#include "types.hpp"
 #include "renderable.hpp"
-#include "worker.hpp"
 /* </Includes> */
 
 namespace gold {
-	class engine : public object {
+	struct engine : public object {
 	 protected:
-		static object proto;
-
-		worker updateWorker;
-		worker drawWorker;
+		static object& getPrototype();
 
 	 public:
 		string getSettingsDir();
@@ -23,14 +19,15 @@ namespace gold {
 		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
 
-		var destroy(varList args = {});
-		var start(varList args = {});
-		var loadSettings(varList args = {});
-		var saveSettings(varList args = {});
-		var handleEntity(varList args);
-		var addElement(varList args);
+		var destroy(list args = list::initList{});
+		var start(list args = list::initList{});
+		var initialize(list args = list::initList{});
+		var loadSettings(list args = list::initList{});
+		var saveSettings(list args = list::initList{});
+		var handleEntity(list args);
+		var addElement(list args);
 
-		engine& operator+=(varList element);
-		engine& operator-=(varList element);
+		engine& operator+=(list element);
+		engine& operator-=(list element);
 	};
 }  // namespace gold

@@ -5,32 +5,35 @@
 #include <iostream>
 #include <map>
 
-#include "array.hpp"
 
 namespace gold {
 	using namespace std;
-	object window::proto = object({
-		{"x", SDL_WINDOWPOS_CENTERED},
-		{"y", SDL_WINDOWPOS_CENTERED},
-		{"width", 1360},
-		{"height", 800},
-		{"maximize", false},
-		{"fullscreen", false},
-		{"borderless", false},
-		{"matchDesktop", false},
-		{"title", (char*)"RED2D"},
-		{"setSize", method(&window::setSize)},
-		{"setPos", method(&window::setPos)},
-		{"setTitle", method(&window::setTitle)},
-		{"setFullscreen", method(&window::setFullscreen)},
-		{"setBorderless", method(&window::setBorderless)},
-		{"create", method(&window::create)},
-		{"destroy", method(&window::destroy)},
-		{"handleEvent", method(&window::handleEvent)},
-		{"getConfig", method(&window::getConfig)},
-	});
 
-	auto windowConfigDefault = object({
+	obj& window::getPrototype() {
+		static auto proto = obj{
+			{"x", SDL_WINDOWPOS_CENTERED},
+			{"y", SDL_WINDOWPOS_CENTERED},
+			{"width", 1360},
+			{"height", 800},
+			{"maximize", false},
+			{"fullscreen", false},
+			{"borderless", false},
+			{"matchDesktop", false},
+			{"title", (char*)"RED2D"},
+			{"setSize", method(&window::setSize)},
+			{"setPos", method(&window::setPos)},
+			{"setTitle", method(&window::setTitle)},
+			{"setFullscreen", method(&window::setFullscreen)},
+			{"setBorderless", method(&window::setBorderless)},
+			{"create", method(&window::create)},
+			{"destroy", method(&window::destroy)},
+			{"handleEvent", method(&window::handleEvent)},
+			{"getConfig", method(&window::getConfig)},
+		};
+		return proto;
+	}
+
+	auto windowConfigDefault = obj({
 		{"x", SDL_WINDOWPOS_CENTERED},
 		{"y", SDL_WINDOWPOS_CENTERED},
 		{"width", 1360},
@@ -45,17 +48,15 @@ namespace gold {
 		SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_INPUT_FOCUS |
 		SDL_WINDOW_ALLOW_HIGHDPI;
 
-	var window::setSize(varList args) {
+	var window::setSize(list args) {
 		auto handle = (SDL_Window*)getPtr("handle");
 		int32_t width = SDL_WINDOWPOS_CENTERED;
 		int32_t height = SDL_WINDOWPOS_CENTERED;
 
-		if (args[0].getType() == typeArray) {
-			auto array = args[0].getArray();
-			if (array->getType(0) == typeInt32)
-				width = array->getInt32(0);
-			if (array->getType(1) == typeInt32)
-				height = array->getInt32(1);
+		if (args[0].getType() == typeList) {
+			auto arr = args[0].getList();
+			if (arr.getType(0) == typeInt32) width = arr.getInt32(0);
+			if (arr.getType(1) == typeInt32) height = arr.getInt32(1);
 		}
 		setInt32("width", width);
 		setInt32("height", height);
@@ -64,27 +65,23 @@ namespace gold {
 		return var();
 	}
 
-	var window::setPos(varList args) {
+	var window::setPos(list args) {
 		auto handle = (SDL_Window*)getPtr("handle");
 		int32_t x = SDL_WINDOWPOS_CENTERED;
 		int32_t y = SDL_WINDOWPOS_CENTERED;
 
-		if (args[0].getType() == typeArray) {
-			auto array = args[0].getArray();
-			if (array->getType(0) == typeInt32)
-				x = array->getInt32(0);
-			if (array->getType(1) == typeInt32)
-				y = array->getInt32(1);
+		if (args[0].getType() == typeList) {
+			auto arr = args[0].getList();
+			if (arr.getType(0) == typeInt32) x = arr.getInt32(0);
+			if (arr.getType(1) == typeInt32) y = arr.getInt32(1);
 		}
 		setInt32("x", x);
 		setInt32("y", y);
-		if (handle != nullptr) {
-			SDL_SetWindowPosition(handle, x, y);
-		}
+		if (handle != nullptr) SDL_SetWindowPosition(handle, x, y);
 		return var();
 	}
 
-	var window::setTitle(varList args) {
+	var window::setTitle(list args) {
 		auto handle = (SDL_Window*)getPtr("handle");
 		string title;
 		if (args[0].getType() == typeString)
@@ -98,18 +95,17 @@ namespace gold {
 		return var();
 	}
 
-	var window::setFullscreen(varList args) {
+	var window::setFullscreen(list args) {
 		auto handle = (SDL_Window*)getPtr("handle");
 		bool fullscreen = false;
 		bool desktop = false;
 		if (args[0].getType() == typeBool)
 			fullscreen = (bool)args[0];
-		else if (args[0].getType() == typeArray) {
-			auto array = args[0].getArray();
-			if (array->getType(0) == typeBool)
-				fullscreen = array->getBool(0);
-			if (array->getType(1) == typeBool)
-				desktop = array->getBool(1);
+		else if (args[0].getType() == typeList) {
+			auto arr = args[0].getList();
+			if (arr.getType(0) == typeBool)
+				fullscreen = arr.getBool(0);
+			if (arr.getType(1) == typeBool) desktop = arr.getBool(1);
 		}
 		setBool("fullscreen", fullscreen);
 		setBool("desktop", desktop);
@@ -122,7 +118,7 @@ namespace gold {
 		return var();
 	}
 
-	var window::setBorderless(varList args) {
+	var window::setBorderless(list args) {
 		auto handle = (SDL_Window*)getPtr("handle");
 		bool borderless = false;
 		if (args[0].getType() == typeBool)
@@ -133,7 +129,7 @@ namespace gold {
 		return var();
 	}
 
-	var window::create(varList) {
+	var window::create(list) {
 		if (getType("handle") == typePtr) callMethod("destroy");
 		int32_t windowX = getInt32("x");
 		int32_t windowY = getInt32("y");
@@ -161,13 +157,13 @@ namespace gold {
 		return var();
 	}
 
-	var window::destroy(varList) {
+	var window::destroy(list) {
 		SDL_Window* window = (SDL_Window*)getPtr("handle");
 		if (window != nullptr) SDL_DestroyWindow(window);
 		return var();
 	}
 
-	var window::handleEvent(varList args) {
+	var window::handleEvent(list args) {
 		if (args[0].getType() == typePtr) {
 			auto event = (SDL_Event*)args[0].getPtr();
 			auto window = (SDL_Window*)getPtr("handle");
@@ -220,9 +216,9 @@ namespace gold {
 		return var();
 	}
 
-	var window::getConfig(varList) {
+	var window::getConfig(list) {
 		auto allowed = windowConfigDefault;
-		auto config = object();
+		auto config = obj();
 		for (auto it = begin(); it != end(); ++it) {
 			auto def = allowed[it->first];
 			if (def.getType() != typeNull && it->second != def)
@@ -231,10 +227,11 @@ namespace gold {
 		return config;
 	}
 
-	window::window() : object(proto) { create(); }
+	window::window() : obj() { }
 
-	window::window(object config) : object(config, &proto) {
-		create();
+	window::window(obj config) : obj() {
+		copy(config);
+		setParent(getPrototype());
 	}
 
 }  // namespace gold

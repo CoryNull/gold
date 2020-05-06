@@ -1,21 +1,21 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 #include "window.hpp"
 
 namespace gold {
-	class backend : public object {
+	struct backend : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		backend();
 		backend(object config);
 
-		var destroy(varList args = {});
-		var initialize(varList args = {});
-		var preFrame(varList args = {});
-		var renderFrame(varList args = {});
-		var getConfig(varList args = {});
+		var destroy(list args = {});
+		var initialize(list args = {});
+		var preFrame(list args = {});
+		var renderFrame(list args = {});
+		var getConfig(list args = {});
 	};
 }  // namespace gold

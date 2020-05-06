@@ -1,41 +1,44 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+project(gold)
+
 add_library(
-	shared
+	goldShared
 	STATIC
-		src/array.cpp
+		src/list.cpp
+		src/file.cpp
 		src/object.cpp
 		src/types.cpp
 		src/var.cpp
+		src/promise.cpp
 )
 add_library(
-	gold::shared ALIAS shared
+	gold::shared ALIAS goldShared
 )
 
 if(MSVC)
-  target_compile_options(shared PRIVATE /W4 /WX)
+  target_compile_options(goldShared PRIVATE /W4 /WX)
 else()
-  target_compile_options(shared PRIVATE -Wall -Wextra -pedantic)
+  target_compile_options(goldShared PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 target_include_directories(
-	shared
+	goldShared
 	PUBLIC
 		"include"
-		${GLM_INCLUDE_DIRS}
-		${MONGOC_INCLUDE_DIRS}
 		3rdParty/uWebSockets/src
 )
 
 target_link_libraries (
-	shared
+	goldShared
 	PUBLIC 
 		nlohmann_json::nlohmann_json
+		stdc++fs
 )
 
 target_compile_features(
-	shared
+	goldShared
 	PUBLIC
 		cxx_variadic_templates
 		cxx_nullptr

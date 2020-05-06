@@ -2,7 +2,6 @@
 
 #include <mongoc.h>
 
-#include <array.hpp>
 #include <cstdint>
 #include <iostream>
 #include <sstream>
@@ -20,16 +19,16 @@ namespace gold {
 		} u;
 	} timeStamp;
 
-	array arrayFromBSON(bson_t* b);
-	object objectFromBSON(bson_t* b);
+	list listFromBSON(bson_t* b);
+	obj objectFromBSON(bson_t* b);
 
-	bson_t* newBSONFromObject(object& obj) {
+	bson_t* newBSONFromObject(obj& obj) {
 		auto bin = obj.getBSON();
 		return bson_new_from_data(bin.data(), bin.size());
 	}
 
-	array arrayFromBSON(bson_t* b) {
-		auto a = array();
+	list listFromBSON(bson_t* b) {
+		auto a = list();
 		bson_iter_t iter;
 		if (bson_iter_init(&iter, b)) {
 			while (bson_iter_next(&iter)) {
@@ -58,7 +57,7 @@ namespace gold {
 						uint32_t s = 0;
 						bson_iter_array(&iter, &s, &loc);
 						auto bs = bson_new_from_data(loc, s);
-						a.setArray(key, arrayFromBSON(bs));
+						a.setList(key, listFromBSON(bs));
 						bson_destroy(bs);
 						break;
 					}
@@ -84,7 +83,7 @@ namespace gold {
 					case BSON_TYPE_REGEX: {
 						const char* opts = nullptr;
 						auto reg = bson_iter_regex(&iter, &opts);
-						a.setArray(key, array({reg, opts}));
+						a.setList(key, list({reg, opts}));
 						break;
 					}
 					case BSON_TYPE_CODE: {
@@ -99,10 +98,10 @@ namespace gold {
 						const uint8_t* scope;
 						auto code = bson_iter_codewscope(
 							&iter, &cSize, &sSize, &scope);
-						a.setArray(
+						a.setList(
 							key,
-							array({string(code, cSize),
-										 string((char*)scope, sSize)}));
+							list({string(code, cSize),
+										string((char*)scope, sSize)}));
 						break;
 					}
 					case BSON_TYPE_INT32:
@@ -144,20 +143,20 @@ namespace gold {
 		return a;
 	}
 
-	object objectFromBSON(bson_t* b) {
-		auto obj = object();
+	obj objectFromBSON(bson_t* b) {
+		auto o = obj();
 		bson_iter_t iter;
 		if (bson_iter_init(&iter, b)) {
 			while (bson_iter_next(&iter)) {
 				auto key = bson_iter_key(&iter);
 				switch (bson_iter_type(&iter)) {
 					case BSON_TYPE_DOUBLE:
-						obj.setDouble(key, bson_iter_as_double(&iter));
+						o.setDouble(key, bson_iter_as_double(&iter));
 						break;
 					case BSON_TYPE_UTF8: {
 						uint32_t s = 0;
 						auto data = bson_iter_utf8(&iter, &s);
-						obj.setString(key, string(data, s));
+						o.setString(key, string(data, s));
 						break;
 					}
 					case BSON_TYPE_DOCUMENT: {
@@ -165,7 +164,7 @@ namespace gold {
 						uint32_t s = 0;
 						bson_iter_document(&iter, &s, &loc);
 						auto bs = bson_new_from_data(loc, s);
-						obj.setObject(key, objectFromBSON(bs));
+						o.setObject(key, objectFromBSON(bs));
 						bson_destroy(bs);
 						break;
 					}
@@ -174,7 +173,7 @@ namespace gold {
 						uint32_t s = 0;
 						bson_iter_array(&iter, &s, &loc);
 						auto bs = bson_new_from_data(loc, s);
-						obj.setArray(key, arrayFromBSON(bs));
+						o.setList(key, listFromBSON(bs));
 						bson_destroy(bs);
 						break;
 					}
@@ -183,30 +182,30 @@ namespace gold {
 						uint32_t s = 0;
 						const uint8_t* data = nullptr;
 						bson_iter_binary(&iter, &st, &s, &data);
-						obj.setString(key, string((char*)data, s));
+						o.setString(key, string((char*)data, s));
 						break;
 					}
 					case BSON_TYPE_OID: {
 						auto oid = bson_iter_oid(&iter);
-						obj.setString(key, string((char*)oid->bytes, 12));
+						o.setString(key, string((char*)oid->bytes, 12));
 						break;
 					}
 					case BSON_TYPE_BOOL:
-						obj.setBool(key, bson_iter_bool(&iter));
+						o.setBool(key, bson_iter_bool(&iter));
 						break;
 					case BSON_TYPE_DATE_TIME:
-						obj.setInt64(key, bson_iter_date_time(&iter));
+						o.setInt64(key, bson_iter_date_time(&iter));
 						break;
 					case BSON_TYPE_REGEX: {
 						const char* opts = nullptr;
 						auto reg = bson_iter_regex(&iter, &opts);
-						obj.setArray(key, array({reg, opts}));
+						o.setList(key, list({reg, opts}));
 						break;
 					}
 					case BSON_TYPE_CODE: {
 						uint32_t size = 0;
 						auto code = bson_iter_code(&iter, &size);
-						obj.setString(key, code);
+						o.setString(key, code);
 						break;
 					}
 					case BSON_TYPE_CODEWSCOPE: {
@@ -215,31 +214,31 @@ namespace gold {
 						const uint8_t* scope;
 						auto code = bson_iter_codewscope(
 							&iter, &cSize, &sSize, &scope);
-						obj.setArray(
+						o.setList(
 							key,
-							array({string(code, cSize),
-										 string((char*)scope, sSize)}));
+							list({string(code, cSize),
+										string((char*)scope, sSize)}));
 						break;
 					}
 					case BSON_TYPE_INT32:
-						obj.setInt32(key, bson_iter_int32(&iter));
+						o.setInt32(key, bson_iter_int32(&iter));
 						break;
 					case BSON_TYPE_TIMESTAMP: {
 						timeStamp ts;
 						bson_iter_timestamp(
 							&iter, &ts.u.pair.stamp, &ts.u.pair.inc);
-						obj.setUInt64(key, ts.u.data);
+						o.setUInt64(key, ts.u.data);
 						break;
 					}
 					case BSON_TYPE_INT64:
-						obj.setInt64(key, bson_iter_int64(&iter));
+						o.setInt64(key, bson_iter_int64(&iter));
 						break;
 					case BSON_TYPE_DECIMAL128: {
 						bson_decimal128_t d;
 						if (bson_iter_decimal128(&iter, &d)) {
 							char str[BSON_DECIMAL128_STRING];
 							bson_decimal128_to_string(&d, str);
-							obj.setString(key, string(str));
+							o.setString(key, string(str));
 						}
 						break;
 					}
@@ -250,39 +249,44 @@ namespace gold {
 					case BSON_TYPE_UNDEFINED:
 					case BSON_TYPE_NULL:
 					default:
-						obj.setNull(key);
+						o.setNull(key);
 						break;
 				}
 			}
 		}
-		return obj;
+		return o;
 	}
 
 	var varFromBSON(bson_t* b) {
 		if (bson_has_field(b, "0")) {
-			// Array?
-			return var(arrayFromBSON(b));
+			// List?
+			return var(listFromBSON(b));
 		}
 		return var(objectFromBSON(b));
 	}
 
-	object database::proto = object({
-		{"host", "mongodb://localhost:27017"},
-		{"appName", "gold-app"},
-		{"name", "db_name"},
-		{"connect", method(&database::connect)},
-		{"disconnect", method(&database::disconnect)},
-		{"destroy", method(&database::destroy)},
-		{"createCollection", method(&database::createCollection)},
-		{"getCollection", method(&database::getCollection)},
-		{"getDatabaseNames", method(&database::getDatabaseNames)},
-	});
+	obj& database::getPrototype() {
+		static auto proto = obj{
+			{"host", "mongodb://localhost:27017"},
+			{"appName", "gold-app"},
+			{"name", "db_name"},
+			{"connect", method(&database::connect)},
+			{"disconnect", method(&database::disconnect)},
+			{"destroy", method(&database::destroy)},
+			{"createCollection", method(&database::createCollection)},
+			{"getCollection", method(&database::getCollection)},
+			{"getDatabaseNames", method(&database::getDatabaseNames)},
+		};
+		return proto;
+	}
 
-	database::database() : object(&proto) {}
+	database::database() : obj() { setParent(getPrototype()); }
 
-	database::database(object config) : object(config, &proto) {}
+	database::database(initList config) : obj(config) {
+		setParent(getPrototype());
+	}
 
-	var database::connect(varList) {
+	var database::connect(list) {
 		static bool inited = false;
 		if (inited == false) {
 			inited = true;
@@ -306,10 +310,10 @@ namespace gold {
 		mongoc_client_pool_set_appname(pool, appName.c_str());
 		setPtr("pool", pool);
 		auto namesReturn = getDatabaseNames();
-		if (namesReturn.isArray()) {
-			auto dbNames = namesReturn.getArray();
+		if (namesReturn.isList()) {
+			auto dbNames = namesReturn.getList();
 			cout << "connection made: " << uriString << endl
-					 << "databases: " << dbNames->getJSON() << endl;
+					 << "databases: " << dbNames.getJSON() << endl;
 		} else {
 			cerr << namesReturn << endl;
 		}
@@ -322,7 +326,7 @@ namespace gold {
 		return var();
 	}
 
-	var database::disconnect(varList) {
+	var database::disconnect(list) {
 		auto pool = (mongoc_client_pool_t*)getPtr("pool");
 		auto db = (mongoc_database_t*)getPtr("handle");
 		mongoc_database_destroy(db);
@@ -330,19 +334,19 @@ namespace gold {
 		return var();
 	}
 
-	var database::destroy(varList) {
+	var database::destroy(list) {
 		disconnect();
 		mongoc_cleanup();
 		return var();
 	}
 
-	var database::getDatabaseNames(varList args) {
+	var database::getDatabaseNames(list args) {
 		auto pool = (mongoc_client_pool_t*)getPtr("pool");
 		auto client = mongoc_client_pool_pop(pool);
 		bson_t* opts = nullptr;
 		if (args.size() > 1) {
 			auto optsObj = args[0].getObject();
-			opts = newBSONFromObject(*optsObj);
+			opts = newBSONFromObject(optsObj);
 		}
 		bson_error_t error;
 		auto strV = mongoc_client_get_database_names_with_opts(
@@ -350,7 +354,7 @@ namespace gold {
 		mongoc_client_pool_push(pool, client);
 		if (opts) bson_destroy(opts);
 		if (strV) {
-			auto strings = array();
+			auto strings = list();
 			auto i = 0;
 			auto str = strV[i];
 			while (str != nullptr) {
@@ -364,12 +368,12 @@ namespace gold {
 		return genericError(error.message);
 	}
 
-	var database::createCollection(varList args) {
+	var database::createCollection(list args) {
 		auto db = (mongoc_database_t*)getPtr("handle");
 		auto name = args[0].getString();
 		auto optsObj = args[1].getObject();
 		bson_t* opts =
-			optsObj ? newBSONFromObject(*optsObj) : nullptr;
+			optsObj ? newBSONFromObject(optsObj) : nullptr;
 		bson_error_t error;
 		auto col = (struct _mongoc_collection_t*)
 			mongoc_database_create_collection(
@@ -378,7 +382,7 @@ namespace gold {
 		return genericError(error.message);
 	}
 
-	var database::getCollection(varList args) {
+	var database::getCollection(list args) {
 		auto pool = (mongoc_client_pool_t*)getPtr("pool");
 		auto client = mongoc_client_pool_pop(pool);
 		auto name = args[0].getString();
@@ -391,27 +395,30 @@ namespace gold {
 		return var();
 	}
 
-	object collection::proto = object({
-		{"name", "undefined"},
-		{"addIndexes", method(&collection::addIndexes)},
-		{"dropIndex", method(&collection::dropIndex)},
-		{"deleteOne", method(&collection::deleteOne)},
-		{"deleteMany", method(&collection::deleteMany)},
-		{"findOne", method(&collection::findOne)},
-		{"findMany", method(&collection::findMany)},
-		{"updateOne", method(&collection::updateOne)},
-		{"updateMany", method(&collection::updateMany)},
-		{"insert", method(&collection::insert)},
-		{"replace", method(&collection::replace)},
-		{"rename", method(&collection::rename)},
-		{"destroy", method(&collection::destroy)},
-	});
+	obj& collection::getPrototype() {
+		static auto proto = obj({
+			{"name", "undefined"},
+			{"addIndexes", method(&collection::addIndexes)},
+			{"dropIndex", method(&collection::dropIndex)},
+			{"deleteOne", method(&collection::deleteOne)},
+			{"deleteMany", method(&collection::deleteMany)},
+			{"findOne", method(&collection::findOne)},
+			{"findMany", method(&collection::findMany)},
+			{"updateOne", method(&collection::updateOne)},
+			{"updateMany", method(&collection::updateMany)},
+			{"insert", method(&collection::insert)},
+			{"replace", method(&collection::replace)},
+			{"rename", method(&collection::rename)},
+			{"destroy", method(&collection::destroy)},
+		});
+		return proto;
+	}
 
-	collection::collection() : object(&proto) {}
+	collection::collection() : obj(getPrototype()) {}
 
 	collection::collection(
-		database& d, struct _mongoc_collection_t* c)
-		: object(&proto) {
+		database d, struct _mongoc_collection_t* c)
+		: obj(getPrototype()) {
 		setPtr("handle", c);
 		setObject("database", d);
 		setString(
@@ -419,7 +426,7 @@ namespace gold {
 			mongoc_collection_get_name((mongoc_collection_t*)c));
 	}
 
-	var collection::addIndexes(varList args) {
+	var collection::addIndexes(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto cName = args[0].getString();
 		auto keys = args[1].getObject();
@@ -429,19 +436,19 @@ namespace gold {
 				"Missing collection name for first arg");
 		if (!keys)
 			return genericError("Missing keys from second arg");
-		auto bKeys = newBSONFromObject(*keys);
+		auto bKeys = newBSONFromObject(keys);
 		auto indexName =
 			mongoc_collection_keys_to_index_string(bKeys);
-		auto indexObj = object{
-			{"key", (*keys)},
+		auto indexObj = obj{
+			{"key", (keys)},
 			{"name", (indexName)},
 		};
-		if (optsObj) indexObj.copy(*optsObj);
-		auto command = object({
+		if (optsObj) indexObj.copy(optsObj);
+		auto command = obj({
 			{"createIndexes", cName},
 			{
 				"indexes",
-				var(array{
+				var(list{
 					indexObj,
 				}),
 			},
@@ -457,7 +464,7 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::dropIndex(varList args) {
+	var collection::dropIndex(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto indexName = args[0].getString();
 		bson_error_t err;
@@ -467,15 +474,14 @@ namespace gold {
 		return var(genericError(err.message));
 	}
 
-	var collection::deleteOne(varList args) {
+	var collection::deleteOne(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto optObj = args[1].getObject();
 		if (!selObj)
 			return genericError("Missing selector for first arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_delete_one(
@@ -489,15 +495,14 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::deleteMany(varList args) {
+	var collection::deleteMany(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto optObj = args[1].getObject();
 		if (!selObj)
 			return genericError("Missing selector for first arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_delete_many(
@@ -509,20 +514,20 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::findOne(varList args) {
-		static auto def = object(object_list{{"limit", 1}});
+	var collection::findOne(list args) {
+		static auto def = obj(initList{{"limit", 1}});
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
-		auto optObj =
-			args.size() >= 2 ? args[1].getObject() : nullptr;
+		auto optObj = obj();
+		if (args.size() >= 2) optObj = args[1].getObject();
 		if (optObj)
-			optObj->copy(def);
+			optObj.copy(def);
 		else
-			optObj = &def;
+			optObj = def;
 		if (!selObj)
 			return genericError("Missing selector for first arg");
-		bson_t* opts = newBSONFromObject(*optObj);
-		auto sel = newBSONFromObject(*selObj);
+		bson_t* opts = newBSONFromObject(optObj);
+		auto sel = newBSONFromObject(selObj);
 		bson_error_t err;
 		auto cursor = mongoc_collection_find_with_opts(
 			handle, sel, opts, nullptr);
@@ -532,7 +537,10 @@ namespace gold {
 		var resp;
 		while (mongoc_cursor_next(cursor, &doc)) {
 			auto resi = varFromBSON((bson_t*)doc);
-			if (resi.isObject()) resp = *resi.getObject();
+			if (resi.isObject()) {
+				auto respObj = resi.getObject();
+				resp = respObj;
+			}
 		}
 		if (mongoc_cursor_error(cursor, &err)) {
 			mongoc_cursor_destroy(cursor);
@@ -542,28 +550,30 @@ namespace gold {
 		return resp;
 	}
 
-	var collection::findMany(varList args) {
+	var collection::findMany(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto optObj = args[1].getObject();
 		if (!selObj)
 			return genericError("Missing selector for first arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
 		bson_error_t err;
 		auto cursor = mongoc_collection_find_with_opts(
 			handle, sel, opts, nullptr);
 		bson_destroy(sel);
 		if (opts) bson_destroy(opts);
 		const bson_t* doc = nullptr;
-		auto response = array();
+		auto response = list();
 		while (mongoc_cursor_next(cursor, &doc)) {
 			auto resi = varFromBSON((bson_t*)doc);
-			if (resi.isArray())
-				response.pushArray(*resi.getArray());
-			else if (resi.isObject())
-				response.pushObject(*resi.getObject());
+			if (resi.isList()) {
+				auto arr = resi.getList();
+				response.pushList(arr);
+			} else if (resi.isObject()) {
+				auto o = resi.getObject();
+				response.pushObject(o);
+			}
 		}
 		if (mongoc_cursor_error(cursor, &err)) {
 			mongoc_cursor_destroy(cursor);
@@ -574,20 +584,20 @@ namespace gold {
 		return response;
 	}
 
-	var collection::updateOne(varList args) {
+	var collection::updateOne(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto upObj = args[1].getObject();
 		auto optObj = args[2].getObject();
+
 		if (!selObj)
 			return genericError("Missing selector for first arg");
 		if (!upObj)
 			return genericError(
 				"Missing update object for second arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
-		auto up = newBSONFromObject(*upObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
+		auto up = newBSONFromObject(upObj);
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_update_one(
@@ -602,7 +612,7 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::updateMany(varList args) {
+	var collection::updateMany(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto upObj = args[1].getObject();
@@ -612,10 +622,9 @@ namespace gold {
 		if (!upObj)
 			return genericError(
 				"Missing update object for second arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
-		auto up = newBSONFromObject(*upObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
+		auto up = newBSONFromObject(upObj);
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_update_many(
@@ -630,16 +639,15 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::insert(varList args) {
+	var collection::insert(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto objData = args[0].getObject();
-		auto optObj =
-			args.size() >= 2 ? args[1].getObject() : nullptr;
+		auto optObj = obj();
+		if (args.size() >= 2) optObj = args[1].getObject();
 		if (!objData)
 			return genericError("Missing object for first arg");
-		auto obj = newBSONFromObject(*objData);
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
+		auto obj = newBSONFromObject(objData);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_insert_one(
@@ -651,7 +659,7 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::replace(varList args) {
+	var collection::replace(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto upObj = args[1].getObject();
@@ -661,10 +669,9 @@ namespace gold {
 		if (!upObj)
 			return genericError(
 				"Missing update object for second arg");
-		bson_t* opts =
-			optObj ? newBSONFromObject(*optObj) : nullptr;
-		auto sel = newBSONFromObject(*selObj);
-		auto up = newBSONFromObject(*upObj);
+		bson_t* opts = optObj ? newBSONFromObject(optObj) : nullptr;
+		auto sel = newBSONFromObject(selObj);
+		auto up = newBSONFromObject(upObj);
 		bson_t replyBson;
 		bson_error_t err;
 		auto success = mongoc_collection_replace_one(
@@ -679,10 +686,11 @@ namespace gold {
 		return reply;
 	}
 
-	var collection::rename(varList args) {
+	var collection::rename(list args) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
-		auto db = getDatabase();
-		auto dbName = db->getString("name");
+		auto db = database();
+		getDatabase(db);
+		auto dbName = db.getString("name");
 		auto newName = args[0].getString();
 		bson_error_t err;
 		auto success = mongoc_collection_rename(
@@ -694,77 +702,102 @@ namespace gold {
 		return newName;
 	}
 
-	var collection::destroy(varList) {
+	var collection::destroy(list) {
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		mongoc_collection_destroy(handle);
 		return var();
 	}
 
-	database* collection::getDatabase() {
-		return (database*)getObject("database");
+	void collection::getDatabase(database& db) {
+		returnObject<database>("database", db);
 	}
 
-	var& collection::setParentModel(var& args, object* parent) {
-		if (args.isArray()) {
-			auto arr = *args.getArray();
+	var& collection::setParentModel(var& args, obj parent) {
+		if (args.isList()) {
+			auto arr = args.getList();
 			for (auto it = arr.begin(); it != arr.end(); ++it)
-				if (it->isObject()) it->getObject()->setParent(parent);
-		} else if (args.isObject())
-			args.getObject()->setParent(parent);
+				if (it->isObject()) {
+					auto o = it->getObject();
+					o.setParent(parent);
+				}
+		} else if (args.isObject()) {
+			auto o = args.getObject();
+			o.setParent(parent);
+		}
 		return args;
 	}
 
-	object model::proto = object({
-		{"_id", ""},
-		{"updated", 0},
-		{"created", 0},
-		{"save", method(&model::save)},
-		{"remove", method(&model::remove)},
-	});
-
-	model::model(collection& c, object* parent) : object(parent) {
-		if (parent) parent->setObject("col", c);
+	obj& model::getPrototype() {
+		static auto proto = obj({
+			{"_id", ""},
+			{"updated", 0},
+			{"created", 0},
+			{"save", method(&model::save)},
+			{"remove", method(&model::remove)},
+		});
+		return proto;
 	}
 
-	model::model(collection& c, object data, object* parent)
-		: object(data, parent) {
-		if (parent) parent->setObject("col", c);
+	model::model() : obj() {}
+
+	model::model(collection c, obj data) : obj() {
+		setParent(getPrototype());
+		copy(data);
+		auto parent = getParent();
+		if (parent) parent.setObject("col", c);
 	}
 
-	var model::save(varList) {
-		auto col = getCollection();
+	var model::save(list) {
+		auto col = collection();
+		getCollection(col);
 		auto id = getString("_id");
 		setInt64("updated", getMonoTime());
 		if (id.empty()) {
 			id = newID();
 			setString("_id", id);
 			setInt64("created", getMonoTime());
-			auto res = col->insert({*this});
+			auto res = col.insert({*this});
 			if (res.isError())
 				return res;
-			else if (res.isObject())
-				this->copy(*res.getObject());
+			else if (res.isObject()) {
+				auto o = res.getObject();
+				this->copy(o);
+			}
 			return *this;
 		}
-		auto res = col->updateOne({object{{"_id", id}}, *this});
+		auto res = col.updateOne({
+			obj{
+				{"_id", id},
+			},
+			obj{
+				{"$set", *this},
+			},
+			obj{},
+		});
 		if (res.isError())
 			return res;
-		else if (res.isObject())
-			this->copy(*res.getObject());
+		else if (res.isObject()) {
+			auto o = res.getObject();
+			this->copy(o);
+		}
 		return *this;
 	}
 
-	var model::remove(varList) {
-		auto col = getCollection();
-		return col->deleteOne({object{{"_id", getString("_id")}}});
+	var model::remove(list) {
+		auto col = collection();
+		getCollection(col);
+		auto opt = obj{{"_id", getString("_id")}};
+		return col.deleteOne({opt});
 	}
 
-	database* model::getDatabase() {
-		return (database*)getCollection()->getObject("database");
+	void model::getDatabase(database& db) {
+		auto col = collection();
+		getCollection(col);
+		col.returnObject<database>("database", db);
 	}
 
-	collection* model::getCollection() {
-		return (collection*)getObject("col");
+	void model::getCollection(collection& col) {
+		returnObject<collection>("col", col);
 	}
 
 	string model::getID() { return getString("_id"); }

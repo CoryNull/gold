@@ -1,37 +1,36 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
-#define NewElementType(name) \
-	class name : public iHTML { \
-	 public:                   \
-		name();                  \
-		name(const name& copy);  \
-		name(varList args);      \
+#define NewElementType(name)   \
+	struct name : public iHTML { \
+	 public:                     \
+		name();                    \
+		name(const name& copy);    \
+		name(list args);           \
 	}
 
 namespace gold {
 
 	namespace HTML {
-		class iHTML : public gold::object {
+		struct iHTML : public gold::object {
 		 protected:
-			static gold::object proto;
+			static gold::object& getPrototype();
 
 		 public:
 			iHTML();
-			iHTML(const iHTML& copy);
-			iHTML(const char* name, varList args);
+			iHTML(const char* tag, list args);
 
-			gold::var setAttributes(varList args);
-			gold::var getAttribute(varList args);
+			gold::var setAttributes(list args);
+			gold::var getAttribute(list args);
 
-			gold::var addElements(varList args);
-			gold::var removeElement(varList args);
+			gold::var addElements(list args);
+			gold::var removeElement(list args);
 
 			operator string();
 
-			iHTML& operator+=(varList args);
-			iHTML& operator-=(varList args);
+			iHTML& operator+=(list args);
+			iHTML& operator-=(list args);
 		};
 
 		NewElementType(hTemplate);
@@ -149,6 +148,6 @@ namespace gold {
 
 		NewElementType(iframe);
 
-	}  // namespace html
+	}  // namespace HTML
 
 }  // namespace gold

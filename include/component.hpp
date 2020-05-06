@@ -1,15 +1,15 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
-	class component : public object {
+	struct component : public object {
 	 protected:
-		var update(varList args);
-		var draw(varList args);
+		var update(list args);
+		var draw(list args);
 
 	 public:
-		static object proto;
+		static object& getPrototype();
 		component();
 		component(object config);
 	};

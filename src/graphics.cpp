@@ -3,11 +3,13 @@
 #include <SDL2/SDL_syswm.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
+#include <bx/math.h>
 #include <bx/os.h>
 
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+
 
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
 #if ENTRY_CONFIG_USE_WAYLAND
@@ -21,20 +23,25 @@
 
 namespace gold {
 	bgfx::PlatformData pd = bgfx::PlatformData();
-	object backend::proto = object({
-		{"backend", "OpenGL"},
-		{"vSync", true},
-		{"maxAnisotropy", false},
-		{"stats", false},
-		{"debug", false},
-		{"initialize", method(&backend::initialize)},
-		{"renderFrame", method(&backend::renderFrame)},
-		{"preFrame", method(&backend::preFrame)},
-		{"destroy", method(&backend::destroy)},
-		{"getConfig", method(&backend::getConfig)},
-	});
 
-	object defaultBackendConfig = object({
+	obj& backend::getPrototype() {
+		static auto proto = obj({
+			{"backend", "OpenGL"},
+			{"vSync", true},
+			{"maxAnisotropy", false},
+			{"stats", false},
+			{"debug", false},
+			{"window", var()},
+			{"initialize", method(&backend::initialize)},
+			{"renderFrame", method(&backend::renderFrame)},
+			{"preFrame", method(&backend::preFrame)},
+			{"destroy", method(&backend::destroy)},
+			{"getConfig", method(&backend::getConfig)},
+		});
+		return proto;
+	}
+
+	obj defaultBackendConfig = obj({
 		{"backend", "OpenGL"},
 		{"vSync", true},
 		{"maxAnisotropy", false},
@@ -74,11 +81,11 @@ namespace gold {
 		return bgfx::RendererType::Noop;
 	}
 
-	var backend::initialize(varList args) {
+	var backend::initialize(list args) {
 		cout << "Starting BGFX" << endl;
-		auto win = (window*)args[0].getObject();
-		auto handle = (SDL_Window*)win->getPtr("handle");
-		setObject("window", *win);
+		auto win = args[0].getObject<window>();
+		auto handle = (SDL_Window*)win.getPtr("handle");
+		setObject("window", win);
 		SDL_SysWMinfo wmi;
 		SDL_VERSION(&wmi.version);
 		SDL_GetWindowWMInfo(handle, &wmi);
@@ -120,8 +127,9 @@ namespace gold {
 		auto bType = getVar("backend");
 		init.type = varToRenderType(bType);
 		init.vendorId = BGFX_PCI_ID_NONE;
-		init.resolution.width = win->getUInt32("width");
-		init.resolution.height = win->getUInt32("height");
+		init.resolution.width = win.getUInt32("width");
+		init.resolution.height = win.getUInt32("height");
+		//init.allocator = new bx::DefaultAllocator();
 		init.resolution.reset =
 			(vSync ? BGFX_RESET_VSYNC : 0) |
 			(maxAni ? BGFX_RESET_MAXANISOTROPY : 0);
@@ -140,13 +148,13 @@ namespace gold {
 		return var();
 	}
 
-	var backend::renderFrame(varList) {
+	var backend::renderFrame(list) {
 		return bgfx::frame(false);
 	}
 
-	var backend::getConfig(varList) {
+	var backend::getConfig(list) {
 		auto allowed = defaultBackendConfig;
-		auto config = object();
+		auto config = obj();
 		for (auto it = begin(); it != end(); ++it) {
 			auto def = allowed[it->first];
 			if (def.getType() != typeNull && it->second != def)
@@ -155,21 +163,44 @@ namespace gold {
 		return config;
 	}
 
-	var backend::destroy(varList) {
+	var backend::destroy(list) {
 		bgfx::shutdown();
 		return var();
 	}
 
-	var backend::preFrame(varList) {
-		auto win = getObject("window");
-		auto width = win->getUInt16("width");
-		auto height = win->getUInt16("height");
-		bgfx::setViewRect(0, 0, 0, width, height);
-		bgfx::touch(0);
+	var backend::preFrame(list) {
+		auto win = getObject<window>("window");
+		if (win) {
+			auto width = win.getUInt16("width");
+			auto height = win.getUInt16("height");
+			bgfx::setViewRect(0, 0, 0, width, height);
+
+			const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
+			const bx::Vec3 eye = {0.0f, 0.0f, -35.0f};
+
+			// Set view and projection matrix for view 0.
+			{
+				float view[16];
+				bx::mtxLookAt(view, eye, at);
+
+				float proj[16];
+				bx::mtxProj(
+					proj, 60.0f, float(width) / float(height), 0.1f,
+					100.0f, bgfx::getCaps()->homogeneousDepth);
+				bgfx::setViewTransform(0, view, proj);
+			}
+
+			bgfx::touch(0);
+		}
+
 		return var();
 	}
 
-	backend::backend() : object(&proto) {}
+	backend::backend() : obj() { }
 
-	backend::backend(object config) : object(config, &proto) {}
+	backend::backend(obj config) : obj() {
+		copy(config);
+		setParent(getPrototype());
+	}
+
 }  // namespace gold

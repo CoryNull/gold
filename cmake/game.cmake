@@ -1,12 +1,15 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+project(gold)
+
 find_package (SDL2 REQUIRED)
 find_package (glm 0.9.9 REQUIRED)
 
 add_library(
-	game
+	goldGame
 	STATIC
+		shaderSprite.hpp
 		src/component.cpp
 		src/engine.cpp
 		src/entity.cpp
@@ -17,35 +20,37 @@ add_library(
 		src/texture.cpp
 		src/transform.cpp
 		src/window.cpp
-		src/worker.cpp
 )
+add_dependencies(goldGame Shaders)
 add_library(
-	gold::game ALIAS game
+	gold::game ALIAS goldGame
 )
 
 if(MSVC)
-  target_compile_options(game PRIVATE /W4 /WX)
+  target_compile_options(goldGame PRIVATE /W4 /WX)
 else()
-  target_compile_options(game PRIVATE -Wall -Wextra -pedantic)
+  target_compile_options(goldGame PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 target_include_directories(
-	game
+	goldGame
 	PUBLIC
 		"include"
 		${GLM_INCLUDE_DIRS}
+		${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_libraries (
-	game 
+	goldGame 
 	PUBLIC 
-		shared
+		gold::shared
 		bgfx
 		${SDL2_LIBRARIES}
+		${OPENGL_LIBRARIES}
 )
 
 target_compile_features(
-	game
+	goldGame
 	PUBLIC
 		cxx_variadic_templates
 		cxx_nullptr

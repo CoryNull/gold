@@ -7,61 +7,188 @@
 #include <functional>
 #include <iostream>
 
-#include "array.hpp"
+#include "file.hpp"
 
 namespace gold {
 	using namespace std;
 	using namespace uWS;
 	namespace fs = std::filesystem;
+	const auto CacheControl = "max-age=120";
 
-	object server::proto = object({
-		{"host", "localhost"},
-		{"port", 8080},
-		{"start", method(&server::start)},
-		{"get", method(&server::get)},
-		{"post", method(&server::post)},
-		{"put", method(&server::put)},
-		{"patch", method(&server::patch)},
-		{"del", method(&server::del)},
-		{"options", method(&server::options)},
-		{"setMountPoint", method(&server::setMountPoint)},
-		{"setErrorHandler", method(&server::setErrorHandler)},
-		{"initialize", method(&server::initialize)},
-		{"destroy", method(&server::destroy)},
+	static auto mimeMap = map<string, string>({
+		{".bin", "application/octet-stream"},
+		{".zip", "application/zip"},
+		{".rar", "application/x-rar-compressed"},
+		{".json", "application/json"},
+		{".bson", "application/bson"},
+		{".js", "application/javascript"},
+		{".xml", "application/xml"},
+		{".gz", "application/gzip"},
+		{".bz", "application/x-bzip"},
+		{".bz2", "application/x-bzip2"},
+		{".azw", "application/vnd.amazon.ebook"},
+		{".doc", "application/msword"},
+		{".ogx", "application/ogg"},
+		{".pdf", "application/pdf"},
+		{".tar", "application/x-tar"},
+		{".xhtml", "application/xhtml+xml"},
+		{".xls", "application/vnd.ms-excel"},
+		{".7z", "application/x-7z-compressed"},
+		{".abw", "application/x-abiword"},
+		{".arc", "application/x-freearc"},
+		{".html", "text/html"},
+		{".csv", "text/csv"},
+		{".css", "text/css"},
+		{".rtf", "text/rtf"},
+		{".txt", "text/plain"},
+		{".ics", "text/calendar"},
+		{".apng", "image/apng"},
+		{".bmp", "image/bmp"},
+		{".gif", "image/gif"},
+		{".ico", "image/x-icon"},
+		{".jpeg", "image/jpeg"},
+		{".jpg", "image/jpeg"},
+		{".jfif", "image/jpeg"},
+		{".pjpeg", "image/jpeg"},
+		{".pjp", "image/jpeg"},
+		{".png", "image/png"},
+		{".svg", "image/svg+xml"},
+		{".tif", "image/tiff"},
+		{".tiff", "image/tiff"},
+		{".webp", "image/webp"},
+		{".wav", "audio/wave"},
+		{".aac", "audio/aac"},
+		{".mp3", "audio/mpeg"},
+		{".oga", "audio/ogg"},
+		{".opus", "audio/opus"},
+		{".weba", "audio/webm"},
+		{".mid", "audio/midi"},
+		{".midi", "audio/x-midi"},
+		{".webm", "video/webm"},
+		{".ogv", "video/ogg"},
+		{".mpeg", "video/mpeg"},
+		{".avi", "video/x-msvideo"},
+		{".ttf", "font/ttf"},
+		{".otf", "font/otf"},
+		{".woff2", "font/woff2"},
+		{".docx",
+		 "application/"
+		 "vnd.openxmlformats-officedocument.wordprocessingml."
+		 "document"},
+		{".ppt", "application/vnd.ms-powerpoint"},
+		{".pptx",
+		 "application/"
+		 "vnd.openxmlformats-officedocument.presentationml."
+		 "presentation"},
+		{".xlsx",
+		 "application/"
+		 "vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
 	});
 
-	object response::proto = object({
-		{"writeContinue", method(&response::writeContinue)},
-		{"writeStatus", method(&response::writeStatus)},
-		{"writeHeader", method(&response::writeHeader)},
-		{"end", method(&response::end)},
-		{"tryEnd", method(&response::tryEnd)},
-		{"write", method(&response::write)},
-		{"getWriteOffset", method(&response::getWriteOffset)},
-		{"hasResponded", method(&response::hasResponded)},
-		{"cork", method(&response::cork)},
-		{"onWritable", method(&response::onWritable)},
-		{"onAborted", method(&response::onAborted)},
-		{"onData", method(&response::onData)},
-	});
+	obj& server::getPrototype() {
+		static auto proto = obj({
+			{"host", "localhost"},
+			{"port", 8080},
+			{"start", method(&server::start)},
+			{"get", method(&server::get)},
+			{"post", method(&server::post)},
+			{"put", method(&server::put)},
+			{"patch", method(&server::patch)},
+			{"del", method(&server::del)},
+			{"options", method(&server::options)},
+			{"setMountPoint", method(&server::setMountPoint)},
+			{"setErrorHandler", method(&server::setErrorHandler)},
+			{"initialize", method(&server::initialize)},
+			{"destroy", method(&server::destroy)},
+		});
+		return proto;
+	}
 
-	object request::proto = object({
-		{"getAllHeaders", method(&request::getAllHeaders)},
-		{"getHeader", method(&request::getHeader)},
-		{"getMethod", method(&request::getMethod)},
-		{"getParameter", method(&request::getParameter)},
-		{"getQuery", method(&request::getQuery)},
-		{"getUrl", method(&request::getUrl)},
-		{"getYield", method(&request::getYield)},
-		{"setParameters", method(&request::setParameters)},
-		{"setYield", method(&request::setYield)},
-	});
+	obj& response::getPrototype() {
+		static auto proto = obj({
+			{"writeContinue", method(&response::writeContinue)},
+			{"writeStatus", method(&response::writeStatus)},
+			{"writeHeader", method(&response::writeHeader)},
+			{"end", method(&response::end)},
+			{"tryEnd", method(&response::tryEnd)},
+			{"write", method(&response::write)},
+			{"getWriteOffset", method(&response::getWriteOffset)},
+			{"hasResponded", method(&response::hasResponded)},
+			{"cork", method(&response::cork)},
+			{"onWritable", method(&response::onWritable)},
+			{"onAborted", method(&response::onAborted)},
+			{"onData", method(&response::onData)},
+		});
+		return proto;
+	}
 
-	var server::start(varList) {
+	obj& request::getPrototype() {
+		static auto proto = obj({
+			{"getAllHeaders", method(&request::getAllHeaders)},
+			{"getHeader", method(&request::getHeader)},
+			{"getMethod", method(&request::getMethod)},
+			{"getParameter", method(&request::getParameter)},
+			{"getQuery", method(&request::getQuery)},
+			{"getUrl", method(&request::getUrl)},
+			{"getYield", method(&request::getYield)},
+			{"setParameters", method(&request::setParameters)},
+			{"setYield", method(&request::setYield)},
+		});
+		return proto;
+	}
+
+	var server::start(list) {
 		auto host = getString("host");
 		auto port = getInt32("port");
 		auto handle = (App*)getPtr("handle");
+		auto def = obj({});
+		auto mounts = getObject("mounts");
 		if (handle != nullptr) {
+			auto handler = [&](
+											 HttpResponse<false>* res,
+											 HttpRequest* req) {
+				try {
+					auto p = string(req->getUrl());
+					auto f = mounts.getObject<file>(p);
+					auto chash = req->getHeader("if-none-match");
+					if (f) {
+						auto loaded = f.load();
+						if (loaded.isBinary()) {
+							auto hash = f.hash().getString();
+							if (hash.compare(chash) == 0) {
+								res->writeStatus("304 Not Changed");
+								res->writeHeader("Cache-Control", CacheControl);
+								res->end();
+							} else {
+								auto bin = loaded.getBinary();
+								auto strView =
+									string_view((char*)bin.data(), bin.size());
+								res->writeStatus(HTTP_200_OK);
+								auto ext = fs::path(p).extension().string();
+								auto ct = mimeMap[ext];
+								res->writeHeader("Content-Type", ct);
+								res->writeHeader("Cache-Control", CacheControl);
+								res->writeHeader("ETag", hash);
+								res->end(strView);
+							}
+						} else {
+							res->writeStatus("404 Not Found");
+							res->end();
+						}
+					} else {
+						res->writeStatus("404 Not Found");
+						res->end();
+					}
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			};
+
+			for (auto it = mounts.begin(); it != mounts.end(); ++it) {
+				auto url = it->first;
+				handle->get(url, handler);
+			}
+
 			handle
 				->listen(
 					port,
@@ -77,7 +204,7 @@ namespace gold {
 		return var(false);
 	}
 
-	var server::get(varList args) {
+	var server::get(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -90,7 +217,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -98,7 +227,7 @@ namespace gold {
 		return var();
 	}
 
-	var server::post(varList args) {
+	var server::post(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -110,7 +239,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -118,7 +249,7 @@ namespace gold {
 		return var();
 	}
 
-	var server::put(varList args) {
+	var server::put(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -130,7 +261,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -138,7 +271,7 @@ namespace gold {
 		return var();
 	}
 
-	var server::patch(varList args) {
+	var server::patch(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -150,7 +283,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -158,7 +293,7 @@ namespace gold {
 		return var();
 	}
 
-	var server::del(varList args) {
+	var server::del(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -170,7 +305,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -178,7 +315,7 @@ namespace gold {
 		return var();
 	}
 
-	var server::options(varList args) {
+	var server::options(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto pattern = args[0].getString();
@@ -190,7 +327,9 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -198,64 +337,19 @@ namespace gold {
 		return var();
 	}
 
-	var server::setMountPoint(varList args) {
+	var server::setMountPoint(list args) {
 		auto handle = (App*)getPtr("handle");
-		auto mounts = getObject("mounts");
-		auto point = fs::path(args[0].getString());
 		if (!handle) return genericError("server handle null");
-
-		point = fs::canonical(point);
-		for (auto& p : fs::recursive_directory_iterator(point)) {
-			std::string url = fs::relative(p.path().string());
-			if (p.path().extension() != "") {
-				if (url.find("index.html") != string::npos)
-					url =
-						url.substr(0, url.size() - strlen("index.html"));
-				auto key = string(url.data(), url.length());
-				auto buffer = string();
-				ifstream fin(p.path().string(), std::ios::binary);
-				fin.seekg(0, fin.end);
-				auto fileSize = (size_t)fin.tellg();
-				buffer.resize(fileSize);
-				fin.seekg(0, fin.beg);
-				fin.read(buffer.data(), buffer.length());
-				mounts->setString(key, buffer);
-
-				handle->get(
-					"/" + url,
-					[=](HttpResponse<false>* res, HttpRequest* req) {
-						try {
-							auto url = req->getUrl();
-							auto file = mounts->getVar(string(url.substr(1)));
-							if (file.getType() == typeString) {
-								auto data = file.getString();
-								res->writeStatus(HTTP_200_OK);
-								auto ext = fs::path(url).extension().string();
-								if (ext.find(".svg") != string::npos) {
-									res->writeHeader(
-										"Content-Type", "image/svg+xml");
-								} else if (ext.find(".js") != string::npos) {
-									res->writeHeader(
-										"Content-Type", "text/javascript");
-								} else if (ext.find(".css") != string::npos) {
-									res->writeHeader("Content-Type", "text/css");
-								}
-								res->end({file});
-							} else {
-								res->writeStatus("404 Not Found");
-								res->end();
-							}
-						} catch (genericError& e) {
-							cerr << e << endl;
-						}
-					});
-			}
+		auto mounts = getObject("mounts");
+		for (auto it = args.begin(); it != args.end(); ++it) {
+			auto point = fs::canonical(it->getString());
+			file::recursiveReadDirectory(point, mounts);
 		}
 
 		return var();
 	}
 
-	var server::setErrorHandler(varList args) {
+	var server::setErrorHandler(list args) {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto func = args[0].getFunction();
@@ -267,7 +361,9 @@ namespace gold {
 				"/*",
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						func({request(*req), response(*res)});
+						auto myReq = request(*req);
+						auto myRes = response(*res);
+						func({myReq, myRes});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -275,36 +371,43 @@ namespace gold {
 		return var();
 	}
 
-	var server::initialize(varList) {
+	var server::initialize(list) {
 		setPtr("handle", new App());
-		setObject("mounts", object());
+		auto mounts = obj({});
+		setObject("mounts", mounts);
 		return var();
 	}
 
-	var server::destroy(varList) {
+	var server::destroy(list) {
 		auto handle = (App*)getPtr("handle");
 		if (handle) delete handle;
 		return var();
 	}
 
-	server::server() : object(&proto) { initialize({}); }
+	server::server() : obj() {
+	}
 
-	server::server(object config) : object(config, &proto) {
+	server::server(obj config) : obj() {
+		copy(config);
+		setParent(getPrototype());
 		initialize({});
 	}
 
-	response::response(HttpResponse<true>& res) : object(&proto) {
+	response::response() : obj() { }
+
+	response::response(HttpResponse<true>& res) : obj() {
+		setParent(getPrototype());
 		setPtr("handle", &res);
 		setBool("ssl", true);
 	}
 
-	response::response(HttpResponse<false>& res)
-		: object(&proto) {
+	response::response(HttpResponse<false>& res) : obj() {
+		setParent(getPrototype());
 		setPtr("handle", &res);
 		setBool("ssl", false);
 	}
 
-	var response::writeContinue(varList) {
+	var response::writeContinue(list) {
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
@@ -316,7 +419,7 @@ namespace gold {
 		return var();
 	}
 
-	var response::writeStatus(varList args) {
+	var response::writeStatus(list args) {
 		auto status = args[0].getString();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -329,7 +432,7 @@ namespace gold {
 		return var();
 	}
 
-	var response::writeHeader(varList args) {
+	var response::writeHeader(list args) {
 		auto key = args[0].getString();
 		auto value = args[1];
 		auto ssl = getBool("ssl");
@@ -355,34 +458,36 @@ namespace gold {
 		return var();
 	}
 
-	var response::end(varList args) {
-		auto data = args[0].getString();
+	var response::end(list args) {
+		auto data = args[0].getBinary();
+		auto strV = string_view((char*)data.data(), data.size());
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			res->end(data);
+			res->end(strV);
 		} else {
 			auto res = (HttpResponse<false>*)getPtr("handle");
-			res->end(data);
+			res->end(strV);
 		}
 		return var();
 	}
 
-	var response::tryEnd(varList args) {
-		auto data = args[0].getString();
+	var response::tryEnd(list args) {
+		auto data = args[0].getBinary();
+		auto strV = string_view((char*)data.data(), data.size());
 		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			auto p = res->tryEnd(data, size);
-			return var(gold::array({p.first, p.second}));
+			auto p = res->tryEnd(strV, size);
+			return var(gold::list({p.first, p.second}));
 		}
 		auto res = (HttpResponse<false>*)getPtr("handle");
-		auto p = res->tryEnd(data, size);
-		return var(gold::array({p.first, p.second}));
+		auto p = res->tryEnd(strV, size);
+		return var(gold::list({p.first, p.second}));
 	}
 
-	var response::write(varList args) {
+	var response::write(list args) {
 		auto data = args[0].getString();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -393,7 +498,7 @@ namespace gold {
 		return res->write(data);
 	}
 
-	var response::getWriteOffset(varList) {
+	var response::getWriteOffset(list) {
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
@@ -403,7 +508,7 @@ namespace gold {
 		return res->getWriteOffset();
 	}
 
-	var response::hasResponded(varList) {
+	var response::hasResponded(list) {
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
@@ -413,7 +518,7 @@ namespace gold {
 		return res->hasResponded();
 	}
 
-	var response::cork(varList args) {
+	var response::cork(list args) {
 		auto handler = args[0].getFunction();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -426,7 +531,7 @@ namespace gold {
 		return var();
 	}
 
-	var response::onWritable(varList args) {
+	var response::onWritable(list args) {
 		auto handler = args[0].getFunction();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -440,7 +545,7 @@ namespace gold {
 		return var();
 	}
 
-	var response::onAborted(varList args) {
+	var response::onAborted(list args) {
 		auto handler = args[0].getFunction();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -453,7 +558,7 @@ namespace gold {
 		return var();
 	}
 
-	var response::onData(varList args) {
+	var response::onData(list args) {
 		auto handler = args[0].getFunction();
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -470,62 +575,70 @@ namespace gold {
 		return var();
 	}
 
-	request::request(uWS::HttpRequest& req) : object(&proto) {
+	request::request() : obj() { }
+
+	request::request(uWS::HttpRequest& req) : obj() {
+		setParent(getPrototype());
 		setPtr("handle", (void*)&req);
 		setString("path", string(req.getUrl()));
 	}
 
-	var request::getAllHeaders(varList) {
+	var request::getAllHeaders(list) {
 		auto req = (HttpRequest*)getPtr("handle");
-		auto obj = object();
+		auto o = obj({});
 		auto it = req->begin();
 		for (; it != req->end(); ++it) {
 			auto k = string(it.ptr->key);
 			auto v = string(it.ptr->value);
-			auto exist = obj.getVar(k);
-			if (exist.isString())
-				obj.setArray(k, array({exist.getString(), v}));
-			else if (exist.isArray())
-				exist.getArray()->pushString(v);
-			else
-				obj.setString(k, v);
+			auto exist = o.getVar(k);
+			if (exist.isString()) {
+				auto arr = list({exist.getString(), v});
+				o.setList(k, arr);
+			} else if (exist.isList()) {
+				auto arr = exist.getList();
+				arr.pushString(v);
+			} else
+				o.setString(k, v);
 		}
-		return obj;
+		return o;
 	}
 
-	var request::getHeader(varList args) {
+	var request::getHeader(list args) {
 		auto req = (HttpRequest*)getPtr("handle");
 		auto lch = args[0].getString();
+		transform(lch.begin(), lch.end(), lch.begin(), [](auto c) {
+			return std::tolower(c);
+		});
 		return string(req->getHeader(lch));
 	}
 
-	var request::getMethod(varList) {
+	var request::getMethod(list) {
 		auto req = (HttpRequest*)getPtr("handle");
 		return string(req->getMethod());
 	}
 
-	var request::getParameter(varList args) {
+	var request::getParameter(list args) {
 		auto req = (HttpRequest*)getPtr("handle");
 		auto in = args[0].getUInt32();
 		return string(req->getParameter(in));
 	}
 
-	var request::getQuery(varList) {
+	var request::getQuery(list) {
 		auto req = (HttpRequest*)getPtr("handle");
 		return string(req->getQuery());
 	}
 
-	var request::getUrl(varList) {
+	var request::getUrl(list) {
 		auto req = (HttpRequest*)getPtr("handle");
 		return string(req->getUrl());
 	}
 
-	var request::getYield(varList) {
+	var request::getYield(list) {
 		auto req = (HttpRequest*)getPtr("handle");
 		return req->getYield();
 	}
 
-	var request::setParameters(varList args) {
+	var request::setParameters(list args) {
 		auto req = (HttpRequest*)getPtr("handle");
 		int in = args[0].getInt32();
 		auto v = args[1].getString();
@@ -535,7 +648,7 @@ namespace gold {
 		return var();
 	}
 
-	var request::setYield(varList args) {
+	var request::setYield(list args) {
 		auto req = (HttpRequest*)getPtr("handle");
 		auto y = args[0].getBool();
 		req->setYield(y);

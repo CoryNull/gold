@@ -2,8 +2,6 @@
 
 #include <sstream>
 
-#include "var.hpp"
-
 namespace gold {
 
 	const var nullVar = var();
@@ -21,8 +19,8 @@ namespace gold {
 
 	const char* getTypeString(types type) {
 		switch (type) {
-			case typeArray:
-				return "Array";
+			case typeList:
+				return "List";
 			case typeObject:
 				return "Object";
 			case typeMethod:
@@ -33,6 +31,8 @@ namespace gold {
 				return "Pointer";
 			case typeString:
 				return "String";
+			case typeBinary:
+				return "Binary";
 			case typeInt64:
 				return "Int64";
 			case typeInt32:
@@ -76,7 +76,7 @@ namespace gold {
 
 	genericError::operator string() const {
 		auto ss = stringstream();
-		ss << (*this) << endl;
+		ss << (*this);
 		return ss.str();
 	}
 

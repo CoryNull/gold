@@ -1,17 +1,19 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 #include "renderable.hpp"
 
 namespace gold {
-	class sprite : public renderable {
+	struct sprite : public renderable {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		sprite();
 		sprite(object config);
 
-		var draw(varList args = {});
+		var draw(list args = {});
+		var initialize(list args = {});
+		var destroy(list args = {});
 	};
 }  // namespace gold

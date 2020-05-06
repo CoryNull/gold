@@ -1,14 +1,21 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
+#include "file.hpp"
 
 namespace gold {
-	class texture : public object {
+	struct texture : public file {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		texture();
-		texture(object config);
+		texture(file copy);
+		texture(path fpath);
+		texture(binary data);
+
+		var load(list args = {});
+		var bind(list args);
+
 	};
 }  // namespace gold

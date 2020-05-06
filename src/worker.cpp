@@ -1,20 +1,27 @@
 #include "worker.hpp"
 
+#include <mutex>
+#include <thread>
 #include <iostream>
 
 namespace gold {
-	class worker::job {
+	struct worker::job {
 	 public:
-		method m;
-		object& o;
-		varList a;
-		job(method me, object& ob, varList ar)
-			: m(me), o(ob), a(ar) {}
+		const method m;
+		obj o;
+		const list a;
+		job(const method& me, obj& ob, const list& ar) : m(me), o(ob), a(ar) {}
 		job(const job& copy) : m(copy.m), o(copy.o), a(copy.a) {}
 		~job() {}
 		void call() {
-			auto ret = (o.*m)(varList());
-			if (ret.isError()) cerr << ret << endl;
+			try {
+				if (o && m && a) {
+					auto ret = (o.*m)(a);
+					if (ret.isError()) cerr << ret << endl;
+				}
+			} catch (genericError e) {
+				cerr << e << endl;
+			}
 		}
 	};
 
@@ -43,11 +50,10 @@ namespace gold {
 	bool worker::shouldDie() { return this->kill == true; }
 
 	worker::worker() : jobs(), threads(), kill(false) {
-		useAll();
+		// useAll();
 	}
 
-	worker::jobPtr worker::add(
-		method m, object& o, varList args) {
+	worker::jobPtr worker::add(const method& m, obj& o, const list& args) {
 		auto j = make_shared<job>(m, o, args);
 		mtx.lock();
 		jobs.push_back(j);
@@ -82,7 +88,8 @@ namespace gold {
 	}
 
 	void worker::useAll() {
-		for (uint32_t i = 0; i < thread::hardware_concurrency(); ++i)
+		for (uint32_t i = 0; i < thread::hardware_concurrency();
+				 ++i)
 			threads.push_back(thread(workerProcess, this));
 	}
 

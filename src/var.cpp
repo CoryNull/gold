@@ -1,171 +1,220 @@
-#include "var.hpp"
-
 #include <string.h>
 
-#include "array.hpp"
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
 	using namespace std;
 
-	class varContainer {
-	 public:
-		union {
-			void* ptr;
-			string* str;
-			array* a;
-			object* o;
-			double d;
-			float f;
-			int64_t i64;
-			int32_t i32;
-			int16_t i16;
-			int8_t i8;
-			uint64_t u64;
-			uint32_t u32;
-			uint16_t u16;
-			uint8_t u8;
-			bool b;
-			method* m;
-			func* fu;
-			genericError* e;
-		};
-		types type;
-		~varContainer() {
-			switch (type) {
-				case typeException:
-					if (e) delete e;
-					break;
-				case typeFunction:
-					if (fu) delete fu;
-					break;
-				case typeArray:
-					if (a) delete a;
-					break;
-				case typeObject:
-					if (o) delete o;
-					break;
-				case typeString:
-					if (str) delete str;
-					break;
-				default:
-					break;
-			}
-		}
-
-		varContainer(varContainer& other) {
-			type = other.type;
-			switch (type) {
-				case typeException:
-					e = new genericError(*other.e);
-					break;
-				case typeFunction:
-					fu = new func(*other.fu);
-					break;
-				case typeArray:
-					a = new array(*other.a);
-					break;
-				case typeObject:
-					o = new object(*other.o);
-					break;
-				case typeString:
-					str = new string(*other.str);
-					break;
-				default:
-					ptr = other.ptr;
-					break;
-			}
-		}
-
-		varContainer(string value)
-			: str(new string(value)), type(typeString) {}
-
-		varContainer(object& value)
-			: o(new object(value)), type(typeObject) {}
-
-		varContainer(array& value)
-			: a(new array(value)), type(typeArray) {}
-
-		varContainer(func value)
-			: fu(new func(value)), type(typeFunction) {}
-
-		varContainer(method value)
-			: m(new method(value)), type(typeMethod) {}
-
-		varContainer(genericError value)
-			: e(new genericError(value)), type(typeException) {}
-
-		template <typename T>
-		varContainer(T value, types t)
-			: ptr(
-					(sizeof(T) <= sizeof(uint64_t))
-						? (void*)(uint64_t)value
-						: new T(value)),
-				type(t) {}
+	struct objData {
+		object::omap items;
+		gold::object parent;
+		uint64_t id;
+		mutex omutex;
 	};
 
-	auto autoNull =
-		shared_ptr<varContainer>(nullptr, [](void*) {});
+	var::varContainer::~varContainer() {
+		switch (type) {
+			case typeException:
+				if (e) delete e;
+				break;
+			case typeList:
+				if (a) delete a;
+				break;
+			case typeObject:
+				if (o) delete o;
+				break;
+			case typeString:
+				if (str) delete str;
+				break;
+			case typeBinary:
+				if (bv) delete bv;
+				break;
+			default:
+				break;
+		}
+	}
+
+	var::varContainer::varContainer() {
+		ptr = nullptr;
+		type = typeNull;
+	}
+
+	var::varContainer::varContainer(const varContainer& other) {
+		type = other.type;
+		switch (type) {
+			case typeException:
+				e = new genericError(*other.e);
+				break;
+			case typeList:
+				a = new list(*other.a);
+				break;
+			case typeObject:
+				o = new obj(*other.o);
+				break;
+			case typeString:
+				str = new string(*other.str);
+				break;
+			case typeBinary:
+				bv = new binary(*other.bv);
+				break;
+			case typeFunction:
+				fu = other.fu;
+				break;
+			case typeMethod:
+				m = other.m;
+				break;
+			default:
+				ptr = other.ptr;
+				break;
+		}
+	}
+
+	var::varPtr var::autoNull =
+		var::varPtr(nullptr, [](void*) {});
 
 	var::var() : sPtr(autoNull) {}
 
 	var::var(const var& copy) : sPtr(copy.sPtr) {}
 
-	var::var(void* v, types t)
-		: sPtr(make_shared<varContainer>(v, t)) {}
+	var::var(void* v, types t) {
+		auto ptr = new varContainer();
+		ptr->ptr = v;
+		ptr->type = t;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(char* value)
-		: sPtr(make_shared<varContainer>(string(value))) {}
+	var::var(const char* value) {
+		auto ptr = new varContainer();
+		ptr->str = new string(value);
+		ptr->type = typeString;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(const char* value)
-		: sPtr(make_shared<varContainer>(string(value))) {}
+	var::var(string str) {
+		auto ptr = new varContainer();
+		ptr->str = new string(str);
+		ptr->type = typeString;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(string string)
-		: sPtr(make_shared<varContainer>(string)) {}
+	var::var(const binary& bin) {
+		auto ptr = new varContainer();
+		ptr->bv = new binary(bin);
+		ptr->type = typeUInt8;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(int64_t v)
-		: sPtr(make_shared<varContainer>(v, typeInt64)) {}
+	var::var(int64_t v) {
+		auto ptr = new varContainer();
+		ptr->i64 = v;
+		ptr->type = typeInt16;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(int32_t v)
-		: sPtr(make_shared<varContainer>(v, typeInt32)) {}
+	var::var(int32_t v) {
+		auto ptr = new varContainer();
+		ptr->i32 = v;
+		ptr->type = typeInt32;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(int16_t v)
-		: sPtr(make_shared<varContainer>(v, typeInt16)) {}
+	var::var(int16_t v) {
+		auto ptr = new varContainer();
+		ptr->i16 = v;
+		ptr->type = typeInt16;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(int8_t v)
-		: sPtr(make_shared<varContainer>(v, typeInt8)) {}
+	var::var(int8_t v) {
+		auto ptr = new varContainer();
+		ptr->i8 = v;
+		ptr->type = typeInt8;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(uint64_t v)
-		: sPtr(make_shared<varContainer>(v, typeUInt64)) {}
+	var::var(uint64_t v) {
+		auto ptr = new varContainer();
+		ptr->u64 = v;
+		ptr->type = typeUInt64;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(uint32_t v)
-		: sPtr(make_shared<varContainer>(v, typeUInt32)) {}
+	var::var(uint32_t v) {
+		auto ptr = new varContainer();
+		ptr->u32 = v;
+		ptr->type = typeUInt32;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(uint16_t v)
-		: sPtr(make_shared<varContainer>(v, typeUInt16)) {}
+	var::var(uint16_t v) {
+		auto ptr = new varContainer();
+		ptr->u16 = v;
+		ptr->type = typeUInt16;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(uint8_t v)
-		: sPtr(make_shared<varContainer>(v, typeUInt8)) {}
+	var::var(uint8_t v) {
+		auto ptr = new varContainer();
+		ptr->u8 = v;
+		ptr->type = typeUInt8;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(double v)
-		: sPtr(make_shared<varContainer>(v, typeDouble)) {}
+	var::var(double v) {
+		auto ptr = new varContainer();
+		ptr->d = v;
+		ptr->type = typeDouble;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(float v)
-		: sPtr(make_shared<varContainer>(v, typeFloat)) {}
+	var::var(float v) {
+		auto ptr = new varContainer();
+		ptr->f = v;
+		ptr->type = typeFloat;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(array v) : sPtr(make_shared<varContainer>(v)) {}
+	var::var(const list& v) {
+		auto ptr = new varContainer();
+		ptr->a = new list(*(list*)&v);
+		ptr->type = typeList;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(object v) : sPtr(make_shared<varContainer>(v)) {}
+	var::var(const obj& v) {
+		auto ptr = new varContainer();
+		ptr->o = new object(v);
+		ptr->type = typeObject;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(method v) : sPtr(make_shared<varContainer>(v)) {}
+	var::var(method v) {
+		auto ptr = new varContainer();
+		ptr->m = v;
+		ptr->type = typeMethod;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(func v) : sPtr(make_shared<varContainer>(v)) {}
+	var::var(func v) {
+		auto ptr = new varContainer();
+		ptr->fu = v;
+		ptr->type = typeFunction;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(bool v)
-		: sPtr(make_shared<varContainer>(v, typeBool)) {}
+	var::var(bool v) {
+		auto ptr = new varContainer();
+		ptr->b = v;
+		ptr->type = typeBool;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
-	var::var(genericError v)
-		: sPtr(make_shared<varContainer>(v)) {}
+	var::var(const genericError& v) {
+		auto ptr = new varContainer();
+		ptr->e = (genericError*)&v;
+		ptr->type = typeException;
+		sPtr = shared_ptr<varContainer>(ptr);
+	}
 
 	var::~var() {}
 
@@ -181,10 +230,16 @@ namespace gold {
 			switch (rCon->type) {
 				case typeNull:
 					return isEmpty();
-				case typeObject:
-					return rCon->o == getObject();
-				case typeArray:
-					return rCon->a == getArray();
+				case typeObject: {
+					auto o = *rCon->o;
+					auto mob = getObject();
+					return &o.data == &mob.data;
+				}
+				case typeList: {
+					auto arr = *rCon->a;
+					auto mar = getList();
+					return arr.data == mar.data;
+				}
 				case typeString:
 					return *rCon->str == (string) * this;
 				case typeDouble:
@@ -292,31 +347,31 @@ namespace gold {
 		return false;
 	}
 
-	bool var::isObject(object proto) const {
+	bool var::isObject(obj& proto) const {
 		auto container = sPtr.get();
 		if (container && container->type == typeObject) {
-			auto p = container->o;
-			while (p != nullptr) {
-				if (p->data->id == proto.data->id) return true;
-				p = p->getParent();
+			auto p = *container->o;
+			while (p) {
+				if (p == proto) return true;
+				p = p.data->parent;
 			}
 		}
 		return false;
 	}
 
-	bool var::isArray() const {
+	bool var::isList() const {
 		auto container = sPtr.get();
-		if (container && container->type == typeArray) return true;
+		if (container && container->type == typeList) return true;
 		return false;
 	}
 
 	bool var::isEmpty() const {
 		auto container = sPtr.get();
 		if (container) {
-			if (container->type == typeArray)
-				return container->a->getSize() == 0;
+			if (container->type == typeList)
+				return container->a->size() == 0;
 			else if (container->type == typeObject)
-				return container->o->getSize() == 0;
+				return container->o->size() == 0;
 			else if (container->type == typeString)
 				return container->str->length() == 0;
 			else if (container->type == typeFunction)
@@ -370,6 +425,11 @@ namespace gold {
 		return container && container->type == typeMethod;
 	}
 
+	bool var::isBinary() const {
+		auto container = sPtr.get();
+		return container && container->type == typeBinary;
+	}
+
 	string var::getString() const { return (string) * this; }
 
 	int64_t var::getInt64() const { return (int64_t) * this; }
@@ -394,9 +454,31 @@ namespace gold {
 
 	bool var::getBool() const { return (bool)*this; }
 
-	array* var::getArray() const { return (array*)*this; }
+	list var::getList() const {
+		auto container = sPtr.get();
+		if (container && container->type == typeList)
+			return *container->a;
+		return list();
+	}
 
-	object* var::getObject() const { return (object*)*this; }
+	object var::getObject() const {
+		auto container = sPtr.get();
+		if (container && container->type == typeObject)
+			return *container->o;
+		return object();
+	}
+
+	void var::returnList(list& result) const {
+		auto container = sPtr.get();
+		if (container && container->type == typeList)
+			result = *container->a;
+	}
+
+	void var::returnObject(obj& result) const {
+		auto container = sPtr.get();
+		if (container && container->type == typeObject)
+			result = *container->o;
+	}
 
 	method var::getMethod() const { return (method)(*this); }
 
@@ -406,6 +488,34 @@ namespace gold {
 
 	genericError* var::getError() const {
 		return (genericError*)*this;
+	}
+
+	binary var::getBinary() const {
+		auto container = sPtr.get();
+		if (container) {
+			if (container->type == typeBinary)
+				return *container->bv;
+			else if (container->type == typeString) {
+				size_t size = container->str->size();
+				auto result = binary(size);
+				memcpy(result.data(), container->str->data(), size);
+				return result;
+			}
+		}
+		return binary();
+	}
+
+	void var::returnBinary(binary& result) const {
+		auto container = sPtr.get();
+		if (container) {
+			if (container->type == typeBinary)
+				result = *container->bv;
+			else if (container->type == typeString) {
+				size_t size = container->str->size();
+				result = binary(size);
+				memcpy(result.data(), container->str->data(), size);
+			}
+		}
 	}
 
 	var::operator string() const {
@@ -440,16 +550,20 @@ namespace gold {
 					return *container->str;
 				case typeNull:
 					return "null";
-				case typeArray:
+				case typeList:
 					return container->a->getJSON();
 				case typeObject:
 					return container->o->getJSON();
 				case typeFunction:
-					return "0x" + to_string((uint64_t)container->fu);
+					return "0x" + to_string((uint64_t)&container->fu);
 				case typeMethod:
-					return "0x" + to_string((uint64_t)container->m);
+					return "0x" + to_string((uint64_t)&container->m);
 				case typeException:
 					return string(*container->e);
+				case typeBinary:
+					return string(
+						(char*)container->bv->data(),
+						container->bv->size());
 				default:
 					break;
 			}
@@ -460,7 +574,12 @@ namespace gold {
 
 	var::operator const char*() const {
 		auto container = sPtr.get();
-		if (container) return container->str->c_str();
+		if (container) {
+			if (container->type == typeString)
+				return container->str->data();
+			else if (container->type == typeBinary)
+				return (char*)container->bv->data();
+		}
 		return nullptr;
 	}
 
@@ -495,7 +614,7 @@ namespace gold {
 				case typeString:
 					return atol(container->str->c_str());
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -535,7 +654,7 @@ namespace gold {
 					return atoi(container->str->c_str());
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -575,7 +694,7 @@ namespace gold {
 					return (int16_t)atoi(container->str->c_str());
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -615,7 +734,7 @@ namespace gold {
 					return (int8_t)atoi(container->str->c_str());
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -657,7 +776,7 @@ namespace gold {
 					return (uint64_t)strtoul(
 						container->str->c_str(), NULL, 0);
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -698,7 +817,7 @@ namespace gold {
 						container->str->c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -739,7 +858,7 @@ namespace gold {
 						container->str->c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -780,7 +899,7 @@ namespace gold {
 						container->str->c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -821,7 +940,7 @@ namespace gold {
 				case typeString:
 					return stod(container->str->c_str());
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -862,7 +981,7 @@ namespace gold {
 				case typeString:
 					return stof(container->str->c_str());
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -900,6 +1019,8 @@ namespace gold {
 					return (bool)container->f;
 				case typeDouble:
 					return (bool)container->d;
+				case typeBinary:
+					return container->bv->size() > 0;
 				case typeString:
 					if (
 						*container->str == "true" || *container->str == "1")
@@ -909,7 +1030,7 @@ namespace gold {
 						*container->str == "0")
 						return false;
 				case typeNull:
-				case typeArray:
+				case typeList:
 				case typeObject:
 				case typeMethod:
 				default:
@@ -917,20 +1038,6 @@ namespace gold {
 			}
 		}
 		return false;
-	}
-
-	var::operator array*() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeArray)
-			return container->a;
-		return nullptr;
-	}
-
-	var::operator object*() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeObject)
-			return container->o;
-		return nullptr;
 	}
 
 	var::operator void*() const {
@@ -943,14 +1050,14 @@ namespace gold {
 	var::operator method() const {
 		auto container = sPtr.get();
 		if (container && container->type == typeMethod)
-			return *container->m;
+			return container->m;
 		return nullptr;
 	}
 
 	var::operator func() const {
 		auto container = sPtr.get();
 		if (container && container->type == typeFunction)
-			return *container->fu;
+			return container->fu;
 		return nullptr;
 	}
 
@@ -961,27 +1068,30 @@ namespace gold {
 		return nullptr;
 	}
 
-	ostream& operator<<(ostream& os, const var& v){
+	ostream& operator<<(ostream& os, const var& v) {
 		os << string(v);
 		return os;
 	}
 
-	var var::operator()(object& self, varList args) const {
+	var var::operator()(obj self, list args) const {
 		auto func = getMethod();
 		if (func != nullptr) return (self.*func)(args);
 		return var();
 	}
 
-	var var::operator()(object& self) const {
+	var var::operator()(obj self) const {
 		auto func = getMethod();
-		if (func != nullptr) return (self.*func)(varList());
+		if (func != nullptr) {
+			auto empty = list();
+			return (self.*func)(empty);
+		}
 		return var();
 	}
 
-	var var::operator()(varList args) const {
+	var var::operator()(list args) const {
 		auto container = sPtr.get();
 		if (container && container->type == typeFunction)
-			return (*container->fu)(args);
+			return (container->fu)(args);
 		return var();
 	}
 }  // namespace gold

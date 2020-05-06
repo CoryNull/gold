@@ -1,13 +1,11 @@
 #pragma once
 
-#include <vector>
-
-#include "object.hpp"
+#include "types.hpp"
 #include "renderable.hpp"
 
 namespace gold {
 	using namespace std;
-	class mesh : public renderable {
+	struct mesh : public renderable {
 	 protected:
 	 public:
 		mesh();

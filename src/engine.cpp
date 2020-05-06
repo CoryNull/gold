@@ -5,28 +5,31 @@
 
 #include <iostream>
 
-#include "array.hpp"
 #include "component.hpp"
 #include "entity.hpp"
 #include "graphics.hpp"
-#include "var.hpp"
+#include "promise.hpp"
 #include "window.hpp"
 #include "worker.hpp"
 
 namespace gold {
 	using namespace std;
-	object engine::proto = object({
-		{"start", method(&engine::start)},
-		{"destroy", method(&engine::destroy)},
-		{"loadSettings", method(&engine::loadSettings)},
-		{"handleEntity", method(&engine::handleEntity)},
-		{"saveSettings", method(&engine::saveSettings)},
-		{"addElement", method(&engine::addElement)},
-	});
+	object& engine::getPrototype() {
+		static auto proto = object({
+			{"initialize", method(&engine::initialize)},
+			{"start", method(&engine::start)},
+			{"destroy", method(&engine::destroy)},
+			{"loadSettings", method(&engine::loadSettings)},
+			{"handleEntity", method(&engine::handleEntity)},
+			{"saveSettings", method(&engine::saveSettings)},
+			{"addElement", method(&engine::addElement)},
+		});
+		return proto;
+	}
 
-	var engine::destroy(varList) {
-		auto window = getObject("window");
-		if (window != nullptr) (*window)("destroy");
+	var engine::destroy(list) {
+		auto win = getObject<window>("window");
+		if (win) win("destroy");
 		setNull("window");
 		setBool("running", false);
 		SDL_Quit();
@@ -46,13 +49,13 @@ namespace gold {
 		return string(engine::getSettingsDir() + "config.json");
 	}
 
-	var engine::loadSettings(varList) {
+	var engine::loadSettings(list) {
 		auto configPath = getSettingsPath();
 		auto configJSON = object::loadJSON(configPath);
 		object config;
 		if (configJSON.isObject()) {
 			auto o = configJSON.getObject();
-			config = o ? object(*o) : config;
+			config = o ? object(o) : config;
 			cout << "Loading settings: " << configPath << endl;
 			setObject("config", config);
 			return var(config);
@@ -60,85 +63,112 @@ namespace gold {
 		return var(config);
 	}
 
-	var engine::saveSettings(varList) {
+	var engine::saveSettings(list) {
 		auto config = getObject("config");
-		auto win = (window*)getObject("window");
-		auto gfx = (backend*)getObject("graphics");
+		auto win = getObject<window>("window");
+		auto gfx = getObject<backend>("graphics");
 		if (config && win && gfx) {
-			auto windowConfigVar = win->getConfig({});
+			auto windowConfigVar = win.getConfig({});
 			auto windowConfig = windowConfigVar.getObject();
-			if (windowConfig != nullptr) {
-				config->setObject("window", *windowConfig);
+			if (windowConfig) {
+				config.setObject("window", windowConfig);
 			} else if (windowConfigVar.isError())
 				return windowConfigVar;
 
-			auto gfxConfigVar = gfx->getConfig({});
+			auto gfxConfigVar = gfx.getConfig();
 			auto gfxConfig = gfxConfigVar.getObject();
-			if (gfxConfig != nullptr && gfxConfig->getSize() > 0) {
-				config->setObject("graphics", *gfxConfig);
+			if (gfxConfig && gfxConfig.size() > 0) {
+				config.setObject("graphics", gfxConfig);
 			} else if (gfxConfigVar.isError())
 				return gfxConfigVar;
 
 			auto configPath = getSettingsPath();
-			object::saveJSON(configPath, *config);
+			object::saveJSON(configPath, config);
 		}
 		return var();
 	}
 
-	var engine::addElement(varList args) {
+	var engine::addElement(list args) {
 		for (auto it = args.begin(); it != args.end(); ++it) {
-			auto obj = it->getObject();
-			if (obj) (*this) += {*it};
+			auto o = it->getObject();
+			if (o) (*this) += {*it};
 		}
 
 		return var();
 	}
 
-	var engine::handleEntity(varList args) {
-		auto obj = (args[0]).getObject();
-		if (obj) {
-			auto comps = obj->getArray("components");
-			auto objs = obj->getArray("children");
+	var engine::handleEntity(list args) {
+		auto o = object();
+		args[0].returnObject(o);
+		if (o) {
+			auto comps = o.getList("components");
+			auto objs = o.getList("children");
+			auto drawJobs = getList("drawJobs");
+			auto updateJobs = getList("updateJobs");
 			if (comps) {
-				for (auto it = comps->begin(); it != comps->end();
-						 ++it) {
-					auto comp = it->getObject();
+				for (auto it = comps.begin(); it != comps.end(); ++it) {
+					auto comp = object();
+					it->returnObject(comp);
 					if (comp) {
-						if (it->isObject(component::proto))
-							updateWorker.add(
-								comp->getMethod("update"), *comp, varList());
-						if (it->isObject(renderable::proto))
-							drawWorker.add(
-								comp->getMethod("draw"), *comp, varList());
+						if (it->isObject(component::getPrototype())) {
+							auto m = comp.getMethod("update");
+							if (m)
+								updateJobs.pushObject(promise(comp, m, {}));
+						}
+						if (it->isObject(renderable::getPrototype())) {
+							auto m = comp.getMethod("draw");
+							if (m) drawJobs.pushObject(promise(comp, m, {0}));
+						}
 					}
 				}
 			}
 			if (objs)
-				for (auto it = objs->begin(); it != objs->end(); ++it)
+				for (auto it = objs.begin(); it != objs.end(); ++it)
 					handleEntity({*it});
 		}
 		return var();
 	}
 
-	var engine::start(varList) {
+	var engine::initialize(list) {
 		SDL_SetMainReady();
 		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
 			cout << "[SDL2]" << SDL_GetError() << endl;
 			return genericError(SDL_GetError());
 		}
+		setList("entites", list({}));
+		setList("updateJobs", list({}));
+		setList("drawJobs", list({}));
 
 		auto configVar = loadSettings({});
-		auto config = *configVar.getObject();
+		auto config = configVar.getObject();
 		auto gameName = getString("gameName");
 
 		auto windowConfig = config.getObject("window");
 		auto backendConfig = config.getObject("graphics");
 		auto win = create<window>("window", windowConfig);
 		win.setTitle({gameName});
+		win.create();
 		auto gfx = create<backend>("graphics", backendConfig);
-		gfx.initialize({win});
+		return gfx.initialize({win});
+	}
 
-		auto entites = getArray("entites");
+	void awaitList(list& promises) {
+		for (auto it = promises.begin(); it != promises.end();
+				 ++it) {
+			auto job = it->getObject<promise>();
+			job.await();
+		}
+		promises.resize(0);
+	}
+
+	var engine::start(list) {
+		auto win = getObject<window>("window");
+		auto gfx = getObject<backend>("graphics");
+		gfx.setObject("window", win);
+
+		auto entites = getList("entites");
+		auto drawJobs = getList("drawJobs");
+		auto updateJobs = getList("updateJobs");
 
 		setBool("running", true);
 		SDL_Event e;
@@ -149,48 +179,49 @@ namespace gold {
 			}
 			gfx.preFrame();
 			if (entites)
-				for (auto it = entites->begin(); it != entites->end();
+				for (auto it = entites.begin(); it != entites.end();
 						 ++it)
 					handleEntity({(*it)});
-			updateWorker.wait();
-			drawWorker.wait();
+			awaitList(updateJobs);
+			awaitList(drawJobs);
 			gfx.renderFrame();
 		}
 		saveSettings();
-		updateWorker.wait();
-		drawWorker.wait();
-		updateWorker.killAll();
-		drawWorker.killAll();
+		awaitList(updateJobs);
+		awaitList(drawJobs);
+		promise::joinThreads();
 		gfx.destroy();
 		destroy();
 		return var();
 	}
 
-	engine::engine(string company, string gameName)
-		: object(&proto), updateWorker(), drawWorker() {
-		setArray("entites", array());
+	engine::engine(string company, string gameName) : obj() {
+		setParent(getPrototype());
+		auto arr = list();
+		setList("entites", arr);
 		setString("company", company);
 		setString("gameName", gameName);
+		initialize();
 	}
 
 	set<string> engine::allowedConfigNames() {
 		return {"window", "graphics"};
 	}
 
-	engine& engine::operator+=(varList list) {
-		auto a = getArray("entites");
-		if (a == nullptr) return *this;
-		for (auto it = list.begin(); it != list.end(); ++it) {
-			if (it->isObject(entity::proto)) (*a) += {*it};
+	engine& engine::operator+=(list items) {
+		auto a = getList("entites");
+		if (!a) return *this;
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			if (it->isObject(entity::getPrototype())) a += {*it};
 		}
 		return *this;
 	}
 
-	engine& engine::operator-=(varList list) {
-		auto a = getArray("entites");
-		if (a == nullptr) return *this;
-		for (auto it = list.begin(); it != list.end(); ++it) {
-			if (it->isObject(entity::proto)) (*a) -= {*it};
+	engine& engine::operator-=(list items) {
+		auto a = getList("entites");
+		if (!a) return *this;
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			if (it->isObject(entity::getPrototype())) a -= {*it};
 		}
 		return *this;
 	}

@@ -1,24 +1,24 @@
 #pragma once
 
-#include "object.hpp"
+#include "types.hpp"
 
 namespace gold {
-	class window : public object {
+	struct window : public object {
 	 protected:
-		static object proto;
+		static object& getPrototype();
 
 	 public:
 		window();
 		window(object config);
 
-		var setSize(varList args);
-		var setPos(varList args);
-		var setTitle(varList args);
-		var setFullscreen(varList args);
-		var setBorderless(varList args);
-		var create(varList args = {});
-		var destroy(varList args = {});
-		var handleEvent(varList args);
-		var getConfig(varList args = {});
+		var setSize(list args);
+		var setPos(list args);
+		var setTitle(list args);
+		var setFullscreen(list args);
+		var setBorderless(list args);
+		var create(list args = {});
+		var destroy(list args = {});
+		var handleEvent(list args);
+		var getConfig(list args = {});
 	};
 }  // namespace gold
