@@ -64,7 +64,10 @@ namespace gold {
 				new arrData{avec(arr.data->items), mutex()});
 	}
 
-	list::~list() {}
+	list::~list() {
+		if (data && data.use_count() == 1) data->items.clear();
+		data = nullptr;
+	}
 
 	uint64_t list::size() {
 		if (!data) return 0;

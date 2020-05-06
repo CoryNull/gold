@@ -15,6 +15,7 @@ namespace gold {
 		promise(const promise& copy);
 		promise(object self, method m, list args);
 		promise(object self, func f, list args);
+		~promise();
 
 		var addArgs(list args);
 		var call(list args = {});

@@ -49,13 +49,11 @@ namespace gold {
 				var toSet = var();
 				switch (value.type()) {
 					case value_t::object: {
-						auto obj = object(value);
-						toSet = var(obj);
+						toSet = object(value);
 						break;
 					}
 					case value_t::array: {
-						auto arr = list(value);
-						toSet = var(arr);
+						toSet = list(value);
 						break;
 					}
 					case value_t::string:
@@ -96,6 +94,14 @@ namespace gold {
 	}
 
 	object::object() : data(nullptr) {}
+
+	object::~object() {
+		if (data && data.use_count() == 1) {
+			data->items.clear();
+			data->parent = object();
+		}
+		data = nullptr;
+	}
 
 	object::omap::iterator object::begin() {
 		unique_lock<mutex> gaurd(data->omutex);
@@ -227,6 +233,12 @@ namespace gold {
 				data->items[it->first] = var(it->second);
 			findParent();
 		}
+	}
+
+	void object::empty() {
+		auto end = data->items.end();
+		for (auto it = data->items.begin(); it != end; ++it)
+			data->items.erase(it);
 	}
 
 	void object::setParent(object other) {

@@ -71,27 +71,7 @@ namespace gold {
 	 protected:
 		struct varContainer {
 		 public:
-			union {
-				void* ptr;
-				string* str;
-				list* a;
-				object* o;
-				double d;
-				float f;
-				int64_t i64;
-				int32_t i32;
-				int16_t i16;
-				int8_t i8;
-				uint64_t u64;
-				uint32_t u32;
-				uint16_t u16;
-				uint8_t u8;
-				bool b;
-				binary* bv;
-				method m;
-				func fu;
-				genericError* e;
-			};
+			void* data;
 			types type;
 			~varContainer();
 
@@ -175,12 +155,12 @@ namespace gold {
 		void returnObject(OT& result) const {
 			auto container = sPtr.get();
 			if (container && container->type == typeObject)
-				result = reinterpret_cast<OT&>(*container->o);
+				result = *reinterpret_cast<OT*>(container->data);
 		}
 		template <typename OT = object> OT getObject() const {
 			auto container = sPtr.get();
 			if (container && container->type == typeObject)
-				return reinterpret_cast<OT&>(*container->o);
+				return *reinterpret_cast<OT*>(container->data);
 			return OT();
 		}
 
@@ -353,6 +333,7 @@ namespace gold {
 		object(json value);
 		object(var value);
 		object();
+		~object();
 
 		omap::iterator begin();
 		omap::iterator end();
@@ -362,6 +343,7 @@ namespace gold {
 		var callMethod(string name);
 		var callMethod(string name, list args);
 		void copy(object& other);
+		void empty();
 		void setParent(object other);
 		object getParent();
 

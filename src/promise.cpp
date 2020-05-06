@@ -72,6 +72,7 @@ namespace gold {
 			while (shouldContinue()) {
 				try {
 					if (getPromise(job)) job.call();
+					job = promise();
 					usleep(threadSleep);
 				} catch (exception e) {
 					printError(e.what());
@@ -103,7 +104,7 @@ namespace gold {
 		shouldQuitMutex.unlock();
 	}
 
-	promise::promise() {}
+	promise::promise() : object() {}
 
 	promise::promise(const promise& copy) : object(copy) {
 		setParent(getPrototype());
@@ -115,7 +116,7 @@ namespace gold {
 		setObject("self", self);
 		setMethod("method", m);
 		setList("args", args);
-		pushPromise(*this);
+		if (!singleThread()) pushPromise(*this);
 	}
 
 	promise::promise(object self, func f, list args) : object() {
@@ -123,7 +124,14 @@ namespace gold {
 		setObject("self", self);
 		setFunc("func", f);
 		setList("args", args);
-		pushPromise(*this);
+		if (!singleThread()) pushPromise(*this);
+	}
+
+	promise::~promise() {
+		if (data && data.use_count() == 1) {
+			empty();
+		}
+		data = nullptr;
 	}
 
 	var promise::addArgs(list args) {

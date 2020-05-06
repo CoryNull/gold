@@ -129,7 +129,7 @@ namespace gold {
 		init.vendorId = BGFX_PCI_ID_NONE;
 		init.resolution.width = win.getUInt32("width");
 		init.resolution.height = win.getUInt32("height");
-		//init.allocator = new bx::DefaultAllocator();
+		init.allocator = new bx::DefaultAllocator();
 		init.resolution.reset =
 			(vSync ? BGFX_RESET_VSYNC : 0) |
 			(maxAni ? BGFX_RESET_MAXANISOTROPY : 0);
