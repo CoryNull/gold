@@ -14,8 +14,8 @@ namespace gold {
 		transform(object config);
 
 		// Low level
-		void getMatrix(float* results);
-		void getWorldMatrix(float* results);
+		var getMatrix();
+		var getWorldMatrix();
 		btVector3 getBtPosition();
 		btQuaternion getBtRotation();
 		btTransform getBtTransform();

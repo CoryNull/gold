@@ -92,42 +92,27 @@ namespace gold {
 
 	var transform::getScale(list) { return getVar("scl"); }
 
-	void transform::getMatrix(float* results) {
+	var transform::getMatrix() {
 		if (
-			getBool("rebuild", false) && getType("mtx") == typeList) {
-			auto cMtx = getVar("mtx");
-			for (auto i = 0; i < 16; ++i)
-				results[i] = cMtx.getFloat(i);
-			return;
+			getBool("rebuild", false) && getType("mtx") != typeNull) {
+			return getVar("mtx");
 		}
 
 		auto pos = getVar("pos");
 		auto rot = getVar("rot");
 		auto scl = getVar("scl");
 
-		auto fRot =
-			bx::Quaternion({rot.getFloat(0), rot.getFloat(1),
-											rot.getFloat(2), rot.getFloat(3)});
-		bx::mtxIdentity(results);
-		bx::mtxScale(
-			results,
-			scl.getFloat(0),
-			scl.getFloat(1),
-			scl.getFloat(2));
-		bx::mtxQuat(results, fRot);
-		bx::mtxTranslate(
-			results,
-			pos.getFloat(0),
-			pos.getFloat(1),
-			pos.getFloat(2));
+		auto results = mat4x4f({});
+		results = results * scl;
+		results = results * rot;
+		results = results + pos;
 
-		auto cMtx = mat4x4f({});
-		for (auto i = 0; i < 16; ++i) cMtx.setFloat(i, results[i]);
-		setVar("mtx", cMtx);
+		setVar("mtx", results);
 		erase("rebuild");
+		return results;
 	}
 
-	void transform::getWorldMatrix(float* results) {
+	var transform::getWorldMatrix() {
 		auto parentObj = entity();
 		returnObject<entity>("object", parentObj);
 		auto parentChain = list();
@@ -135,7 +120,7 @@ namespace gold {
 			parentChain.pushObject(parentObj);
 			parentObj = parentObj.getObject<entity>("parent");
 		}
-		bx::mtxIdentity(results);
+		auto results = mat4x4f({});
 		for (auto it = parentChain.rbegin();
 				 it != parentChain.rend();
 				 ++it) {
@@ -144,20 +129,18 @@ namespace gold {
 			auto parentTrans = comps.find(transform::getPrototype());
 			if (parentTrans != comps.end()) {
 				auto trans = parentTrans->getObject<transform>();
-				auto mtx = mat4x4f({});
-				trans.getMatrix((float*)mtx.getPtr());
-				bx::mtxMul(results, results, (float*)mtx.getPtr());
+				auto mtx = trans.getMatrix();
+				results = results * mtx;
 			}
 		}
+		return results;
 	}
 
 	var transform::reset(list) {
 		setVar("pos", vec3f(0, 0, 0));
 		setVar("rot", quatf(0, 0, 0, 1));
 		setVar("scl", vec3f(1, 1, 1));
-		auto mtx = mat4x4f({});
-		bx::mtxIdentity((float*)mtx.getPtr());
-		setVar("mtx", mtx);
+		setVar("mtx", mat4x4f({}));
 		erase("rebuild");
 		return var();
 	}

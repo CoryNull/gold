@@ -807,6 +807,31 @@ namespace gold {
 							getDouble(8) + b.getDouble(8),
 						});
 				case typeMat4x4Float:
+					if (b.isVec3()) {
+						auto x = mat4x4f({
+							getFloat(0),
+							getFloat(1),
+							getFloat(2),
+							getFloat(3),
+							getFloat(4),
+							getFloat(5),
+							getFloat(5),
+							getFloat(6),
+							getFloat(7),
+							getFloat(8),
+							getFloat(9),
+							getFloat(10),
+							getFloat(11),
+							getFloat(15),
+							getFloat(16),
+						});
+						bx::mtxTranslate(
+							(float*)x.getPtr(),
+							b.getFloat(0),
+							b.getFloat(1),
+							b.getFloat(2));
+						return x;
+					}
 					return var(
 						typeMat4x4Float,
 						{
@@ -828,6 +853,31 @@ namespace gold {
 							getFloat(15) + b.getFloat(15),
 						});
 				case typeMat4x4Double:
+					if (b.isVec3()) {
+						auto x = mat4x4f({
+							getFloat(0),
+							getFloat(1),
+							getFloat(2),
+							getFloat(3),
+							getFloat(4),
+							getFloat(5),
+							getFloat(5),
+							getFloat(6),
+							getFloat(7),
+							getFloat(8),
+							getFloat(9),
+							getFloat(10),
+							getFloat(11),
+							getFloat(15),
+							getFloat(16),
+						});
+						bx::mtxTranslate(
+							(float*)x.getPtr(),
+							b.getFloat(0),
+							b.getFloat(1),
+							b.getFloat(2));
+						return x;
+					}
 					return var(
 						typeMat4x4Double,
 						{
@@ -1309,6 +1359,23 @@ namespace gold {
 						 getUInt8(3) * b.getUInt8(3)});
 
 				case typeQuatFloat:
+					if (b.isVec3()) {
+						auto x = bx::Vec3(
+							b.getFloat(0), b.getFloat(1), b.getFloat(2));
+						auto res = bx::mul(
+							x,
+							bx::Quaternion{getFloat(0), getFloat(1),
+														 getFloat(2), getFloat(3)});
+						return var(typeVec3Float, {res.x, res.y, res.z});
+					} else if (b.isQuat()) {
+						auto res = bx::mul(
+							bx::Quaternion{b.getFloat(0), b.getFloat(1),
+														 b.getFloat(2), b.getFloat(3)},
+							bx::Quaternion{getFloat(0), getFloat(1),
+														 getFloat(2), getFloat(3)});
+						return var(
+							typeQuatFloat, {res.x, res.y, res.z, res.w});
+					}
 					return var(
 						typeQuatFloat,
 						{
@@ -1318,6 +1385,25 @@ namespace gold {
 							getFloat(3) * b.getFloat(3),
 						});
 				case typeQuatDouble:
+					if (b.isVec3()) {
+						// TODO: BX doesn't have a double function
+						auto x = bx::Vec3(
+							b.getDouble(0), b.getDouble(1), b.getDouble(2));
+						auto res = bx::mul(
+							x,
+							bx::Quaternion{getFloat(0), getFloat(1),
+														 getFloat(2), getFloat(3)});
+						return var(typeVec3Double, {res.x, res.y, res.z});
+					} else if (b.isQuat()) {
+						// TODO: BX doesn't have a double function
+						auto res = bx::mul(
+							bx::Quaternion{b.getFloat(0), b.getFloat(1),
+														 b.getFloat(2), b.getFloat(3)},
+							bx::Quaternion{getFloat(0), getFloat(1),
+														 getFloat(2), getFloat(3)});
+						return var(
+							typeQuatDouble, {res.x, res.y, res.z, res.w});
+					}
 					return var(
 						typeQuatDouble,
 						{
@@ -1327,6 +1413,7 @@ namespace gold {
 							getDouble(3) * b.getDouble(3),
 						});
 				case typeMat3x3Float:
+					// TODO: Actually do math...
 					return var(
 						typeMat3x3Float,
 						{
@@ -1341,6 +1428,7 @@ namespace gold {
 							getFloat(8) * b.getFloat(8),
 						});
 				case typeMat3x3Double:
+					// TODO: Actually do math...
 					return var(
 						typeMat3x3Float,
 						{
@@ -1355,47 +1443,69 @@ namespace gold {
 							getDouble(8) * b.getDouble(8),
 						});
 				case typeMat4x4Float:
-					return var(
-						typeMat4x4Float,
-						{
-							getFloat(0) * b.getFloat(0),
-							getFloat(1) * b.getFloat(1),
-							getFloat(2) * b.getFloat(2),
-							getFloat(3) * b.getFloat(3),
-							getFloat(4) * b.getFloat(4),
-							getFloat(5) * b.getFloat(5),
-							getFloat(6) * b.getFloat(6),
-							getFloat(7) * b.getFloat(7),
-							getFloat(8) * b.getFloat(8),
-							getFloat(9) * b.getFloat(9),
-							getFloat(10) * b.getFloat(10),
-							getFloat(11) * b.getFloat(11),
-							getFloat(12) * b.getFloat(12),
-							getFloat(13) * b.getFloat(13),
-							getFloat(14) * b.getFloat(14),
-							getFloat(15) * b.getFloat(15),
-						});
+					if (b.isVec3()) {
+						auto x =
+							mat4x4f({getFloat(0), getFloat(1), getFloat(2),
+											 getFloat(3), getFloat(4), getFloat(5),
+											 getFloat(5), getFloat(6), getFloat(7),
+											 getFloat(8), getFloat(9), getFloat(10),
+											 getFloat(11), getFloat(15)});
+						bx::mtxScale(
+							(float*)x.getPtr(),
+							b.getFloat(0),
+							b.getFloat(1),
+							b.getFloat(2));
+						return x;
+					} else if (b.isVec4()) {
+						auto x = vec4f(0, 0, 0, 0);
+						float y[4] = {b.getFloat(0), b.getFloat(1),
+													b.getFloat(2), b.getFloat(3)};
+						bx::vec4MulMtx(
+							(float*)x.getPtr(), y, (float*)getPtr());
+						return x;
+					} else if (b.isMat4x4()) {
+						auto x = mat4x4f({});
+						bx::mtxMul(
+							(float*)x.getPtr(),
+							(float*)getPtr(),
+							(float*)b.getPtr());
+						return x;
+					} else if (b.isQuat()) {
+						auto x =
+							mat4x4f({getFloat(0), getFloat(1), getFloat(2),
+											 getFloat(3), getFloat(4), getFloat(5),
+											 getFloat(5), getFloat(6), getFloat(7),
+											 getFloat(8), getFloat(9), getFloat(10),
+											 getFloat(11), getFloat(15)});
+						bx::mtxQuat(
+							(float*)x.getPtr(),
+							bx::Quaternion({b.getFloat(0), b.getFloat(1),
+															b.getFloat(2), b.getFloat(3)}));
+						return x;
+					}
 				case typeMat4x4Double:
-					return var(
-						typeMat4x4Double,
-						{
-							getDouble(0) * b.getDouble(0),
-							getDouble(1) * b.getDouble(1),
-							getDouble(2) * b.getDouble(2),
-							getDouble(3) * b.getDouble(3),
-							getDouble(4) * b.getDouble(4),
-							getDouble(5) * b.getDouble(5),
-							getDouble(6) * b.getDouble(6),
-							getDouble(7) * b.getDouble(7),
-							getDouble(8) * b.getDouble(8),
-							getDouble(9) * b.getDouble(9),
-							getDouble(10) * b.getDouble(10),
-							getDouble(11) * b.getDouble(11),
-							getDouble(12) * b.getDouble(12),
-							getDouble(13) * b.getDouble(13),
-							getDouble(14) * b.getDouble(14),
-							getDouble(15) * b.getDouble(15),
-						});
+					if (b.isVec4()) {
+						// TODO: BX doesn't have a double function
+						auto x = vec4f(0, 0, 0, 0);
+						float y[4] = {b.getFloat(0), b.getFloat(1),
+													b.getFloat(2), b.getFloat(3)};
+						float mtx[16] = {
+							getFloat(0),  getFloat(1), getFloat(2),
+							getFloat(3),  getFloat(4), getFloat(5),
+							getFloat(5),  getFloat(6), getFloat(7),
+							getFloat(8),  getFloat(9), getFloat(10),
+							getFloat(11), getFloat(15)};
+						bx::vec4MulMtx((float*)x.getPtr(), y, mtx);
+						return x;
+					} else if (b.isMat4x4()) {
+						// TODO: BX doesn't have a double function
+						auto x = mat4x4f({});
+						bx::mtxMul(
+							(float*)x.getPtr(),
+							(float*)getPtr(),
+							(float*)b.getPtr());
+						return x;
+					}
 
 				default:
 					break;
@@ -4136,5 +4246,28 @@ namespace gold {
 					0., 0., 0., 1.,  // Row 3
 				});
 		return var(typeMat4x4Double, list);
+	}
+
+	var lookAt(var eye, var at) {
+		auto x = mat4x4f({});
+		bx::mtxLookAt(
+			(float*)x.getPtr(),
+			bx::Vec3(
+				eye.getFloat(0), eye.getFloat(1), eye.getFloat(2)),
+			bx::Vec3(at.getFloat(0), at.getFloat(1), at.getFloat(2)));
+		return x;
+	}
+
+	var projection(
+		var fov, var ratio, var near, var far, var homo) {
+		auto x = mat4x4f({});
+		bx::mtxProj(
+			(float*)x.getPtr(),
+			fov.getFloat(),
+			ratio.getFloat(),
+			near.getFloat(),
+			far.getFloat(),
+			homo.getBool());
+		return x;
 	}
 }  // namespace gold

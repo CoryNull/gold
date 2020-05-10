@@ -596,4 +596,7 @@ namespace gold {
 	var mat4x4f(initializer_list<float> list);
 	var mat4x4d(initializer_list<double> list);
 
+	var lookAt(var eye, var at);
+	var projection(var fov, var ratio, var near, var far, var homo);
+
 }  // namespace gold

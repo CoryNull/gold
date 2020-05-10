@@ -192,13 +192,12 @@ namespace gold {
 			return genericError("Invalid vertex buffer handle");
 		if (!isValid(ibh))
 			return genericError("Invalid index buffer handle");
-		float mtx[16];
 
 		auto parentObject = getObject<entity>("object");
 		auto parentTrans = parentObject.getTransform();
-		parentTrans.getWorldMatrix(mtx);
+		auto mtx = parentTrans.getWorldMatrix();
 
-		setTransform(mtx);
+		setTransform(mtx.getPtr());
 		setVertexBuffer(0, vbh);
 		tex.bind({0, texColor.idx});
 		setIndexBuffer(ibh);

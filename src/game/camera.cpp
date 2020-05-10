@@ -82,23 +82,16 @@ namespace gold {
 	}
 
 	var camera::setViewTransform(list) {
-		float mtx[16];
 		auto parentTrans = getTransform();
-		parentTrans.getWorldMatrix(mtx);
+		auto mtx = parentTrans.getWorldMatrix();
 
-		float at[4];
-		float eye[4];
-		float zero[4] = {0, 0, 0, 1};
-		float forward[4] = {0, 0, 1, 1};
-		bx::vec4MulMtx(at, forward, mtx);
-		bx::vec4MulMtx(eye, zero, mtx);
+		auto zero = vec4f(0, 0, 0, 1);
+		auto forward = vec4f(0, 0, 1, 1);
+		auto at = mtx * forward;
+		auto eye = mtx * zero;
 
-		float view[16];
-		bx::mtxLookAt(
-			view, bx::Vec3(eye[0], eye[1], eye[2]),
-			bx::Vec3(at[0], at[1], at[2]));
+		auto view = lookAt(eye, at);
 
-		float proj[16];
 		auto fov = getFloat("fov");
 		auto near = getFloat("near");
 		auto far = getFloat("far");
@@ -108,8 +101,9 @@ namespace gold {
 		auto ratio = width / height;
 		auto homo = bgfx::getCaps()->homogeneousDepth;
 		auto viewId = getUInt16("view");
-		bx::mtxProj(proj, fov, ratio, near, far, homo);
-		bgfx::setViewTransform(viewId, view, proj);
+		auto proj = projection(fov, ratio, near, far, homo);
+		bgfx::setViewTransform(
+			viewId, view.getPtr(), proj.getPtr());
 		return var();
 	}
 
