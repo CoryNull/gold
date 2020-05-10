@@ -30,35 +30,30 @@ namespace gold {
 	}
 
 	bool shouldContinue() {
-		shouldQuitMutex.lock();
+		unique_lock<mutex> gaurd(shouldQuitMutex);
 		auto keepWorking = !shouldQuit;
-		shouldQuitMutex.unlock();
 		return keepWorking;
 	}
 
 	bool getPromise(promise& job) {
-		promisesMutex.lock();
-		auto back = promises.rbegin();
-		if (back != promises.rend()) {
-			job = *back;
-			promises.pop_back();
-			promisesMutex.unlock();
+		unique_lock<mutex> gaurd(promisesMutex);
+		auto it = promises.begin();
+		if (it != promises.end()) {
+			job = *it;
+			promises.erase(it);
 			return true;
 		}
-		promisesMutex.unlock();
 		return false;
 	}
 
 	void pushPromise(promise& job) {
-		promisesMutex.lock();
+		unique_lock<mutex> gaurd(promisesMutex);
 		promises.push_back(job);
-		promisesMutex.unlock();
 	}
 
 	void printError(string msg) {
-		printMutex.lock();
+		unique_lock<mutex> gaurd(printMutex);
 		cerr << msg << endl;
-		printMutex.unlock();
 	}
 
 	bool singleThread() {
@@ -148,17 +143,22 @@ namespace gold {
 		if (getType("method") == typeMethod) {
 			auto m = getMethod("method");
 			resp = (obj.*m)(args);
-			setInt8("status", 1);
+			erase("method");
+			erase("self");
+			erase("args");
 		} else if (getType("func") == typeFunction) {
 			auto f = getFunc("func");
 			auto apArgs = list({obj});
 			apArgs += args;  // obj, args...
 			resp = (f)(apArgs);
-			setInt8("status", 1);
+			erase("func");
+			erase("self");
+			erase("args");
 		} else {
 			setInt8("status", -1);
 		}
 		setVar("response", resp);
+		setInt8("status", 1);
 		return resp;
 	}
 

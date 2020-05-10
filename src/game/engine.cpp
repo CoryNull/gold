@@ -5,12 +5,13 @@
 
 #include <iostream>
 
+#include "camera.hpp"
 #include "component.hpp"
 #include "entity.hpp"
 #include "graphics.hpp"
 #include "promise.hpp"
 #include "window.hpp"
-#include "worker.hpp"
+#include "world.hpp"
 
 namespace gold {
 	using namespace std;
@@ -22,9 +23,21 @@ namespace gold {
 			{"loadSettings", method(&engine::loadSettings)},
 			{"handleEntity", method(&engine::handleEntity)},
 			{"saveSettings", method(&engine::saveSettings)},
-			{"addElement", method(&engine::addElement)},
 		});
 		return proto;
+	}
+
+	void engine::registerComponent(component& comp) {
+		auto callbacks = getList("registerCallbacks");
+		for (auto it = callbacks.begin(); it != callbacks.end();
+				 ++it) {
+			auto pair = it->getList();
+			auto proto = pair.getObject<component>(0);
+			if (comp.getParent() == proto) {
+				auto fu = pair.getFunction(1);
+				fu({comp});
+			}
+		}
 	}
 
 	var engine::destroy(list) {
@@ -88,36 +101,37 @@ namespace gold {
 		return var();
 	}
 
-	var engine::addElement(list args) {
-		for (auto it = args.begin(); it != args.end(); ++it) {
-			auto o = it->getObject();
-			if (o) (*this) += {*it};
+	var engine::getPrimaryCamera(list args) {
+		auto cameras = getList("cameras");
+		for (auto it = cameras.begin(); it != cameras.end(); ++it) {
+			auto cam = it->getObject<camera>();
+			if (cam && cam.getUInt16("view") == 0) return *it;
 		}
-
 		return var();
 	}
 
 	var engine::handleEntity(list args) {
-		auto o = object();
-		args[0].returnObject(o);
+		auto o = args[0].getObject();
 		if (o) {
 			auto comps = o.getList("components");
 			auto objs = o.getList("children");
-			auto drawJobs = getList("drawJobs");
-			auto updateJobs = getList("updateJobs");
 			if (comps) {
 				for (auto it = comps.begin(); it != comps.end(); ++it) {
-					auto comp = object();
-					it->returnObject(comp);
+					auto comp = it->getObject();
 					if (comp) {
 						if (it->isObject(component::getPrototype())) {
 							auto m = comp.getMethod("update");
-							if (m)
-								updateJobs.pushObject(promise(comp, m, {}));
+							if (m) (comp.*m)({});
 						}
 						if (it->isObject(renderable::getPrototype())) {
 							auto m = comp.getMethod("draw");
-							if (m) drawJobs.pushObject(promise(comp, m, {0}));
+							if (m) {
+								auto views = comp.getList("view");
+								for (auto vit = views.begin();
+										 vit != views.end();
+										 ++vit)
+									(comp.*m)({vit->getUInt16()});
+							}
 						}
 					}
 				}
@@ -136,8 +150,6 @@ namespace gold {
 			return genericError(SDL_GetError());
 		}
 		setList("entites", list({}));
-		setList("updateJobs", list({}));
-		setList("drawJobs", list({}));
 
 		auto configVar = loadSettings({});
 		auto config = configVar.getObject();
@@ -149,7 +161,22 @@ namespace gold {
 		win.setTitle({gameName});
 		win.create();
 		auto gfx = create<backend>("graphics", backendConfig);
-		return gfx.initialize({win});
+		gfx.initialize({win});
+		auto phys = create<world>("world", object{});
+		phys.initialize({*this});
+
+		auto w = win.getUInt32("width");
+		auto h = win.getUInt32("height");
+
+		setList(
+			"cameras",
+			list({
+				camera({
+					{"size", vec2f(w, h)},
+				}),
+			}));
+
+		return var();
 	}
 
 	void awaitList(list& promises) {
@@ -167,8 +194,7 @@ namespace gold {
 		gfx.setObject("window", win);
 
 		auto entites = getList("entites");
-		auto drawJobs = getList("drawJobs");
-		auto updateJobs = getList("updateJobs");
+		auto cameras = getList("cameras");
 
 		setBool("running", true);
 		SDL_Event e;
@@ -178,27 +204,40 @@ namespace gold {
 				win.handleEvent({var((void*)&e)});
 			}
 			gfx.preFrame();
-			if (entites)
-				for (auto it = entites.begin(); it != entites.end();
-						 ++it)
-					handleEntity({(*it)});
-			awaitList(updateJobs);
-			awaitList(drawJobs);
+			for (auto it = cameras.begin(); it != cameras.end();
+					 ++it) {
+				auto c = it->getObject<camera>();
+				c.setView();
+			}
+			for (auto it = entites.begin(); it != entites.end(); ++it)
+				handleEntity({(*it)});
 			gfx.renderFrame();
 		}
 		saveSettings();
-		awaitList(updateJobs);
-		awaitList(drawJobs);
-		promise::joinThreads();
 		gfx.destroy();
 		destroy();
 		return var();
 	}
 
+	var engine::addRegisterCompnentCallback(list args) {
+		auto callbacks = getList("registerCallbacks");
+		auto obit = args.find(typeObject);
+		auto comp = component();
+		if (obit != args.end()) comp = obit->getObject<component>();
+		auto fuit = args.find(typeFunction);
+		func fu;
+		if (fuit != args.end()) fu = fuit->getFunction();
+		callbacks.pushList(list{comp, fu});
+		return var();
+	}
+
+	engine::engine() : obj() {}
+
 	engine::engine(string company, string gameName) : obj() {
 		setParent(getPrototype());
-		auto arr = list();
-		setList("entites", arr);
+		setList("entites", list());
+		setList("cameras", list());
+		setList("registerCallbacks", list());
 		setString("company", company);
 		setString("gameName", gameName);
 		initialize();
@@ -210,18 +249,43 @@ namespace gold {
 
 	engine& engine::operator+=(list items) {
 		auto a = getList("entites");
+		auto c = getList("cameras");
 		if (!a) return *this;
+		function<void(entity&)> forEntity = [&](entity& ent) {
+			auto children = ent.getList("children");
+			for (auto cit = children.begin(); cit != children.end();
+					 ++cit) {
+				auto child = cit->getObject<entity>();
+				forEntity(child);
+			}
+			auto comps = ent.getList("components");
+			for (auto cit = comps.begin(); cit != comps.end();
+					 ++cit) {
+				auto comp = cit->getObject<component>();
+				if (comp) registerComponent(comp);
+			}
+		};
 		for (auto it = items.begin(); it != items.end(); ++it) {
-			if (it->isObject(entity::getPrototype())) a += {*it};
+			if (it->isObject(camera::getPrototype()))
+				c += {*it};
+			else if (it->isObject(entity::getPrototype())) {
+				a += {*it};
+				auto ent = it->getObject<entity>();
+				forEntity(ent);
+			}
 		}
 		return *this;
 	}
 
 	engine& engine::operator-=(list items) {
 		auto a = getList("entites");
+		auto c = getList("cameras");
 		if (!a) return *this;
 		for (auto it = items.begin(); it != items.end(); ++it) {
-			if (it->isObject(entity::getPrototype())) a -= {*it};
+			if (it->isObject(camera::getPrototype()))
+				c -= {*it};
+			else if (it->isObject(entity::getPrototype()))
+				a -= {*it};
 		}
 		return *this;
 	}

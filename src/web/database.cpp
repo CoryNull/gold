@@ -22,9 +22,160 @@ namespace gold {
 	list listFromBSON(bson_t* b);
 	obj objectFromBSON(bson_t* b);
 
+	void objectConvertBSON(obj& o, bson_t* b);
+	void listConvertBSON(list& l, bson_t* b) {
+		for (uint64_t i = 0; i < l.size(); ++i) {
+			auto item = l[i];
+			auto key = to_string(i);
+			switch (item.getType()) {
+				case typeNull:
+					bson_append_null(b, key.data(), key.size());
+					break;
+				case typeList: {
+					bson_t a;
+					bson_init(&a);
+					auto l = item.getList();
+					listConvertBSON(l, &a);
+					bson_append_array(b, key.data(), key.size(), &a);
+					break;
+				}
+				case typeObject: {
+					bson_t a;
+					bson_init(&a);
+					auto o = item.getObject();
+					objectConvertBSON(o, &a);
+					bson_append_document(b, key.data(), key.size(), &a);
+					break;
+				}
+				case typeString: {
+					auto str = item.getString();
+					bson_append_utf8(
+						b, key.data(), key.size(), str.data(), str.size());
+					break;
+				}
+				case typeBinary: {
+					auto bin = item.getBinary();
+					bson_append_binary(
+						b,
+						key.data(),
+						key.size(),
+						bson_subtype_t::BSON_SUBTYPE_BINARY,
+						bin.data(),
+						bin.size());
+					break;
+				}
+				case typeUInt64:
+				case typeInt64: {
+					bson_append_int64(
+						b, key.data(), key.size(), item.getInt64());
+					break;
+				}
+				case typeUInt32:
+				case typeUInt16:
+				case typeUInt8:
+				case typeInt32:
+				case typeInt16:
+				case typeInt8: {
+					bson_append_int32(
+						b, key.data(), key.size(), item.getInt32());
+					break;
+				}
+				case typeBool: {
+					bson_append_bool(
+						b, key.data(), key.size(), item.getBool());
+					break;
+				}
+				case typeDouble:
+				case typeFloat: {
+					bson_append_double(
+						b, key.data(), key.size(), item.getDouble());
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	}
+
+	void objectConvertBSON(obj& o, bson_t* b) {
+		for (auto it = o.begin(); it != o.end(); ++it) {
+			auto key = it->first;
+			switch (it->second.getType()) {
+				case typeNull:
+					bson_append_null(b, key.data(), key.size());
+					break;
+				case typeList: {
+					bson_t a;
+					bson_init(&a);
+					auto l = it->second.getList();
+					listConvertBSON(l, &a);
+					bson_append_array(b, key.data(), key.size(), &a);
+					break;
+				}
+				case typeObject: {
+					bson_t a;
+					bson_init(&a);
+					auto o = it->second.getObject();
+					objectConvertBSON(o, &a);
+					bson_append_document(b, key.data(), key.size(), &a);
+					break;
+				}
+				case typeString: {
+					auto str = it->second.getString();
+					bson_append_utf8(
+						b, key.data(), key.size(), str.data(), str.size());
+					break;
+				}
+				case typeBinary: {
+					auto bin = it->second.getBinary();
+					bson_append_binary(
+						b,
+						key.data(),
+						key.size(),
+						bson_subtype_t::BSON_SUBTYPE_BINARY,
+						bin.data(),
+						bin.size());
+					break;
+				}
+				case typeUInt64:
+				case typeInt64: {
+					bson_append_int64(
+						b, key.data(), key.size(), it->second.getInt64());
+					break;
+				}
+				case typeUInt32:
+				case typeUInt16:
+				case typeUInt8:
+				case typeInt32:
+				case typeInt16:
+				case typeInt8: {
+					bson_append_int32(
+						b, key.data(), key.size(), it->second.getInt32());
+					break;
+				}
+				case typeBool: {
+					bson_append_bool(
+						b, key.data(), key.size(), it->second.getBool());
+					break;
+				}
+				case typeDouble:
+				case typeFloat: {
+					bson_append_double(
+						b, key.data(), key.size(), it->second.getDouble());
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	}
+
 	bson_t* newBSONFromObject(obj& obj) {
-		auto bin = obj.getBSON();
-		return bson_new_from_data(bin.data(), bin.size());
+		bson_t* b = bson_new();
+		objectConvertBSON(obj, b);
+		auto str = bson_as_relaxed_extended_json(b, NULL);
+		cout << str << endl;
+		return b;
 	}
 
 	list listFromBSON(bson_t* b) {
@@ -280,7 +431,7 @@ namespace gold {
 		return proto;
 	}
 
-	database::database() : obj() { setParent(getPrototype()); }
+	database::database() : obj() {}
 
 	database::database(initList config) : obj(config) {
 		setParent(getPrototype());
@@ -414,11 +565,12 @@ namespace gold {
 		return proto;
 	}
 
-	collection::collection() : obj(getPrototype()) {}
+	collection::collection() : obj() {}
 
 	collection::collection(
 		database d, struct _mongoc_collection_t* c)
-		: obj(getPrototype()) {
+		: obj() {
+		setParent(getPrototype());
 		setPtr("handle", c);
 		setObject("database", d);
 		setString(
@@ -515,7 +667,7 @@ namespace gold {
 	}
 
 	var collection::findOne(list args) {
-		static auto def = obj(initList{{"limit", 1}});
+		static auto def = obj(initList{{"limit", int32_t(1)}});
 		auto handle = (mongoc_collection_t*)getPtr("handle");
 		auto selObj = args[0].getObject();
 		auto optObj = obj();

@@ -10,7 +10,6 @@
 #include <cctype>
 #include <iostream>
 
-
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
 #if ENTRY_CONFIG_USE_WAYLAND
 #include <wayland-egl.h>
@@ -139,18 +138,13 @@ namespace gold {
 			bgfx::setDebug(
 				(debug ? BGFX_DEBUG_TEXT : 0) |
 				(stats ? BGFX_DEBUG_STATS : 0));
-			bgfx::setViewClear(
-				0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x303030ff,
-				1.0f, 0);
 		} else {
 			cerr << "Failed to start BGFX" << endl;
 		}
 		return var();
 	}
 
-	var backend::renderFrame(list) {
-		return bgfx::frame(false);
-	}
+	var backend::renderFrame(list) { return bgfx::frame(false); }
 
 	var backend::getConfig(list) {
 		auto allowed = defaultBackendConfig;
@@ -169,34 +163,11 @@ namespace gold {
 	}
 
 	var backend::preFrame(list) {
-		auto win = getObject<window>("window");
-		if (win) {
-			auto width = win.getUInt16("width");
-			auto height = win.getUInt16("height");
-			bgfx::setViewRect(0, 0, 0, width, height);
-
-			const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
-			const bx::Vec3 eye = {0.0f, 0.0f, -35.0f};
-
-			// Set view and projection matrix for view 0.
-			{
-				float view[16];
-				bx::mtxLookAt(view, eye, at);
-
-				float proj[16];
-				bx::mtxProj(
-					proj, 60.0f, float(width) / float(height), 0.1f,
-					100.0f, bgfx::getCaps()->homogeneousDepth);
-				bgfx::setViewTransform(0, view, proj);
-			}
-
-			bgfx::touch(0);
-		}
-
+		bgfx::touch(0);
 		return var();
 	}
 
-	backend::backend() : obj() { }
+	backend::backend() : obj() {}
 
 	backend::backend(obj config) : obj() {
 		copy(config);

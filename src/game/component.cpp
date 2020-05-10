@@ -17,9 +17,7 @@ namespace gold {
 
 	var component::update(list) { return var(); }
 
-	component::component() : obj() {
-		setParent(getPrototype());
-	}
+	component::component() : obj() { setParent(getPrototype()); }
 
 	component::component(obj config) : obj() {
 		copy(config);

@@ -1,21 +1,27 @@
 #pragma once
 
-#include "types.hpp"
 #include "component.hpp"
+
+class btTransform;
+class btVector3;
+class btQuaternion;
 
 namespace gold {
 	struct transform : public component {
-	 protected:
-		static object& getPrototype();
-
 	 public:
+		static object& getPrototype();
 		transform();
 		transform(object config);
 
-		//Low level
+		// Low level
 		void getMatrix(float* results);
 		void getWorldMatrix(float* results);
+		btVector3 getBtPosition();
+		btQuaternion getBtRotation();
+		btTransform getBtTransform();
 
+		var relativePos(list args);
+		var relativeRot(list args);
 		var setPosition(list args);
 		var setRotation(list args);
 		var setScale(list args);

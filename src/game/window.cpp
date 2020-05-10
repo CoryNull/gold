@@ -5,7 +5,6 @@
 #include <iostream>
 #include <map>
 
-
 namespace gold {
 	using namespace std;
 
@@ -57,6 +56,12 @@ namespace gold {
 			auto arr = args[0].getList();
 			if (arr.getType(0) == typeInt32) width = arr.getInt32(0);
 			if (arr.getType(1) == typeInt32) height = arr.getInt32(1);
+		} else if (args[0].isVec2()) {
+			width = args[0].getInt32(0);
+			height = args[0].getInt32(1);
+		} else if (args[0].isNumber() && args[1].isNumber()) {
+			width = args[0].getInt32();
+			height = args[1].getInt32();
 		}
 		setInt32("width", width);
 		setInt32("height", height);
@@ -74,6 +79,12 @@ namespace gold {
 			auto arr = args[0].getList();
 			if (arr.getType(0) == typeInt32) x = arr.getInt32(0);
 			if (arr.getType(1) == typeInt32) y = arr.getInt32(1);
+		} else if (args[0].isVec2()) {
+			x = args[0].getInt32(0);
+			y = args[0].getInt32(1);
+		} else if (args[0].isNumber() && args[1].isNumber()) {
+			x = args[0].getInt32();
+			y = args[1].getInt32();
 		}
 		setInt32("x", x);
 		setInt32("y", y);
@@ -227,7 +238,7 @@ namespace gold {
 		return config;
 	}
 
-	window::window() : obj() { }
+	window::window() : obj() {}
 
 	window::window(obj config) : obj() {
 		copy(config);

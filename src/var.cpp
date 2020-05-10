@@ -1,3 +1,4 @@
+#include <bx/math.h>
 #include <string.h>
 
 #include "types.hpp"
@@ -12,81 +13,72 @@ namespace gold {
 		mutex omutex;
 	};
 
+#define deleteType(typeT, address) \
+	case typeT: {                    \
+		if (address) delete address;   \
+	} break
+
+#define deleteTypeB(typeT, address) \
+	case typeT: {                     \
+		if (address) delete[] address;  \
+	} break
+
 	var::varContainer::~varContainer() {
-		if (!this) return;
 		switch (type) {
-			case typeException: {
-				if (data) delete (genericError*)data;
-				break;
-			}
-			case typeList: {
-				if (data) delete (list*)data;
-				break;
-			}
-			case typeObject: {
-				if (data) delete (object*)data;
-				break;
-			}
-			case typeString: {
-				if (data) delete (string*)data;
-				break;
-			}
-			case typeBinary: {
-				if (data) delete (binary*)data;
-				break;
-			}
-			case typeUInt64: {
-				if (data) delete (uint64_t*)data;
-				break;
-			}
-			case typeUInt32: {
-				if (data) delete (uint32_t*)data;
-				break;
-			}
-			case typeUInt16: {
-				if (data) delete (uint16_t*)data;
-				break;
-			}
-			case typeUInt8: {
-				if (data) delete (uint8_t*)data;
-				break;
-			}
-			case typeInt64: {
-				if (data) delete (int64_t*)data;
-				break;
-			}
-			case typeInt32: {
-				if (data) delete (int32_t*)data;
-				break;
-			}
-			case typeInt16: {
-				if (data) delete (int16_t*)data;
-				break;
-			}
-			case typeInt8: {
-				if (data) delete (int8_t*)data;
-				break;
-			}
-			case typeBool: {
-				if (data) delete (bool*)data;
-				break;
-			}
-			case typeDouble: {
-				if (data) delete (double*)data;
-				break;
-			}
-			case typeFloat: {
-				if (data) delete (float*)data;
-				break;
-			}
-			case typeMethod: {
-				if (data) delete (method*)data;
-				break;
-			}
-			case typeFunction: {
-				if (data) delete (func*)data;
-				break;
-			}
+			deleteType(typeException, err);
+			deleteType(typeList, li);
+			deleteType(typeObject, obj);
+			deleteType(typeString, str);
+			deleteType(typeBinary, bin);
+			deleteType(typeUInt64, u64);
+			deleteType(typeUInt32, u32);
+			deleteType(typeUInt16, u16);
+			deleteType(typeUInt8, u8);
+			deleteType(typeInt64, i64);
+			deleteType(typeInt32, i32);
+			deleteType(typeInt16, i16);
+			deleteType(typeInt8, i8);
+			deleteType(typeBool, b);
+			deleteType(typeDouble, d);
+			deleteType(typeFloat, f);
+			deleteType(typeMethod, me);
+			deleteType(typeFunction, fu);
+			deleteTypeB(typeVec2Float, f);
+			deleteTypeB(typeVec2Double, d);
+			deleteTypeB(typeVec2Int64, i64);
+			deleteTypeB(typeVec2Int32, i32);
+			deleteTypeB(typeVec2Int16, i16);
+			deleteTypeB(typeVec2Int8, i8);
+			deleteTypeB(typeVec2UInt64, u64);
+			deleteTypeB(typeVec2UInt32, u32);
+			deleteTypeB(typeVec2UInt16, u16);
+			deleteTypeB(typeVec2UInt8, u8);
+			deleteTypeB(typeVec3Float, f);
+			deleteTypeB(typeVec3Double, d);
+			deleteTypeB(typeVec3Int64, i64);
+			deleteTypeB(typeVec3Int32, i32);
+			deleteTypeB(typeVec3Int16, i16);
+			deleteTypeB(typeVec3Int8, i8);
+			deleteTypeB(typeVec3UInt64, u64);
+			deleteTypeB(typeVec3UInt32, u32);
+			deleteTypeB(typeVec3UInt16, u16);
+			deleteTypeB(typeVec3UInt8, u8);
+			deleteTypeB(typeVec4Float, f);
+			deleteTypeB(typeVec4Double, d);
+			deleteTypeB(typeVec4Int64, i64);
+			deleteTypeB(typeVec4Int32, i32);
+			deleteTypeB(typeVec4Int16, i16);
+			deleteTypeB(typeVec4Int8, i8);
+			deleteTypeB(typeVec4UInt64, u64);
+			deleteTypeB(typeVec4UInt32, u32);
+			deleteTypeB(typeVec4UInt16, u16);
+			deleteTypeB(typeVec4UInt8, u8);
+			deleteTypeB(typeQuatFloat, f);
+			deleteTypeB(typeQuatDouble, d);
+			deleteTypeB(typeMat3x3Float, f);
+			deleteTypeB(typeMat3x3Double, d);
+			deleteTypeB(typeMat4x4Float, f);
+			deleteTypeB(typeMat4x4Double, d);
 			default:
 				break;
 		}
@@ -100,107 +92,8 @@ namespace gold {
 	}
 
 	var::varContainer::varContainer(const varContainer& other) {
+		data = other.data;
 		type = other.type;
-		switch (type) {
-			case typeException: {
-				auto o = (genericError*)other.data;
-				data = new genericError(*o);
-				break;
-			}
-			case typeList: {
-				auto o = (list*)other.data;
-				data = new list(*o);
-				break;
-			}
-			case typeObject: {
-				auto o = (object*)other.data;
-				data = new object(*o);
-				break;
-			}
-			case typeString: {
-				auto o = (string*)other.data;
-				data = new string(*o);
-				break;
-			}
-			case typeBinary: {
-				auto o = (binary*)other.data;
-				data = new binary(*o);
-				break;
-			}
-			case typeInt64: {
-				auto o = (int64_t*)other.data;
-				data = new int64_t(*o);
-				break;
-			}
-			case typeInt32: {
-				auto o = (int32_t*)other.data;
-				data = new int32_t(*o);
-				break;
-			}
-			case typeInt16: {
-				auto o = (int16_t*)other.data;
-				data = new int16_t(*o);
-				break;
-			}
-			case typeInt8: {
-				auto o = (int8_t*)other.data;
-				data = new int8_t(*o);
-				break;
-			}
-			case typeUInt64: {
-				auto o = (uint64_t*)other.data;
-				data = new uint64_t(*o);
-				break;
-			}
-			case typeUInt32: {
-				auto o = (uint32_t*)other.data;
-				data = new uint32_t(*o);
-				break;
-			}
-			case typeUInt16: {
-				auto o = (uint16_t*)other.data;
-				data = new uint16_t(*o);
-				break;
-			}
-			case typeUInt8: {
-				auto o = (uint8_t*)other.data;
-				data = new uint8_t(*o);
-				break;
-			}
-			case typeBool: {
-				auto o = (bool*)other.data;
-				data = new bool(*o);
-				break;
-			}
-			case typeFunction: {
-				auto o = (func*)other.data;
-				data = new func(*o);
-				break;
-			}
-			case typeMethod: {
-				auto o = (method*)other.data;
-				data = new method(*o);
-				break;
-			}
-			case typeFloat: {
-				auto o = (float*)other.data;
-				data = new float(*o);
-				break;
-			}
-			case typeDouble: {
-				auto o = (double*)other.data;
-				data = new double(*o);
-				break;
-			}
-			case typePtr: {
-				auto o = (void*)other.data;
-				data = o;
-				break;
-			}
-			default: {
-				break;
-			}
-		}
 	}
 
 	var::varPtr var::autoNull =
@@ -210,6 +103,12 @@ namespace gold {
 
 	var::var(const var& copy) : sPtr(copy.sPtr) {}
 
+#define initVar(v, t, typeName)  \
+	auto ptr = new varContainer(); \
+	ptr->data = new typeName(v);   \
+	ptr->type = t;                 \
+	sPtr = varPtr(ptr)
+
 	var::var(void* v, types t) {
 		auto ptr = new varContainer();
 		ptr->data = v;
@@ -217,144 +116,126 @@ namespace gold {
 		sPtr = varPtr(ptr);
 	}
 
-	var::var(const char* value) {
-		auto ptr = new varContainer();
-		ptr->data = new string(value);
-		ptr->type = typeString;
-		sPtr = varPtr(ptr);
-	}
+	var::var(const char* v) { initVar(v, typeString, string); }
 
-	var::var(string v) {
-		auto ptr = new varContainer();
-		ptr->data = new string(v);
-		ptr->type = typeString;
-		sPtr = varPtr(ptr);
-	}
+	var::var(string v) { initVar(v, typeString, string); }
 
 	var::var(const binary& bin) {
-		auto ptr = new varContainer();
-		ptr->data = new binary(bin);
-		ptr->type = typeBinary;
-		sPtr = varPtr(ptr);
+		initVar(bin, typeBinary, binary);
 	}
 
-	var::var(int64_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new int64_t(v);
-		ptr->type = typeInt64;
-		sPtr = varPtr(ptr);
-	}
+	var::var(int64_t v) { initVar(v, typeInt64, int64_t); }
 
-	var::var(int32_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new int32_t(v);
-		ptr->type = typeInt32;
-		sPtr = varPtr(ptr);
-	}
+	var::var(int32_t v) { initVar(v, typeInt32, int32_t); }
 
-	var::var(int16_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new int16_t(v);
-		ptr->type = typeInt16;
-		sPtr = varPtr(ptr);
-	}
+	var::var(int16_t v) { initVar(v, typeInt16, int16_t); }
 
-	var::var(int8_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new int8_t(v);
-		ptr->type = typeInt8;
-		sPtr = varPtr(ptr);
-	}
+	var::var(int8_t v) { initVar(v, typeInt8, int8_t); }
 
-	var::var(uint64_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new uint64_t(v);
-		ptr->type = typeUInt64;
-		sPtr = varPtr(ptr);
-	}
+	var::var(uint64_t v) { initVar(v, typeUInt64, uint64_t); }
 
-	var::var(uint32_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new uint32_t(v);
-		ptr->type = typeUInt32;
-		sPtr = varPtr(ptr);
-	}
+	var::var(uint32_t v) { initVar(v, typeUInt32, uint32_t); }
 
-	var::var(uint16_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new uint16_t(v);
-		ptr->type = typeUInt16;
-		sPtr = varPtr(ptr);
-	}
+	var::var(uint16_t v) { initVar(v, typeUInt16, uint16_t); }
 
-	var::var(uint8_t v) {
-		auto ptr = new varContainer();
-		ptr->data = new uint8_t(v);
-		ptr->type = typeUInt8;
-		sPtr = varPtr(ptr);
-	}
+	var::var(uint8_t v) { initVar(v, typeUInt8, uint8_t); }
 
-	var::var(double v) {
-		auto ptr = new varContainer();
-		ptr->data = new double(v);
-		ptr->type = typeDouble;
-		sPtr = varPtr(ptr);
-	}
+	var::var(double v) { initVar(v, typeDouble, double); }
 
-	var::var(float v) {
-		auto ptr = new varContainer();
-		ptr->data = new float(v);
-		ptr->type = typeFloat;
-		sPtr = varPtr(ptr);
-	}
+	var::var(float v) { initVar(v, typeFloat, float); }
 
-	var::var(const list& v) {
-		auto ptr = new varContainer();
-		ptr->data = new list((list&)v);
-		ptr->type = typeList;
-		sPtr = varPtr(ptr);
-	}
+	var::var(const list& v) { initVar(v, typeList, list); }
 
-	var::var(const obj& v) {
-		auto ptr = new varContainer();
-		ptr->data = new obj(v);
-		ptr->type = typeObject;
-		sPtr = varPtr(ptr);
-	}
+	var::var(const obj& v) { initVar(v, typeObject, obj); }
 
-	var::var(method v) {
-		auto ptr = new varContainer();
-		ptr->data = new method(v);
-		ptr->type = typeMethod;
-		sPtr = varPtr(ptr);
-	}
+	var::var(method v) { initVar(v, typeMethod, method); }
 
-	var::var(func v) {
-		auto ptr = new varContainer();
-		ptr->data = new func(v);
-		ptr->type = typeFunction;
-		sPtr = varPtr(ptr);
-	}
+	var::var(func v) { initVar(v, typeFunction, func); }
 
-	var::var(bool v) {
-		auto ptr = new varContainer();
-		ptr->data = new bool(v);
-		ptr->type = typeBool;
-		sPtr = varPtr(ptr);
-	}
+	var::var(bool v) { initVar(v, typeBool, bool); }
 
 	var::var(const genericError& v) {
-		auto ptr = new varContainer();
-		ptr->data = new genericError(v);
-		ptr->type = typeException;
-		sPtr = varPtr(ptr);
+		initVar(v, typeException, genericError);
 	}
+
+#define assignPtr(varType, typeName, target, max, initList) \
+	case varType: {                                           \
+		ptr->data = new typeName[max];                          \
+		for (size_t i = 0; i < size || i < max; ++i)            \
+			ptr->target[i] = typeName(initList.begin()[i]);       \
+	} break
+
+#define vInit(typeT, initList)                             \
+	auto size = initList.size();                             \
+	auto ptr = new varContainer();                           \
+	switch (typeT) {                                         \
+		assignPtr(typeVec2Int64, int64_t, i64, 2, initList);   \
+		assignPtr(typeVec2Int32, int32_t, i32, 2, initList);   \
+		assignPtr(typeVec2Int16, int16_t, i16, 2, initList);   \
+		assignPtr(typeVec2Int8, int8_t, i8, 2, initList);      \
+		assignPtr(typeVec2UInt64, uint64_t, u64, 2, initList); \
+		assignPtr(typeVec2UInt32, uint32_t, u32, 2, initList); \
+		assignPtr(typeVec2UInt16, uint16_t, u16, 2, initList); \
+		assignPtr(typeVec2UInt8, uint8_t, u8, 2, initList);    \
+		assignPtr(typeVec2Double, double, d, 2, initList);     \
+		assignPtr(typeVec2Float, float, f, 2, initList);       \
+		assignPtr(typeVec3Int64, int64_t, i64, 3, initList);   \
+		assignPtr(typeVec3Int32, int32_t, i32, 3, initList);   \
+		assignPtr(typeVec3Int16, int16_t, i16, 3, initList);   \
+		assignPtr(typeVec3Int8, int8_t, i8, 3, initList);      \
+		assignPtr(typeVec3UInt64, uint64_t, u64, 3, initList); \
+		assignPtr(typeVec3UInt32, uint32_t, u32, 3, initList); \
+		assignPtr(typeVec3UInt16, uint16_t, u16, 3, initList); \
+		assignPtr(typeVec3UInt8, uint8_t, u8, 3, initList);    \
+		assignPtr(typeVec3Double, double, d, 3, initList);     \
+		assignPtr(typeVec3Float, float, f, 3, initList);       \
+		assignPtr(typeVec4Int64, int64_t, i64, 4, initList);   \
+		assignPtr(typeVec4Int32, int32_t, i32, 4, initList);   \
+		assignPtr(typeVec4Int16, int16_t, i16, 4, initList);   \
+		assignPtr(typeVec4Int8, int8_t, i8, 4, initList);      \
+		assignPtr(typeVec4UInt64, uint64_t, u64, 4, initList); \
+		assignPtr(typeVec4UInt32, uint32_t, u32, 4, initList); \
+		assignPtr(typeVec4UInt16, uint16_t, u16, 4, initList); \
+		assignPtr(typeVec4UInt8, uint8_t, u8, 4, initList);    \
+		assignPtr(typeVec4Double, double, d, 4, initList);     \
+		assignPtr(typeVec4Float, float, f, 4, initList);       \
+		assignPtr(typeQuatFloat, float, f, 4, initList);       \
+		assignPtr(typeQuatDouble, double, d, 4, initList);     \
+		assignPtr(typeMat3x3Float, float, f, 9, initList);     \
+		assignPtr(typeMat3x3Double, double, d, 9, initList);   \
+		assignPtr(typeMat4x4Float, float, f, 16, initList);    \
+		assignPtr(typeMat4x4Double, double, d, 16, initList);  \
+		default:                                               \
+			break;                                               \
+	}                                                        \
+	ptr->type = typeT;                                       \
+	sPtr = varPtr(ptr)
+
+	template <typename T> using initList = initializer_list<T>;
+	var::var(types t, initList<float> l) { vInit(t, l); }
+
+	var::var(types t, initList<double> l) { vInit(t, l); }
+
+	var::var(types t, initList<int64_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<int32_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<int16_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<int8_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<uint64_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<uint32_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<uint16_t> l) { vInit(t, l); }
+
+	var::var(types t, initList<uint8_t> l) { vInit(t, l); }
 
 	var::~var() { sPtr = nullptr; }
 
 	var& var::operator=(const var& rhs) {
-		auto rPtr = rhs.sPtr.get();
-		sPtr = rPtr ? make_shared<varContainer>(*rPtr) : autoNull;
+		sPtr = rhs.sPtr;
 		return *this;
 	}
 
@@ -364,68 +245,156 @@ namespace gold {
 			switch (rCon->type) {
 				case typeNull:
 					return isEmpty();
-				case typeObject: {
-					auto o = *(object*)rCon->data;
-					auto mob = getObject();
-					return o.data == mob.data;
-				}
-				case typeList: {
-					auto arr = *(list*)rCon->data;
-					auto mar = getList();
-					return arr.data == mar.data;
-				}
-				case typeString: {
-					auto o = *(string*)rCon->data;
-					return o == (string) * this;
-				}
-				case typeDouble: {
-					auto o = *(double*)rCon->data;
-					return o == (double)*this;
-				}
-				case typeFloat: {
-					auto o = *(float*)rCon->data;
-					return o == (float)*this;
-				}
-				case typeInt64: {
-					auto o = *(int64_t*)rCon->data;
-					return o == (int64_t) * this;
-				}
-				case typeInt32: {
-					auto o = *(int32_t*)rCon->data;
-					return o == (int32_t) * this;
-				}
-				case typeInt16: {
-					auto o = *(int16_t*)rCon->data;
-					return 0 == (int16_t) * this;
-				}
-				case typeInt8: {
-					auto o = *(int8_t*)rCon->data;
-					return o == (int8_t) * this;
-				}
-				case typeUInt64: {
-					auto o = *(uint64_t*)rCon->data;
-					return o == (uint64_t) * this;
-				}
-				case typeUInt32: {
-					auto o = *(uint32_t*)rCon->data;
-					return o == (uint32_t) * this;
-				}
-				case typeUInt16: {
-					auto o = *(uint16_t*)rCon->data;
-					return o == (uint16_t) * this;
-				}
-				case typeUInt8: {
-					auto o = *(uint8_t*)rCon->data;
-					return o == (uint8_t) * this;
-				}
-				case typeBool: {
-					auto o = *(bool*)rCon->data;
-					return o == (bool)*this;
-				}
-				default: {
-					auto o = (void*)rCon->data;
-					return o == (void*)*this;
-				}
+				case typeObject:
+					return rCon->obj->data == getObject().data;
+				case typeList:
+					return rCon->li->data == getList().data;
+				case typeString:
+					return *rCon->str == (string) * this;
+				case typeDouble:
+					return *rCon->d == (double)*this;
+				case typeFloat:
+					return *rCon->f == (float)*this;
+				case typeInt64:
+					return *rCon->i64 == (int64_t) * this;
+				case typeInt32:
+					return *rCon->i32 == (int32_t) * this;
+				case typeInt16:
+					return *rCon->i16 == (int16_t) * this;
+				case typeInt8:
+					return *rCon->i8 == (int8_t) * this;
+				case typeUInt64:
+					return *rCon->u64 == (uint64_t) * this;
+				case typeUInt32:
+					return *rCon->u32 == (uint32_t) * this;
+				case typeUInt16:
+					return *rCon->u16 == (uint16_t) * this;
+				case typeUInt8:
+					return *rCon->u8 == (uint8_t) * this;
+				case typeBool:
+					return *rCon->b == (bool)*this;
+				case typeVec2Float:
+					return rhs.getFloat(0) == getFloat(0) &&
+								 rhs.getFloat(1) == getFloat(1);
+				case typeVec2Double:
+					return rhs.getDouble(0) == getDouble(0) &&
+								 rhs.getDouble(1) == getDouble(1);
+				case typeVec2Int64:
+					return rhs.getInt64(0) == getInt64(0) &&
+								 rhs.getInt64(1) == getInt64(1);
+				case typeVec2Int32:
+					return rhs.getInt32(0) == getInt32(0) &&
+								 rhs.getInt32(1) == getInt32(1);
+				case typeVec2Int16:
+					return rhs.getInt16(0) == getInt16(0) &&
+								 rhs.getInt16(1) == getInt16(1);
+				case typeVec2Int8:
+					return rhs.getInt8(0) == getInt8(0) &&
+								 rhs.getInt8(1) == getInt8(1);
+				case typeVec2UInt64:
+					return rhs.getUInt64(0) == getUInt64(0) &&
+								 rhs.getUInt64(1) == getUInt64(1);
+				case typeVec2UInt32:
+					return rhs.getUInt32(0) == getUInt32(0) &&
+								 rhs.getUInt32(1) == getUInt32(1);
+				case typeVec2UInt16:
+					return rhs.getUInt16(0) == getUInt16(0) &&
+								 rhs.getUInt16(1) == getUInt16(1);
+				case typeVec2UInt8:
+					return rhs.getUInt8(0) == getUInt8(0) &&
+								 rhs.getUInt8(1) == getUInt8(1);
+				case typeVec3Float:
+					return rhs.getFloat(0) == getFloat(0) &&
+								 rhs.getFloat(1) == getFloat(1) &&
+								 rhs.getFloat(2) == getFloat(2);
+				case typeVec3Double:
+					return rhs.getDouble(0) == getDouble(0) &&
+								 rhs.getDouble(1) == getDouble(1) &&
+								 rhs.getDouble(2) == getDouble(2);
+				case typeVec3Int64:
+					return rhs.getInt64(0) == getInt64(0) &&
+								 rhs.getInt64(1) == getInt64(1) &&
+								 rhs.getInt64(2) == getInt64(2);
+				case typeVec3Int32:
+					return rhs.getInt32(0) == getInt32(0) &&
+								 rhs.getInt32(1) == getInt32(1) &&
+								 rhs.getInt32(2) == getInt32(2);
+				case typeVec3Int16:
+					return rhs.getInt16(0) == getInt16(0) &&
+								 rhs.getInt16(1) == getInt16(1) &&
+								 rhs.getInt16(2) == getInt16(2);
+				case typeVec3Int8:
+					return rhs.getInt8(0) == getInt8(0) &&
+								 rhs.getInt8(1) == getInt8(1) &&
+								 rhs.getInt8(2) == getInt8(2);
+				case typeVec3UInt64:
+					return rhs.getUInt64(0) == getUInt64(0) &&
+								 rhs.getUInt64(1) == getUInt64(1) &&
+								 rhs.getUInt64(2) == getUInt64(2);
+				case typeVec3UInt32:
+					return rhs.getUInt32(0) == getUInt32(0) &&
+								 rhs.getUInt32(1) == getUInt32(1) &&
+								 rhs.getUInt32(2) == getUInt32(2);
+				case typeVec3UInt16:
+					return rhs.getUInt16(0) == getUInt16(0) &&
+								 rhs.getUInt16(1) == getUInt16(1) &&
+								 rhs.getUInt16(2) == getUInt16(2);
+				case typeVec3UInt8:
+					return rhs.getUInt8(0) == getUInt8(0) &&
+								 rhs.getUInt8(1) == getUInt8(1) &&
+								 rhs.getUInt8(2) == getUInt8(2);
+				case typeVec4Float:
+					return rhs.getFloat(0) == getFloat(0) &&
+								 rhs.getFloat(1) == getFloat(1) &&
+								 rhs.getFloat(2) == getFloat(2) &&
+								 rhs.getFloat(3) == getFloat(3);
+				case typeVec4Double:
+					return rhs.getDouble(0) == getDouble(0) &&
+								 rhs.getDouble(1) == getDouble(1) &&
+								 rhs.getDouble(2) == getDouble(2) &&
+								 rhs.getDouble(3) == getDouble(3);
+				case typeVec4Int64:
+					return rhs.getInt64(0) == getInt64(0) &&
+								 rhs.getInt64(1) == getInt64(1) &&
+								 rhs.getInt64(2) == getInt64(2) &&
+								 rhs.getInt64(3) == getInt64(3);
+				case typeVec4Int32:
+					return rhs.getInt32(0) == getInt32(0) &&
+								 rhs.getInt32(1) == getInt32(1) &&
+								 rhs.getInt32(2) == getInt32(2) &&
+								 rhs.getInt32(3) == getInt32(3);
+				case typeVec4Int16:
+					return rhs.getInt16(0) == getInt16(0) &&
+								 rhs.getInt16(1) == getInt16(1) &&
+								 rhs.getInt16(2) == getInt16(2) &&
+								 rhs.getInt16(3) == getInt16(3);
+				case typeVec4Int8:
+					return rhs.getInt8(0) == getInt8(0) &&
+								 rhs.getInt8(1) == getInt8(1) &&
+								 rhs.getInt8(2) == getInt8(2) &&
+								 rhs.getInt8(3) == getInt8(3);
+				case typeVec4UInt64:
+					return rhs.getUInt64(0) == getUInt64(0) &&
+								 rhs.getUInt64(1) == getUInt64(1) &&
+								 rhs.getUInt64(2) == getUInt64(2) &&
+								 rhs.getUInt64(3) == getUInt64(3);
+				case typeVec4UInt32:
+					return rhs.getUInt32(0) == getUInt32(0) &&
+								 rhs.getUInt32(1) == getUInt32(1) &&
+								 rhs.getUInt32(2) == getUInt32(2) &&
+								 rhs.getUInt32(3) == getUInt32(3);
+				case typeVec4UInt16:
+					return rhs.getUInt16(0) == getUInt16(0) &&
+								 rhs.getUInt16(1) == getUInt16(1) &&
+								 rhs.getUInt16(2) == getUInt16(2) &&
+								 rhs.getUInt16(3) == getUInt16(3);
+				case typeVec4UInt8:
+					return rhs.getUInt8(0) == getUInt8(0) &&
+								 rhs.getUInt8(1) == getUInt8(1) &&
+								 rhs.getUInt8(2) == getUInt8(2) &&
+								 rhs.getUInt8(3) == getUInt8(3);
+				default:
+					return (void*)rCon->data == (void*)*this;
 			}
 		}
 		return false;
@@ -435,81 +404,1695 @@ namespace gold {
 		return !operator==(rhs);
 	}
 
+	var var::operator-() const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(-(*con->f));
+				case typeDouble:
+					return var(-(*con->d));
+				case typePtr:
+					return var(-(int64_t)(void*)con->data);
+				case typeInt64:
+					return var(-(*con->i64));
+				case typeInt32:
+					return var(-(*con->i32));
+				case typeInt16:
+					return var(-(*con->i16));
+				case typeInt8:
+					return var(-(*con->i8));
+				case typeUInt64:
+					return var(-int64_t(*con->u64));
+				case typeUInt32:
+					return var(-int32_t(*con->u32));
+				case typeUInt16:
+					return var(-int16_t(*con->u16));
+				case typeUInt8:
+					return var(-int8_t(*con->u8));
+				case typeBool:
+					return var(-int8_t(*con->b));
+
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64, {-con->i64[0], -con->i64[1]});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32, {-con->i32[0], -con->i32[1]});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16, {-con->i16[0], -con->i16[1]});
+				case typeVec2Int8:
+					return var(typeVec2Int8, {-con->i8[0], -con->i8[1]});
+				case typeVec2UInt64:
+					return var(
+						typeVec2Int64,
+						{-int64_t(con->i64[0]), -int64_t(con->i64[1])});
+				case typeVec2UInt32:
+					return var(
+						typeVec2Int32,
+						{-int32_t(con->i32[0]), -int32_t(con->i32[1])});
+				case typeVec2UInt16:
+					return var(
+						typeVec2Int16,
+						{-int16_t(con->i16[0]), -int16_t(con->i16[1])});
+				case typeVec2UInt8:
+					return var(
+						typeVec2Int8,
+						{-int8_t(con->i8[0]), -int8_t(con->i8[1])});
+
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{-con->i64[0], -con->i64[1], -con->i64[2]});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{-con->i32[0], -con->i32[1], -con->i32[2]});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{-con->i16[0], -con->i16[1], -con->i16[2]});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{-con->i8[0], -con->i8[1], -con->i8[2]});
+				case typeVec3UInt64:
+					return var(
+						typeVec3Int64,
+						{-int64_t(con->i64[0]), -int64_t(con->i64[1]),
+						 -int64_t(con->i64[2])});
+				case typeVec3UInt32:
+					return var(
+						typeVec3Int32,
+						{-int32_t(con->i32[0]), -int32_t(con->i32[1]),
+						 -int32_t(con->i32[2])});
+				case typeVec3UInt16:
+					return var(
+						typeVec3Int16,
+						{-int16_t(con->i16[0]), -int16_t(con->i16[1]),
+						 -int16_t(con->i16[2])});
+				case typeVec3UInt8:
+					return var(
+						typeVec3Int8,
+						{-int8_t(con->i8[0]), -int8_t(con->i8[1]),
+						 -int8_t(con->i8[2])});
+
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{-con->i64[0], -con->i64[1], -con->i64[2],
+						 -con->i64[3]});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{-con->i32[0], -con->i32[1], -con->i32[2],
+						 -con->i32[3]});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{-con->i16[0], -con->i16[1], -con->i16[2],
+						 -con->i16[3]});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{-con->i8[0], -con->i8[1], -con->i8[2],
+						 -con->i8[3]});
+				case typeVec4UInt64:
+					return var(
+						typeVec4Int64,
+						{-int64_t(con->i64[0]), -int64_t(con->i64[1]),
+						 -int64_t(con->i64[2]), -int64_t(con->i64[3])});
+				case typeVec4UInt32:
+					return var(
+						typeVec4Int32,
+						{-int32_t(con->i32[0]), -int32_t(con->i32[1]),
+						 -int32_t(con->i32[2]), -int32_t(con->i32[3])});
+				case typeVec4UInt16:
+					return var(
+						typeVec4Int16,
+						{-int16_t(con->i16[0]), -int16_t(con->i16[1]),
+						 -int16_t(con->i16[2]), -int16_t(con->i16[3])});
+				case typeVec4UInt8:
+					return var(
+						typeVec4Int8,
+						{-int8_t(con->i8[0]), -int8_t(con->i8[1]),
+						 -int8_t(con->i8[2]), -int8_t(con->i8[3])});
+
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{-con->f[0], -con->f[1], -con->f[2], -con->f[3]});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{-con->d[0], -con->d[1], -con->d[2], -con->d[3]});
+
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{-con->f[0], -con->f[1], -con->f[2], -con->f[3],
+						 -con->f[4], -con->f[5], -con->f[6], -con->f[7],
+						 -con->f[8]});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{-con->d[0], -con->d[1], -con->d[2], -con->d[3],
+						 -con->d[4], -con->d[5], -con->d[6], -con->d[7],
+						 -con->d[8]});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{-con->f[0], -con->f[1], -con->f[2], -con->f[3],
+						 -con->f[4], -con->f[5], -con->f[6], -con->f[7],
+						 -con->f[8], -con->f[9], -con->f[10], -con->f[11],
+						 -con->f[12], -con->f[13], -con->f[14],
+						 -con->f[15]});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{-con->d[0], -con->d[1], -con->d[2], -con->d[3],
+						 -con->d[4], -con->d[5], -con->d[6], -con->d[7],
+						 -con->d[8], -con->d[9], -con->d[10], -con->d[11],
+						 -con->d[12], -con->d[13], -con->d[14],
+						 -con->d[15]});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
+	var var::operator+(const var& b) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(b.getFloat() + getFloat());
+				case typeDouble:
+					return var(b.getDouble() + getDouble());
+				case typePtr:
+					return var((void*)(b.getInt64() + getInt64()));
+				case typeInt64:
+					return var(b.getInt64() + getInt64());
+				case typeInt32:
+					return var(b.getInt32() + getInt32());
+				case typeInt16:
+					return var(b.getInt16() + getInt16());
+				case typeInt8:
+					return var(b.getInt8() + getInt8());
+				case typeUInt64:
+					return var(b.getUInt64() + getUInt64());
+				case typeUInt32:
+					return var(b.getUInt32() + getUInt32());
+				case typeUInt16:
+					return var(b.getUInt16() + getUInt8());
+				case typeUInt8:
+					return var(b.getUInt8() + getUInt8());
+				case typeBool:
+					return var(bool(b.getInt8() + getInt8()));
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64,
+						{getInt64(0) + b.getInt64(0),
+						 getInt64(1) + b.getInt64(1)});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32,
+						{getInt32(0) + b.getInt32(0),
+						 getInt32(1) + b.getInt32(1)});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16,
+						{getInt16(0) + b.getInt16(0),
+						 getInt16(1) + b.getInt16(1)});
+				case typeVec2Int8:
+					return var(
+						typeVec2Int8,
+						{getInt8(0) + b.getInt8(0),
+						 getInt8(1) + b.getInt8(1)});
+				case typeVec2UInt64:
+					return var(
+						typeVec2UInt64,
+						{getUInt64(0) + b.getUInt64(0),
+						 getUInt64(1) + b.getUInt64(1)});
+				case typeVec2UInt32:
+					return var(
+						typeVec2UInt32,
+						{getUInt32(0) + b.getUInt32(0),
+						 getUInt32(1) + b.getUInt32(1)});
+				case typeVec2UInt16:
+					return var(
+						typeVec2UInt16,
+						{getUInt16(0) + b.getUInt16(0),
+						 getUInt16(1) + b.getUInt16(1)});
+				case typeVec2UInt8:
+					return var(
+						typeVec2UInt8,
+						{getUInt8(0) + b.getUInt8(0),
+						 getUInt8(1) + b.getUInt8(1)});
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{getInt64(0) + b.getInt64(0),
+						 getInt64(1) + b.getInt64(1),
+						 getInt64(2) + b.getInt64(2)});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{getInt32(0) + b.getInt32(0),
+						 getInt32(1) + b.getInt32(1),
+						 getInt32(2) + b.getInt32(2)});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{getInt16(0) + b.getInt16(0),
+						 getInt16(1) + b.getInt16(1),
+						 getInt16(2) + b.getInt16(2)});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{
+							getInt8(0) + b.getInt8(0),
+							getInt8(1) + b.getInt8(1),
+							getInt8(2) + b.getInt8(2),
+						});
+				case typeVec3UInt64:
+					return var(
+						typeVec3UInt64,
+						{getUInt64(0) + b.getUInt64(0),
+						 getUInt64(1) + b.getUInt64(1),
+						 getUInt64(2) + b.getUInt64(2)});
+				case typeVec3UInt32:
+					return var(
+						typeVec3UInt32,
+						{getUInt32(0) + b.getUInt32(0),
+						 getUInt32(1) + b.getUInt32(1),
+						 getUInt32(2) + b.getUInt32(2)});
+				case typeVec3UInt16:
+					return var(
+						typeVec3UInt16,
+						{getUInt16(0) + b.getUInt16(0),
+						 getUInt16(1) + b.getUInt16(1),
+						 getUInt16(2) + b.getUInt16(2)});
+				case typeVec3UInt8:
+					return var(
+						typeVec3UInt8,
+						{getUInt8(0) + b.getUInt8(0),
+						 getUInt8(1) + b.getUInt8(1),
+						 getUInt8(2) + b.getUInt8(2)});
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{getInt64(0) + b.getInt64(0),
+						 getInt64(1) + b.getInt64(1),
+						 getInt64(2) + b.getInt64(2),
+						 getInt64(3) + b.getInt64(3)});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{getInt32(0) + b.getInt32(0),
+						 getInt32(1) + b.getInt32(1),
+						 getInt32(2) + b.getInt32(2),
+						 getInt32(3) + b.getInt32(3)});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{getInt16(0) + b.getInt16(0),
+						 getInt16(1) + b.getInt16(1),
+						 getInt16(2) + b.getInt16(2),
+						 getInt16(3) + b.getInt16(3)});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{
+							getInt8(0) + b.getInt8(0),
+							getInt8(1) + b.getInt8(1),
+							getInt8(2) + b.getInt8(2),
+							getInt8(3) + b.getInt8(3),
+						});
+				case typeVec4UInt64:
+					return var(
+						typeVec4UInt64,
+						{getUInt64(0) + b.getUInt64(0),
+						 getUInt64(1) + b.getUInt64(1),
+						 getUInt64(2) + b.getUInt64(2),
+						 getUInt64(3) + b.getUInt64(3)});
+				case typeVec4UInt32:
+					return var(
+						typeVec4UInt32,
+						{getUInt32(0) + b.getUInt32(0),
+						 getUInt32(1) + b.getUInt32(1),
+						 getUInt32(2) + b.getUInt32(2),
+						 getUInt32(3) + b.getUInt32(3)});
+				case typeVec4UInt16:
+					return var(
+						typeVec4UInt16,
+						{getUInt16(0) + b.getUInt16(0),
+						 getUInt16(1) + b.getUInt16(1),
+						 getUInt16(2) + b.getUInt16(2),
+						 getUInt16(3) + b.getUInt16(3)});
+				case typeVec4UInt8:
+					return var(
+						typeVec4UInt8,
+						{getUInt8(0) + b.getUInt8(0),
+						 getUInt8(1) + b.getUInt8(1),
+						 getUInt8(2) + b.getUInt8(2),
+						 getUInt8(3) + b.getUInt8(3)});
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{
+							getFloat(0) + b.getFloat(0),
+							getFloat(1) + b.getFloat(1),
+							getFloat(2) + b.getFloat(2),
+							getFloat(3) + b.getFloat(3),
+						});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{
+							getDouble(0) + b.getDouble(0),
+							getDouble(1) + b.getDouble(1),
+							getDouble(2) + b.getDouble(2),
+							getDouble(3) + b.getDouble(3),
+						});
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{
+							getFloat(0) + b.getFloat(0),
+							getFloat(1) + b.getFloat(1),
+							getFloat(2) + b.getFloat(2),
+							getFloat(3) + b.getFloat(3),
+							getFloat(4) + b.getFloat(4),
+							getFloat(5) + b.getFloat(5),
+							getFloat(6) + b.getFloat(6),
+							getFloat(7) + b.getFloat(7),
+							getFloat(8) + b.getFloat(8),
+						});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{
+							getDouble(0) + b.getDouble(0),
+							getDouble(1) + b.getDouble(1),
+							getDouble(2) + b.getDouble(2),
+							getDouble(3) + b.getDouble(3),
+							getDouble(4) + b.getDouble(4),
+							getDouble(5) + b.getDouble(5),
+							getDouble(6) + b.getDouble(6),
+							getDouble(7) + b.getDouble(7),
+							getDouble(8) + b.getDouble(8),
+						});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{
+							getFloat(0) + b.getFloat(0),
+							getFloat(1) + b.getFloat(1),
+							getFloat(2) + b.getFloat(2),
+							getFloat(3) + b.getFloat(3),
+							getFloat(4) + b.getFloat(4),
+							getFloat(5) + b.getFloat(5),
+							getFloat(6) + b.getFloat(6),
+							getFloat(7) + b.getFloat(7),
+							getFloat(8) + b.getFloat(8),
+							getFloat(9) + b.getFloat(9),
+							getFloat(10) + b.getFloat(10),
+							getFloat(11) + b.getFloat(11),
+							getFloat(12) + b.getFloat(12),
+							getFloat(13) + b.getFloat(13),
+							getFloat(14) + b.getFloat(14),
+							getFloat(15) + b.getFloat(15),
+						});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{
+							getDouble(0) + b.getDouble(0),
+							getDouble(1) + b.getDouble(1),
+							getDouble(2) + b.getDouble(2),
+							getDouble(3) + b.getDouble(3),
+							getDouble(4) + b.getDouble(4),
+							getDouble(5) + b.getDouble(5),
+							getDouble(6) + b.getDouble(6),
+							getDouble(7) + b.getDouble(7),
+							getDouble(8) + b.getDouble(8),
+							getDouble(9) + b.getDouble(9),
+							getDouble(10) + b.getDouble(10),
+							getDouble(11) + b.getDouble(11),
+							getDouble(12) + b.getDouble(12),
+							getDouble(13) + b.getDouble(13),
+							getDouble(14) + b.getDouble(14),
+							getDouble(15) + b.getDouble(15),
+						});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
+	var var::operator-(const var& b) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(b.getFloat() - getFloat());
+				case typeDouble:
+					return var(b.getDouble() - getDouble());
+				case typePtr:
+					return var((void*)(b.getInt64() - getInt64()));
+				case typeInt64:
+					return var(b.getInt64() - getInt64());
+				case typeInt32:
+					return var(b.getInt32() - getInt32());
+				case typeInt16:
+					return var(b.getInt16() - getInt16());
+				case typeInt8:
+					return var(b.getInt8() - getInt8());
+				case typeUInt64:
+					return var(b.getUInt64() - getUInt64());
+				case typeUInt32:
+					return var(b.getUInt32() - getUInt32());
+				case typeUInt16:
+					return var(b.getUInt16() - getUInt8());
+				case typeUInt8:
+					return var(b.getUInt8() - getUInt8());
+				case typeBool:
+					return var(bool(b.getInt8() - getInt8()));
+
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64,
+						{getInt64(0) - b.getInt64(0),
+						 getInt64(1) - b.getInt64(1)});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32,
+						{getInt32(0) - b.getInt32(0),
+						 getInt32(1) - b.getInt32(1)});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16,
+						{getInt16(0) - b.getInt16(0),
+						 getInt16(1) - b.getInt16(1)});
+				case typeVec2Int8:
+					return var(
+						typeVec2Int8,
+						{getInt8(0) - b.getInt8(0),
+						 getInt8(1) - b.getInt8(1)});
+				case typeVec2UInt64:
+					return var(
+						typeVec2UInt64,
+						{getUInt64(0) - b.getUInt64(0),
+						 getUInt64(1) - b.getUInt64(1)});
+				case typeVec2UInt32:
+					return var(
+						typeVec2UInt32,
+						{getUInt32(0) - b.getUInt32(0),
+						 getUInt32(1) - b.getUInt32(1)});
+				case typeVec2UInt16:
+					return var(
+						typeVec2UInt16,
+						{getUInt16(0) - b.getUInt16(0),
+						 getUInt16(1) - b.getUInt16(1)});
+				case typeVec2UInt8:
+					return var(
+						typeVec2UInt8,
+						{getUInt8(0) - b.getUInt8(0),
+						 getUInt8(1) - b.getUInt8(1)});
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{getInt64(0) - b.getInt64(0),
+						 getInt64(1) - b.getInt64(1),
+						 getInt64(2) - b.getInt64(2)});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{getInt32(0) - b.getInt32(0),
+						 getInt32(1) - b.getInt32(1),
+						 getInt32(2) - b.getInt32(2)});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{getInt16(0) - b.getInt16(0),
+						 getInt16(1) - b.getInt16(1),
+						 getInt16(2) - b.getInt16(2)});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{
+							getInt8(0) - b.getInt8(0),
+							getInt8(1) - b.getInt8(1),
+							getInt8(2) - b.getInt8(2),
+						});
+				case typeVec3UInt64:
+					return var(
+						typeVec3UInt64,
+						{getUInt64(0) - b.getUInt64(0),
+						 getUInt64(1) - b.getUInt64(1),
+						 getUInt64(2) - b.getUInt64(2)});
+				case typeVec3UInt32:
+					return var(
+						typeVec3UInt32,
+						{getUInt32(0) - b.getUInt32(0),
+						 getUInt32(1) - b.getUInt32(1),
+						 getUInt32(2) - b.getUInt32(2)});
+				case typeVec3UInt16:
+					return var(
+						typeVec3UInt16,
+						{getUInt16(0) - b.getUInt16(0),
+						 getUInt16(1) - b.getUInt16(1),
+						 getUInt16(2) - b.getUInt16(2)});
+				case typeVec3UInt8:
+					return var(
+						typeVec3UInt8,
+						{getUInt8(0) - b.getUInt8(0),
+						 getUInt8(1) - b.getUInt8(1),
+						 getUInt8(2) - b.getUInt8(2)});
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{getInt64(0) - b.getInt64(0),
+						 getInt64(1) - b.getInt64(1),
+						 getInt64(2) - b.getInt64(2),
+						 getInt64(3) - b.getInt64(3)});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{getInt32(0) - b.getInt32(0),
+						 getInt32(1) - b.getInt32(1),
+						 getInt32(2) - b.getInt32(2),
+						 getInt32(3) - b.getInt32(3)});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{getInt16(0) - b.getInt16(0),
+						 getInt16(1) - b.getInt16(1),
+						 getInt16(2) - b.getInt16(2),
+						 getInt16(3) - b.getInt16(3)});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{
+							getInt8(0) - b.getInt8(0),
+							getInt8(1) - b.getInt8(1),
+							getInt8(2) - b.getInt8(2),
+							getInt8(3) - b.getInt8(3),
+						});
+				case typeVec4UInt64:
+					return var(
+						typeVec4UInt64,
+						{getUInt64(0) - b.getUInt64(0),
+						 getUInt64(1) - b.getUInt64(1),
+						 getUInt64(2) - b.getUInt64(2),
+						 getUInt64(3) - b.getUInt64(3)});
+				case typeVec4UInt32:
+					return var(
+						typeVec4UInt32,
+						{getUInt32(0) - b.getUInt32(0),
+						 getUInt32(1) - b.getUInt32(1),
+						 getUInt32(2) - b.getUInt32(2),
+						 getUInt32(3) - b.getUInt32(3)});
+				case typeVec4UInt16:
+					return var(
+						typeVec4UInt16,
+						{getUInt16(0) - b.getUInt16(0),
+						 getUInt16(1) - b.getUInt16(1),
+						 getUInt16(2) - b.getUInt16(2),
+						 getUInt16(3) - b.getUInt16(3)});
+				case typeVec4UInt8:
+					return var(
+						typeVec4UInt8,
+						{getUInt8(0) - b.getUInt8(0),
+						 getUInt8(1) - b.getUInt8(1),
+						 getUInt8(2) - b.getUInt8(2),
+						 getUInt8(3) - b.getUInt8(3)});
+
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{
+							getFloat(0) - b.getFloat(0),
+							getFloat(1) - b.getFloat(1),
+							getFloat(2) - b.getFloat(2),
+							getFloat(3) - b.getFloat(3),
+						});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{
+							getDouble(0) - b.getDouble(0),
+							getDouble(1) - b.getDouble(1),
+							getDouble(2) - b.getDouble(2),
+							getDouble(3) - b.getDouble(3),
+						});
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{
+							getFloat(0) - b.getFloat(0),
+							getFloat(1) - b.getFloat(1),
+							getFloat(2) - b.getFloat(2),
+							getFloat(3) - b.getFloat(3),
+							getFloat(4) - b.getFloat(4),
+							getFloat(5) - b.getFloat(5),
+							getFloat(6) - b.getFloat(6),
+							getFloat(7) - b.getFloat(7),
+							getFloat(8) - b.getFloat(8),
+						});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{
+							getDouble(0) - b.getDouble(0),
+							getDouble(1) - b.getDouble(1),
+							getDouble(2) - b.getDouble(2),
+							getDouble(3) - b.getDouble(3),
+							getDouble(4) - b.getDouble(4),
+							getDouble(5) - b.getDouble(5),
+							getDouble(6) - b.getDouble(6),
+							getDouble(7) - b.getDouble(7),
+							getDouble(8) - b.getDouble(8),
+						});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{
+							getFloat(0) - b.getFloat(0),
+							getFloat(1) - b.getFloat(1),
+							getFloat(2) - b.getFloat(2),
+							getFloat(3) - b.getFloat(3),
+							getFloat(4) - b.getFloat(4),
+							getFloat(5) - b.getFloat(5),
+							getFloat(6) - b.getFloat(6),
+							getFloat(7) - b.getFloat(7),
+							getFloat(8) - b.getFloat(8),
+							getFloat(9) - b.getFloat(9),
+							getFloat(10) - b.getFloat(10),
+							getFloat(11) - b.getFloat(11),
+							getFloat(12) - b.getFloat(12),
+							getFloat(13) - b.getFloat(13),
+							getFloat(14) - b.getFloat(14),
+							getFloat(15) - b.getFloat(15),
+						});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{
+							getDouble(0) - b.getDouble(0),
+							getDouble(1) - b.getDouble(1),
+							getDouble(2) - b.getDouble(2),
+							getDouble(3) - b.getDouble(3),
+							getDouble(4) - b.getDouble(4),
+							getDouble(5) - b.getDouble(5),
+							getDouble(6) - b.getDouble(6),
+							getDouble(7) - b.getDouble(7),
+							getDouble(8) - b.getDouble(8),
+							getDouble(9) - b.getDouble(9),
+							getDouble(10) - b.getDouble(10),
+							getDouble(11) - b.getDouble(11),
+							getDouble(12) - b.getDouble(12),
+							getDouble(13) - b.getDouble(13),
+							getDouble(14) - b.getDouble(14),
+							getDouble(15) - b.getDouble(15),
+						});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
+	var var::operator*(const var& b) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(b.getFloat() * getFloat());
+				case typeDouble:
+					return var(b.getDouble() * getDouble());
+				case typePtr:
+					return var((void*)(b.getInt64() * getInt64()));
+				case typeInt64:
+					return var(b.getInt64() * getInt64());
+				case typeInt32:
+					return var(b.getInt32() * getInt32());
+				case typeInt16:
+					return var(b.getInt16() * getInt16());
+				case typeInt8:
+					return var(b.getInt8() * getInt8());
+				case typeUInt64:
+					return var(b.getUInt64() * getUInt64());
+				case typeUInt32:
+					return var(b.getUInt32() * getUInt32());
+				case typeUInt16:
+					return var(b.getUInt16() * getUInt8());
+				case typeUInt8:
+					return var(b.getUInt8() * getUInt8());
+				case typeBool:
+					return var(bool(b.getInt8() * getInt8()));
+
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64,
+						{getInt64(0) * b.getInt64(0),
+						 getInt64(1) * b.getInt64(1)});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32,
+						{getInt32(0) * b.getInt32(0),
+						 getInt32(1) * b.getInt32(1)});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16,
+						{getInt16(0) * b.getInt16(0),
+						 getInt16(1) * b.getInt16(1)});
+				case typeVec2Int8:
+					return var(
+						typeVec2Int8,
+						{getInt8(0) * b.getInt8(0),
+						 getInt8(1) * b.getInt8(1)});
+				case typeVec2UInt64:
+					return var(
+						typeVec2UInt64,
+						{getUInt64(0) * b.getUInt64(0),
+						 getUInt64(1) * b.getUInt64(1)});
+				case typeVec2UInt32:
+					return var(
+						typeVec2UInt32,
+						{getUInt32(0) * b.getUInt32(0),
+						 getUInt32(1) * b.getUInt32(1)});
+				case typeVec2UInt16:
+					return var(
+						typeVec2UInt16,
+						{getUInt16(0) * b.getUInt16(0),
+						 getUInt16(1) * b.getUInt16(1)});
+				case typeVec2UInt8:
+					return var(
+						typeVec2UInt8,
+						{getUInt8(0) * b.getUInt8(0),
+						 getUInt8(1) * b.getUInt8(1)});
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{getInt64(0) * b.getInt64(0),
+						 getInt64(1) * b.getInt64(1),
+						 getInt64(2) * b.getInt64(2)});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{getInt32(0) * b.getInt32(0),
+						 getInt32(1) * b.getInt32(1),
+						 getInt32(2) * b.getInt32(2)});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{getInt16(0) * b.getInt16(0),
+						 getInt16(1) * b.getInt16(1),
+						 getInt16(2) * b.getInt16(2)});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{
+							getInt8(0) * b.getInt8(0),
+							getInt8(1) * b.getInt8(1),
+							getInt8(2) * b.getInt8(2),
+						});
+				case typeVec3UInt64:
+					return var(
+						typeVec3UInt64,
+						{getUInt64(0) * b.getUInt64(0),
+						 getUInt64(1) * b.getUInt64(1),
+						 getUInt64(2) * b.getUInt64(2)});
+				case typeVec3UInt32:
+					return var(
+						typeVec3UInt32,
+						{getUInt32(0) * b.getUInt32(0),
+						 getUInt32(1) * b.getUInt32(1),
+						 getUInt32(2) * b.getUInt32(2)});
+				case typeVec3UInt16:
+					return var(
+						typeVec3UInt16,
+						{getUInt16(0) * b.getUInt16(0),
+						 getUInt16(1) * b.getUInt16(1),
+						 getUInt16(2) * b.getUInt16(2)});
+				case typeVec3UInt8:
+					return var(
+						typeVec3UInt8,
+						{getUInt8(0) * b.getUInt8(0),
+						 getUInt8(1) * b.getUInt8(1),
+						 getUInt8(2) * b.getUInt8(2)});
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{getInt64(0) * b.getInt64(0),
+						 getInt64(1) * b.getInt64(1),
+						 getInt64(2) * b.getInt64(2),
+						 getInt64(3) * b.getInt64(3)});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{getInt32(0) * b.getInt32(0),
+						 getInt32(1) * b.getInt32(1),
+						 getInt32(2) * b.getInt32(2),
+						 getInt32(3) * b.getInt32(3)});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{getInt16(0) * b.getInt16(0),
+						 getInt16(1) * b.getInt16(1),
+						 getInt16(2) * b.getInt16(2),
+						 getInt16(3) * b.getInt16(3)});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{
+							getInt8(0) * b.getInt8(0),
+							getInt8(1) * b.getInt8(1),
+							getInt8(2) * b.getInt8(2),
+							getInt8(3) * b.getInt8(3),
+						});
+				case typeVec4UInt64:
+					return var(
+						typeVec4UInt64,
+						{getUInt64(0) * b.getUInt64(0),
+						 getUInt64(1) * b.getUInt64(1),
+						 getUInt64(2) * b.getUInt64(2),
+						 getUInt64(3) * b.getUInt64(3)});
+				case typeVec4UInt32:
+					return var(
+						typeVec4UInt32,
+						{getUInt32(0) * b.getUInt32(0),
+						 getUInt32(1) * b.getUInt32(1),
+						 getUInt32(2) * b.getUInt32(2),
+						 getUInt32(3) * b.getUInt32(3)});
+				case typeVec4UInt16:
+					return var(
+						typeVec4UInt16,
+						{getUInt16(0) * b.getUInt16(0),
+						 getUInt16(1) * b.getUInt16(1),
+						 getUInt16(2) * b.getUInt16(2),
+						 getUInt16(3) * b.getUInt16(3)});
+				case typeVec4UInt8:
+					return var(
+						typeVec4UInt8,
+						{getUInt8(0) * b.getUInt8(0),
+						 getUInt8(1) * b.getUInt8(1),
+						 getUInt8(2) * b.getUInt8(2),
+						 getUInt8(3) * b.getUInt8(3)});
+
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{
+							getFloat(0) * b.getFloat(0),
+							getFloat(1) * b.getFloat(1),
+							getFloat(2) * b.getFloat(2),
+							getFloat(3) * b.getFloat(3),
+						});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{
+							getDouble(0) * b.getDouble(0),
+							getDouble(1) * b.getDouble(1),
+							getDouble(2) * b.getDouble(2),
+							getDouble(3) * b.getDouble(3),
+						});
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{
+							getFloat(0) * b.getFloat(0),
+							getFloat(1) * b.getFloat(1),
+							getFloat(2) * b.getFloat(2),
+							getFloat(3) * b.getFloat(3),
+							getFloat(4) * b.getFloat(4),
+							getFloat(5) * b.getFloat(5),
+							getFloat(6) * b.getFloat(6),
+							getFloat(7) * b.getFloat(7),
+							getFloat(8) * b.getFloat(8),
+						});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{
+							getDouble(0) * b.getDouble(0),
+							getDouble(1) * b.getDouble(1),
+							getDouble(2) * b.getDouble(2),
+							getDouble(3) * b.getDouble(3),
+							getDouble(4) * b.getDouble(4),
+							getDouble(5) * b.getDouble(5),
+							getDouble(6) * b.getDouble(6),
+							getDouble(7) * b.getDouble(7),
+							getDouble(8) * b.getDouble(8),
+						});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{
+							getFloat(0) * b.getFloat(0),
+							getFloat(1) * b.getFloat(1),
+							getFloat(2) * b.getFloat(2),
+							getFloat(3) * b.getFloat(3),
+							getFloat(4) * b.getFloat(4),
+							getFloat(5) * b.getFloat(5),
+							getFloat(6) * b.getFloat(6),
+							getFloat(7) * b.getFloat(7),
+							getFloat(8) * b.getFloat(8),
+							getFloat(9) * b.getFloat(9),
+							getFloat(10) * b.getFloat(10),
+							getFloat(11) * b.getFloat(11),
+							getFloat(12) * b.getFloat(12),
+							getFloat(13) * b.getFloat(13),
+							getFloat(14) * b.getFloat(14),
+							getFloat(15) * b.getFloat(15),
+						});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{
+							getDouble(0) * b.getDouble(0),
+							getDouble(1) * b.getDouble(1),
+							getDouble(2) * b.getDouble(2),
+							getDouble(3) * b.getDouble(3),
+							getDouble(4) * b.getDouble(4),
+							getDouble(5) * b.getDouble(5),
+							getDouble(6) * b.getDouble(6),
+							getDouble(7) * b.getDouble(7),
+							getDouble(8) * b.getDouble(8),
+							getDouble(9) * b.getDouble(9),
+							getDouble(10) * b.getDouble(10),
+							getDouble(11) * b.getDouble(11),
+							getDouble(12) * b.getDouble(12),
+							getDouble(13) * b.getDouble(13),
+							getDouble(14) * b.getDouble(14),
+							getDouble(15) * b.getDouble(15),
+						});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
+	var var::operator/(const var& b) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(b.getFloat() / getFloat());
+				case typeDouble:
+					return var(b.getDouble() / getDouble());
+				case typePtr:
+					return var((void*)(b.getInt64() / getInt64()));
+				case typeInt64:
+					return var(b.getInt64() / getInt64());
+				case typeInt32:
+					return var(b.getInt32() / getInt32());
+				case typeInt16:
+					return var(b.getInt16() / getInt16());
+				case typeInt8:
+					return var(b.getInt8() / getInt8());
+				case typeUInt64:
+					return var(b.getUInt64() / getUInt64());
+				case typeUInt32:
+					return var(b.getUInt32() / getUInt32());
+				case typeUInt16:
+					return var(b.getUInt16() / getUInt8());
+				case typeUInt8:
+					return var(b.getUInt8() / getUInt8());
+				case typeBool:
+					return var(bool(b.getInt8() / getInt8()));
+
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64,
+						{getInt64(0) / b.getInt64(0),
+						 getInt64(1) / b.getInt64(1)});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32,
+						{getInt32(0) / b.getInt32(0),
+						 getInt32(1) / b.getInt32(1)});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16,
+						{getInt16(0) / b.getInt16(0),
+						 getInt16(1) / b.getInt16(1)});
+				case typeVec2Int8:
+					return var(
+						typeVec2Int8,
+						{getInt8(0) / b.getInt8(0),
+						 getInt8(1) / b.getInt8(1)});
+				case typeVec2UInt64:
+					return var(
+						typeVec2UInt64,
+						{getUInt64(0) / b.getUInt64(0),
+						 getUInt64(1) / b.getUInt64(1)});
+				case typeVec2UInt32:
+					return var(
+						typeVec2UInt32,
+						{getUInt32(0) / b.getUInt32(0),
+						 getUInt32(1) / b.getUInt32(1)});
+				case typeVec2UInt16:
+					return var(
+						typeVec2UInt16,
+						{getUInt16(0) / b.getUInt16(0),
+						 getUInt16(1) / b.getUInt16(1)});
+				case typeVec2UInt8:
+					return var(
+						typeVec2UInt8,
+						{getUInt8(0) / b.getUInt8(0),
+						 getUInt8(1) / b.getUInt8(1)});
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{getInt64(0) / b.getInt64(0),
+						 getInt64(1) / b.getInt64(1),
+						 getInt64(2) / b.getInt64(2)});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{getInt32(0) / b.getInt32(0),
+						 getInt32(1) / b.getInt32(1),
+						 getInt32(2) / b.getInt32(2)});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{getInt16(0) / b.getInt16(0),
+						 getInt16(1) / b.getInt16(1),
+						 getInt16(2) / b.getInt16(2)});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{
+							getInt8(0) / b.getInt8(0),
+							getInt8(1) / b.getInt8(1),
+							getInt8(2) / b.getInt8(2),
+						});
+				case typeVec3UInt64:
+					return var(
+						typeVec3UInt64,
+						{getUInt64(0) / b.getUInt64(0),
+						 getUInt64(1) / b.getUInt64(1),
+						 getUInt64(2) / b.getUInt64(2)});
+				case typeVec3UInt32:
+					return var(
+						typeVec3UInt32,
+						{getUInt32(0) / b.getUInt32(0),
+						 getUInt32(1) / b.getUInt32(1),
+						 getUInt32(2) / b.getUInt32(2)});
+				case typeVec3UInt16:
+					return var(
+						typeVec3UInt16,
+						{getUInt16(0) / b.getUInt16(0),
+						 getUInt16(1) / b.getUInt16(1),
+						 getUInt16(2) / b.getUInt16(2)});
+				case typeVec3UInt8:
+					return var(
+						typeVec3UInt8,
+						{getUInt8(0) / b.getUInt8(0),
+						 getUInt8(1) / b.getUInt8(1),
+						 getUInt8(2) / b.getUInt8(2)});
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{getInt64(0) / b.getInt64(0),
+						 getInt64(1) / b.getInt64(1),
+						 getInt64(2) / b.getInt64(2),
+						 getInt64(3) / b.getInt64(3)});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{getInt32(0) / b.getInt32(0),
+						 getInt32(1) / b.getInt32(1),
+						 getInt32(2) / b.getInt32(2),
+						 getInt32(3) / b.getInt32(3)});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{getInt16(0) / b.getInt16(0),
+						 getInt16(1) / b.getInt16(1),
+						 getInt16(2) / b.getInt16(2),
+						 getInt16(3) / b.getInt16(3)});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{
+							getInt8(0) / b.getInt8(0),
+							getInt8(1) / b.getInt8(1),
+							getInt8(2) / b.getInt8(2),
+							getInt8(3) / b.getInt8(3),
+						});
+				case typeVec4UInt64:
+					return var(
+						typeVec4UInt64,
+						{getUInt64(0) / b.getUInt64(0),
+						 getUInt64(1) / b.getUInt64(1),
+						 getUInt64(2) / b.getUInt64(2),
+						 getUInt64(3) / b.getUInt64(3)});
+				case typeVec4UInt32:
+					return var(
+						typeVec4UInt32,
+						{getUInt32(0) / b.getUInt32(0),
+						 getUInt32(1) / b.getUInt32(1),
+						 getUInt32(2) / b.getUInt32(2),
+						 getUInt32(3) / b.getUInt32(3)});
+				case typeVec4UInt16:
+					return var(
+						typeVec4UInt16,
+						{getUInt16(0) / b.getUInt16(0),
+						 getUInt16(1) / b.getUInt16(1),
+						 getUInt16(2) / b.getUInt16(2),
+						 getUInt16(3) / b.getUInt16(3)});
+				case typeVec4UInt8:
+					return var(
+						typeVec4UInt8,
+						{getUInt8(0) / b.getUInt8(0),
+						 getUInt8(1) / b.getUInt8(1),
+						 getUInt8(2) / b.getUInt8(2),
+						 getUInt8(3) / b.getUInt8(3)});
+
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{
+							getFloat(0) / b.getFloat(0),
+							getFloat(1) / b.getFloat(1),
+							getFloat(2) / b.getFloat(2),
+							getFloat(3) / b.getFloat(3),
+						});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{
+							getDouble(0) / b.getDouble(0),
+							getDouble(1) / b.getDouble(1),
+							getDouble(2) / b.getDouble(2),
+							getDouble(3) / b.getDouble(3),
+						});
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{
+							getFloat(0) / b.getFloat(0),
+							getFloat(1) / b.getFloat(1),
+							getFloat(2) / b.getFloat(2),
+							getFloat(3) / b.getFloat(3),
+							getFloat(4) / b.getFloat(4),
+							getFloat(5) / b.getFloat(5),
+							getFloat(6) / b.getFloat(6),
+							getFloat(7) / b.getFloat(7),
+							getFloat(8) / b.getFloat(8),
+						});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{
+							getDouble(0) / b.getDouble(0),
+							getDouble(1) / b.getDouble(1),
+							getDouble(2) / b.getDouble(2),
+							getDouble(3) / b.getDouble(3),
+							getDouble(4) / b.getDouble(4),
+							getDouble(5) / b.getDouble(5),
+							getDouble(6) / b.getDouble(6),
+							getDouble(7) / b.getDouble(7),
+							getDouble(8) / b.getDouble(8),
+						});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{
+							getFloat(0) / b.getFloat(0),
+							getFloat(1) / b.getFloat(1),
+							getFloat(2) / b.getFloat(2),
+							getFloat(3) / b.getFloat(3),
+							getFloat(4) / b.getFloat(4),
+							getFloat(5) / b.getFloat(5),
+							getFloat(6) / b.getFloat(6),
+							getFloat(7) / b.getFloat(7),
+							getFloat(8) / b.getFloat(8),
+							getFloat(9) / b.getFloat(9),
+							getFloat(10) / b.getFloat(10),
+							getFloat(11) / b.getFloat(11),
+							getFloat(12) / b.getFloat(12),
+							getFloat(13) / b.getFloat(13),
+							getFloat(14) / b.getFloat(14),
+							getFloat(15) / b.getFloat(15),
+						});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{
+							getDouble(0) / b.getDouble(0),
+							getDouble(1) / b.getDouble(1),
+							getDouble(2) / b.getDouble(2),
+							getDouble(3) / b.getDouble(3),
+							getDouble(4) / b.getDouble(4),
+							getDouble(5) / b.getDouble(5),
+							getDouble(6) / b.getDouble(6),
+							getDouble(7) / b.getDouble(7),
+							getDouble(8) / b.getDouble(8),
+							getDouble(9) / b.getDouble(9),
+							getDouble(10) / b.getDouble(10),
+							getDouble(11) / b.getDouble(11),
+							getDouble(12) / b.getDouble(12),
+							getDouble(13) / b.getDouble(13),
+							getDouble(14) / b.getDouble(14),
+							getDouble(15) / b.getDouble(15),
+						});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
+	var var::operator%(const var& b) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeFloat:
+					return var(bx::mod(b.getFloat(), getFloat()));
+				case typeDouble:
+					return var(bx::mod(b.getDouble(), getDouble()));
+				case typePtr:
+					return var((void*)(b.getInt64() % getInt64()));
+				case typeInt64:
+					return var(b.getInt64() % getInt64());
+				case typeInt32:
+					return var(b.getInt32() % getInt32());
+				case typeInt16:
+					return var(b.getInt16() % getInt16());
+				case typeInt8:
+					return var(b.getInt8() % getInt8());
+				case typeUInt64:
+					return var(b.getUInt64() % getUInt64());
+				case typeUInt32:
+					return var(b.getUInt32() % getUInt32());
+				case typeUInt16:
+					return var(b.getUInt16() % getUInt8());
+				case typeUInt8:
+					return var(b.getUInt8() % getUInt8());
+				case typeBool:
+					return var(bool(b.getInt8() % getInt8()));
+
+				case typeVec2Int64:
+					return var(
+						typeVec2Int64,
+						{getInt64(0) % b.getInt64(0),
+						 getInt64(1) % b.getInt64(1)});
+				case typeVec2Int32:
+					return var(
+						typeVec2Int32,
+						{getInt32(0) % b.getInt32(0),
+						 getInt32(1) % b.getInt32(1)});
+				case typeVec2Int16:
+					return var(
+						typeVec2Int16,
+						{getInt16(0) % b.getInt16(0),
+						 getInt16(1) % b.getInt16(1)});
+				case typeVec2Int8:
+					return var(
+						typeVec2Int8,
+						{getInt8(0) % b.getInt8(0),
+						 getInt8(1) % b.getInt8(1)});
+				case typeVec2UInt64:
+					return var(
+						typeVec2UInt64,
+						{getUInt64(0) % b.getUInt64(0),
+						 getUInt64(1) % b.getUInt64(1)});
+				case typeVec2UInt32:
+					return var(
+						typeVec2UInt32,
+						{getUInt32(0) % b.getUInt32(0),
+						 getUInt32(1) % b.getUInt32(1)});
+				case typeVec2UInt16:
+					return var(
+						typeVec2UInt16,
+						{getUInt16(0) % b.getUInt16(0),
+						 getUInt16(1) % b.getUInt16(1)});
+				case typeVec2UInt8:
+					return var(
+						typeVec2UInt8,
+						{getUInt8(0) % b.getUInt8(0),
+						 getUInt8(1) % b.getUInt8(1)});
+				case typeVec3Int64:
+					return var(
+						typeVec3Int64,
+						{getInt64(0) % b.getInt64(0),
+						 getInt64(1) % b.getInt64(1),
+						 getInt64(2) % b.getInt64(2)});
+				case typeVec3Int32:
+					return var(
+						typeVec3Int32,
+						{getInt32(0) % b.getInt32(0),
+						 getInt32(1) % b.getInt32(1),
+						 getInt32(2) % b.getInt32(2)});
+				case typeVec3Int16:
+					return var(
+						typeVec3Int16,
+						{getInt16(0) % b.getInt16(0),
+						 getInt16(1) % b.getInt16(1),
+						 getInt16(2) % b.getInt16(2)});
+				case typeVec3Int8:
+					return var(
+						typeVec3Int8,
+						{
+							getInt8(0) % b.getInt8(0),
+							getInt8(1) % b.getInt8(1),
+							getInt8(2) % b.getInt8(2),
+						});
+				case typeVec3UInt64:
+					return var(
+						typeVec3UInt64,
+						{getUInt64(0) % b.getUInt64(0),
+						 getUInt64(1) % b.getUInt64(1),
+						 getUInt64(2) % b.getUInt64(2)});
+				case typeVec3UInt32:
+					return var(
+						typeVec3UInt32,
+						{getUInt32(0) % b.getUInt32(0),
+						 getUInt32(1) % b.getUInt32(1),
+						 getUInt32(2) % b.getUInt32(2)});
+				case typeVec3UInt16:
+					return var(
+						typeVec3UInt16,
+						{getUInt16(0) % b.getUInt16(0),
+						 getUInt16(1) % b.getUInt16(1),
+						 getUInt16(2) % b.getUInt16(2)});
+				case typeVec3UInt8:
+					return var(
+						typeVec3UInt8,
+						{getUInt8(0) % b.getUInt8(0),
+						 getUInt8(1) % b.getUInt8(1),
+						 getUInt8(2) % b.getUInt8(2)});
+				case typeVec4Int64:
+					return var(
+						typeVec4Int64,
+						{getInt64(0) % b.getInt64(0),
+						 getInt64(1) % b.getInt64(1),
+						 getInt64(2) % b.getInt64(2),
+						 getInt64(3) % b.getInt64(3)});
+				case typeVec4Int32:
+					return var(
+						typeVec4Int32,
+						{getInt32(0) % b.getInt32(0),
+						 getInt32(1) % b.getInt32(1),
+						 getInt32(2) % b.getInt32(2),
+						 getInt32(3) % b.getInt32(3)});
+				case typeVec4Int16:
+					return var(
+						typeVec4Int16,
+						{getInt16(0) % b.getInt16(0),
+						 getInt16(1) % b.getInt16(1),
+						 getInt16(2) % b.getInt16(2),
+						 getInt16(3) % b.getInt16(3)});
+				case typeVec4Int8:
+					return var(
+						typeVec4Int8,
+						{
+							getInt8(0) % b.getInt8(0),
+							getInt8(1) % b.getInt8(1),
+							getInt8(2) % b.getInt8(2),
+							getInt8(3) % b.getInt8(3),
+						});
+				case typeVec4UInt64:
+					return var(
+						typeVec4UInt64,
+						{getUInt64(0) % b.getUInt64(0),
+						 getUInt64(1) % b.getUInt64(1),
+						 getUInt64(2) % b.getUInt64(2),
+						 getUInt64(3) % b.getUInt64(3)});
+				case typeVec4UInt32:
+					return var(
+						typeVec4UInt32,
+						{getUInt32(0) % b.getUInt32(0),
+						 getUInt32(1) % b.getUInt32(1),
+						 getUInt32(2) % b.getUInt32(2),
+						 getUInt32(3) % b.getUInt32(3)});
+				case typeVec4UInt16:
+					return var(
+						typeVec4UInt16,
+						{getUInt16(0) % b.getUInt16(0),
+						 getUInt16(1) % b.getUInt16(1),
+						 getUInt16(2) % b.getUInt16(2),
+						 getUInt16(3) % b.getUInt16(3)});
+				case typeVec4UInt8:
+					return var(
+						typeVec4UInt8,
+						{getUInt8(0) % b.getUInt8(0),
+						 getUInt8(1) % b.getUInt8(1),
+						 getUInt8(2) % b.getUInt8(2),
+						 getUInt8(3) % b.getUInt8(3)});
+
+				case typeQuatFloat:
+					return var(
+						typeQuatFloat,
+						{
+							bx::mod(getFloat(0), b.getFloat(0)),
+							bx::mod(getFloat(1), b.getFloat(1)),
+							bx::mod(getFloat(2), b.getFloat(2)),
+							bx::mod(getFloat(3), b.getFloat(3)),
+						});
+				case typeQuatDouble:
+					return var(
+						typeQuatDouble,
+						{
+							bx::mod(getDouble(0), b.getDouble(0)),
+							bx::mod(getDouble(1), b.getDouble(1)),
+							bx::mod(getDouble(2), b.getDouble(2)),
+							bx::mod(getDouble(3), b.getDouble(3)),
+						});
+
+				case typeMat3x3Float:
+					return var(
+						typeMat3x3Float,
+						{
+							bx::mod(getFloat(0), b.getFloat(0)),
+							bx::mod(getFloat(1), b.getFloat(1)),
+							bx::mod(getFloat(2), b.getFloat(2)),
+							bx::mod(getFloat(3), b.getFloat(3)),
+							bx::mod(getFloat(4), b.getFloat(4)),
+							bx::mod(getFloat(5), b.getFloat(5)),
+							bx::mod(getFloat(6), b.getFloat(6)),
+							bx::mod(getFloat(7), b.getFloat(7)),
+							bx::mod(getFloat(8), b.getFloat(8)),
+						});
+				case typeMat3x3Double:
+					return var(
+						typeMat3x3Float,
+						{
+							bx::mod(getDouble(0), b.getDouble(0)),
+							bx::mod(getDouble(1), b.getDouble(1)),
+							bx::mod(getDouble(2), b.getDouble(2)),
+							bx::mod(getDouble(3), b.getDouble(3)),
+							bx::mod(getDouble(4), b.getDouble(4)),
+							bx::mod(getDouble(5), b.getDouble(5)),
+							bx::mod(getDouble(6), b.getDouble(6)),
+							bx::mod(getDouble(7), b.getDouble(7)),
+							bx::mod(getDouble(8), b.getDouble(8)),
+						});
+				case typeMat4x4Float:
+					return var(
+						typeMat4x4Float,
+						{
+							bx::mod(getFloat(0), b.getFloat(0)),
+							bx::mod(getFloat(1), b.getFloat(1)),
+							bx::mod(getFloat(2), b.getFloat(2)),
+							bx::mod(getFloat(3), b.getFloat(3)),
+							bx::mod(getFloat(4), b.getFloat(4)),
+							bx::mod(getFloat(5), b.getFloat(5)),
+							bx::mod(getFloat(6), b.getFloat(6)),
+							bx::mod(getFloat(7), b.getFloat(7)),
+							bx::mod(getFloat(8), b.getFloat(8)),
+							bx::mod(getFloat(9), b.getFloat(9)),
+							bx::mod(getFloat(10), b.getFloat(10)),
+							bx::mod(getFloat(11), b.getFloat(11)),
+							bx::mod(getFloat(12), b.getFloat(12)),
+							bx::mod(getFloat(13), b.getFloat(13)),
+							bx::mod(getFloat(14), b.getFloat(14)),
+							bx::mod(getFloat(15), b.getFloat(15)),
+						});
+				case typeMat4x4Double:
+					return var(
+						typeMat4x4Double,
+						{
+							bx::mod(getDouble(0), b.getDouble(0)),
+							bx::mod(getDouble(1), b.getDouble(1)),
+							bx::mod(getDouble(2), b.getDouble(2)),
+							bx::mod(getDouble(3), b.getDouble(3)),
+							bx::mod(getDouble(4), b.getDouble(4)),
+							bx::mod(getDouble(5), b.getDouble(5)),
+							bx::mod(getDouble(6), b.getDouble(6)),
+							bx::mod(getDouble(7), b.getDouble(7)),
+							bx::mod(getDouble(8), b.getDouble(8)),
+							bx::mod(getDouble(9), b.getDouble(9)),
+							bx::mod(getDouble(10), b.getDouble(10)),
+							bx::mod(getDouble(11), b.getDouble(11)),
+							bx::mod(getDouble(12), b.getDouble(12)),
+							bx::mod(getDouble(13), b.getDouble(13)),
+							bx::mod(getDouble(14), b.getDouble(14)),
+							bx::mod(getDouble(15), b.getDouble(15)),
+						});
+
+				default:
+					break;
+			}
+		}
+		return 0;
+	}
+
 	types var::getType() const {
-		auto container = sPtr.get();
-		if (container) return container->type;
+		auto con = sPtr.get();
+		if (con) return con->type;
 		return typeNull;
 	}
 
 	const char* var::getTypeString() const {
 		types type = typeNull;
-		auto container = sPtr.get();
-		if (container) type = container->type;
+		auto con = sPtr.get();
+		if (con) type = con->type;
 		return gold::getTypeString(type);
 	}
 
 	bool var::isString() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeString) return true;
+		auto con = sPtr.get();
+		if (con && con->type == typeString) return true;
 		return false;
 	}
 
 	bool var::isNumber() const {
-		auto container = sPtr.get();
+		auto con = sPtr.get();
 		if (
-			container && (container->type == typeDouble ||
-										container->type == typeFloat ||
-										container->type == typeInt64 ||
-										container->type == typeInt32 ||
-										container->type == typeInt16 ||
-										container->type == typeInt8 ||
-										container->type == typeUInt64 ||
-										container->type == typeUInt32 ||
-										container->type == typeUInt16 ||
-										container->type == typeUInt8 ||
-										container->type == typePtr))
+			con &&
+			(con->type == typeDouble || con->type == typeFloat ||
+			 con->type == typeInt64 || con->type == typeInt32 ||
+			 con->type == typeInt16 || con->type == typeInt8 ||
+			 con->type == typeUInt64 || con->type == typeUInt32 ||
+			 con->type == typeUInt16 || con->type == typeUInt8 ||
+			 con->type == typePtr || con->type == typeVec2Int64 ||
+			 con->type == typeVec2Int32 ||
+			 con->type == typeVec2Int16 ||
+			 con->type == typeVec2Int8 ||
+			 con->type == typeVec3Int64 ||
+			 con->type == typeVec3Int32 ||
+			 con->type == typeVec3Int16 ||
+			 con->type == typeVec3Int8 ||
+			 con->type == typeVec4Int64 ||
+			 con->type == typeVec4Int32 ||
+			 con->type == typeVec4Int16 ||
+			 con->type == typeVec4Int8 ||
+			 con->type == typeVec2UInt64 ||
+			 con->type == typeVec2UInt32 ||
+			 con->type == typeVec2UInt16 ||
+			 con->type == typeVec2UInt8 ||
+			 con->type == typeVec3UInt64 ||
+			 con->type == typeVec3UInt32 ||
+			 con->type == typeVec3UInt16 ||
+			 con->type == typeVec3UInt8 ||
+			 con->type == typeVec4UInt64 ||
+			 con->type == typeVec4UInt32 ||
+			 con->type == typeVec4UInt16 ||
+			 con->type == typeVec4UInt8 ||
+			 con->type == typeVec2Float ||
+			 con->type == typeVec2Double ||
+			 con->type == typeVec3Float ||
+			 con->type == typeVec3Double ||
+			 con->type == typeVec4Float ||
+			 con->type == typeVec4Double ||
+			 con->type == typeQuatFloat ||
+			 con->type == typeQuatDouble ||
+			 con->type == typeMat3x3Float ||
+			 con->type == typeMat3x3Double ||
+			 con->type == typeMat4x4Float ||
+			 con->type == typeMat4x4Double))
 			return true;
 		return false;
 	}
 
 	bool var::isFloating() const {
-		auto container = sPtr.get();
+		auto con = sPtr.get();
 		if (
-			container && (container->type == typeDouble ||
-										container->type == typeFloat))
+			con &&
+			(con->type == typeDouble || con->type == typeFloat ||
+			 con->type == typeVec2Float ||
+			 con->type == typeVec2Double ||
+			 con->type == typeVec3Float ||
+			 con->type == typeVec3Double ||
+			 con->type == typeVec4Float ||
+			 con->type == typeVec4Double ||
+			 con->type == typeQuatFloat ||
+			 con->type == typeQuatDouble ||
+			 con->type == typeMat3x3Float ||
+			 con->type == typeMat3x3Double ||
+			 con->type == typeMat4x4Float ||
+			 con->type == typeMat4x4Double))
 			return true;
 		return false;
 	}
 
 	bool var::isSigned() const {
-		auto container = sPtr.get();
+		auto con = sPtr.get();
 		if (
-			container && (container->type == typeDouble ||
-										container->type == typeFloat ||
-										container->type == typeInt64 ||
-										container->type == typeInt32 ||
-										container->type == typeInt16 ||
-										container->type == typeInt8))
+			con &&
+			(con->type == typeDouble || con->type == typeFloat ||
+			 con->type == typeInt64 || con->type == typeInt32 ||
+			 con->type == typeInt16 || con->type == typeInt8 ||
+			 con->type == typeVec2Int64 ||
+			 con->type == typeVec2Int32 ||
+			 con->type == typeVec2Int16 ||
+			 con->type == typeVec2Int8 ||
+			 con->type == typeVec3Int64 ||
+			 con->type == typeVec3Int32 ||
+			 con->type == typeVec3Int16 ||
+			 con->type == typeVec3Int8 ||
+			 con->type == typeVec4Int64 ||
+			 con->type == typeVec4Int32 ||
+			 con->type == typeVec4Int16 ||
+			 con->type == typeVec4Int8 ||
+			 con->type == typeVec2Float ||
+			 con->type == typeVec2Double ||
+			 con->type == typeVec3Float ||
+			 con->type == typeVec3Double ||
+			 con->type == typeVec4Float ||
+			 con->type == typeVec4Double ||
+			 con->type == typeQuatFloat ||
+			 con->type == typeQuatDouble ||
+			 con->type == typeMat3x3Float ||
+			 con->type == typeMat3x3Double ||
+			 con->type == typeMat4x4Float ||
+			 con->type == typeMat4x4Double))
 			return true;
 		return false;
 	}
 
 	bool var::isBool() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeBool) return true;
+		auto con = sPtr.get();
+		if (con && con->type == typeBool) return true;
 		return false;
 	}
 
 	bool var::isObject() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeObject) return true;
+		auto con = sPtr.get();
+		if (con && con->type == typeObject) return true;
 		return false;
 	}
 
 	bool var::isObject(obj& proto) const {
-		auto container = sPtr.get();
-		if (container && container->type == typeObject) {
-			auto p = *(obj*)container->data;
+		auto con = sPtr.get();
+		if (con && con->type == typeObject) {
+			auto p = *con->obj;
 			while (p) {
 				if (p == proto) return true;
 				p = p.data->parent;
@@ -519,274 +2102,543 @@ namespace gold {
 	}
 
 	bool var::isList() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeList) return true;
+		auto con = sPtr.get();
+		if (con && con->type == typeList) return true;
 		return false;
 	}
 
 	bool var::isEmpty() const {
-		auto container = sPtr.get();
-		if (container) {
-			if (container->type == typeList) {
-				auto v = *(list*)container->data;
-				return v.size() == 0;
-			} else if (container->type == typeObject) {
-				auto v = *(obj*)container->data;
-				return v.size() == 0;
-			} else if (container->type == typeString) {
-				auto v = *(string*)container->data;
-				return v.length() == 0;
-			} else if (container->type == typeFunction) {
-				auto v = *(func*)container->data;
-				return v == 0;
-			} else if (container->type == typeMethod) {
-				auto v = *(method*)container->data;
-				return v == 0;
-			} else if (container->type == typeDouble) {
-				auto v = *(double*)container->data;
-				return v == 0.0;
-			} else if (container->type == typeFloat) {
-				auto v = *(float*)container->data;
-				return v == 0.0;
-			} else if (container->type == typeUInt64) {
-				auto v = *(uint64_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeUInt32) {
-				auto v = *(uint32_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeUInt16) {
-				auto v = *(uint16_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeUInt8) {
-				auto v = *(uint8_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeInt64) {
-				auto v = *(int64_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeInt32) {
-				auto v = *(int32_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeInt16) {
-				auto v = *(int16_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeInt8) {
-				auto v = *(int8_t*)container->data;
-				return v == 0;
-			} else if (container->type == typeBool) {
-				auto v = *(bool*)container->data;
-				return v == false;
-			} else if (container->type == typePtr) {
-				auto v = (void*)container->data;
-				return v == nullptr;
-			} else
+		auto con = sPtr.get();
+		if (con) {
+			auto t = con->type;
+			if (t == typeList)
+				return con->li->size() == 0;
+			else if (t == typeObject)
+				return con->obj->size() == 0;
+			else if (t == typeString)
+				return con->str->length() == 0;
+			else if (t == typeFunction)
+				return *con->fu == 0;
+			else if (t == typeMethod)
+				return *con->me == 0;
+			else if (t == typeDouble)
+				return *con->d == 0.0;
+			else if (t == typeFloat)
+				return *con->f == 0.0;
+			else if (t == typeUInt64)
+				return *con->u64 == 0;
+			else if (t == typeUInt32)
+				return *con->u32 == 0;
+			else if (t == typeUInt16)
+				return *con->u16 == 0;
+			else if (t == typeUInt8)
+				return *con->u8 == 0;
+			else if (t == typeInt64)
+				return *con->i64 == 0;
+			else if (t == typeInt32)
+				return *con->i32 == 0;
+			else if (t == typeInt16)
+				return *con->i16 == 0;
+			else if (t == typeInt8)
+				return *con->i8 == 0;
+			else if (t == typeBool)
+				return *con->b == false;
+			else if (t == typePtr)
+				return con->data == nullptr;
+			else if (t == typeVec2Int64)
+				return getInt64(0) == 0 && getInt64(1) == 0;
+			else if (t == typeVec2Int32)
+				return getInt32(0) == 0 && getInt32(1) == 0;
+			else if (t == typeVec2Int16)
+				return getInt16(0) == 0 && getInt16(1) == 0;
+			else if (t == typeVec2Int8)
+				return getInt8(0) == 0 && getInt8(1) == 0;
+			else if (t == typeVec2UInt64)
+				return getUInt64(0) == 0 && getUInt64(1) == 0;
+			else if (t == typeVec2UInt32)
+				return getUInt32(0) == 0 && getUInt32(1) == 0;
+			else if (t == typeVec2UInt16)
+				return getUInt16(0) == 0 && getUInt16(1) == 0;
+			else if (t == typeVec2UInt8)
+				return getUInt8(0) == 0 && getUInt8(1) == 0;
+
+			else if (t == typeVec3Int64)
+				return getInt64(0) == 0 && getInt64(1) == 0 &&
+							 getInt64(2) == 0;
+			else if (t == typeVec3Int32)
+				return getInt32(0) == 0 && getInt32(1) == 0 &&
+							 getInt32(2) == 0;
+			else if (t == typeVec3Int16)
+				return getInt16(0) == 0 && getInt16(1) == 0 &&
+							 getInt16(2) == 0;
+			else if (t == typeVec3Int8)
+				return getInt8(0) == 0 && getInt8(1) == 0 &&
+							 getInt8(2) == 0;
+			else if (t == typeVec3UInt64)
+				return getUInt64(0) == 0 && getUInt64(1) == 0 &&
+							 getUInt64(2) == 0;
+			else if (t == typeVec3UInt32)
+				return getUInt32(0) == 0 && getUInt32(1) == 0 &&
+							 getUInt32(2) == 0;
+			else if (t == typeVec3UInt16)
+				return getUInt16(0) == 0 && getUInt16(1) == 0 &&
+							 getUInt16(2) == 0;
+			else if (t == typeVec3UInt8)
+				return getUInt8(0) == 0 && getUInt8(1) == 0 &&
+							 getUInt8(2) == 0;
+
+			else if (t == typeVec4Int64)
+				return getInt64(0) == 0 && getInt64(1) == 0 &&
+							 getInt64(2) == 0 && getInt64(3) == 0;
+			else if (t == typeVec4Int32)
+				return getInt32(0) == 0 && getInt32(1) == 0 &&
+							 getInt32(2) == 0 && getInt32(3) == 0;
+			else if (t == typeVec4Int16)
+				return getInt16(0) == 0 && getInt16(1) == 0 &&
+							 getInt16(2) == 0 && getInt16(3) == 0;
+			else if (t == typeVec4Int8)
+				return getInt8(0) == 0 && getInt8(1) == 0 &&
+							 getInt8(2) == 0 && getInt8(3) == 0;
+			else if (t == typeVec4UInt64)
+				return getUInt64(0) == 0 && getUInt64(1) == 0 &&
+							 getUInt64(2) == 0 && getUInt64(3) == 0;
+			else if (t == typeVec4UInt32)
+				return getUInt32(0) == 0 && getUInt32(1) == 0 &&
+							 getUInt32(2) == 0 && getUInt32(3) == 0;
+			else if (t == typeVec4UInt16)
+				return getUInt16(0) == 0 && getUInt16(1) == 0 &&
+							 getUInt16(2) == 0 && getUInt16(3) == 0;
+			else if (t == typeVec4UInt8)
+				return getUInt8(0) == 0 && getUInt8(1) == 0 &&
+							 getUInt8(2) == 0 && getUInt8(3) == 0;
+
+			else if (t == typeVec2Float)
+				return getFloat(0) == 0 && getFloat(1) == 0;
+			else if (t == typeVec2Double)
+				return getDouble(0) == 0 && getDouble(1) == 0;
+			else if (t == typeVec3Float)
+				return getFloat(0) == 0 && getFloat(1) == 0 &&
+							 getFloat(2) == 0;
+			else if (t == typeVec3Double)
+				return getDouble(0) == 0 && getDouble(1) == 0 &&
+							 getDouble(2) == 0;
+			else if (t == typeVec4Float)
+				return getFloat(0) == 0 && getFloat(1) == 0 &&
+							 getFloat(2) == 0 && getFloat(3) == 0;
+			else if (t == typeVec4Double)
+				return getDouble(0) == 0 && getDouble(1) == 0 &&
+							 getDouble(2) == 0 && getDouble(3) == 0;
+
+			else if (t == typeQuatFloat)
+				return getFloat(0) == 0 && getFloat(1) == 0 &&
+							 getFloat(2) == 0 && getFloat(3) == 0;
+			else if (t == typeQuatDouble)
+				return getDouble(0) == 0 && getDouble(1) == 0 &&
+							 getDouble(2) == 0 && getDouble(3) == 0;
+
+			else if (t == typeMat3x3Float)
+				return getFloat(0) == 0 && getFloat(1) == 0 &&
+							 getFloat(2) == 0 && getFloat(3) == 0 &&
+							 getFloat(4) == 0 && getFloat(5) == 0 &&
+							 getFloat(6) == 0 && getFloat(7) == 0 &&
+							 getFloat(8) == 0;
+			else if (t == typeMat3x3Double)
+				return getDouble(0) == 0 && getDouble(1) == 0 &&
+							 getDouble(2) == 0 && getDouble(3) == 0 &&
+							 getDouble(4) == 0 && getDouble(5) == 0 &&
+							 getDouble(6) == 0 && getDouble(7) == 0 &&
+							 getDouble(8) == 0;
+			else if (t == typeMat4x4Float)
+				return getFloat(0) == 0 && getFloat(1) == 0 &&
+							 getFloat(2) == 0 && getFloat(3) == 0 &&
+							 getFloat(4) == 0 && getFloat(5) == 0 &&
+							 getFloat(6) == 0 && getFloat(7) == 0 &&
+							 getFloat(8) == 0 && getFloat(9) == 0 &&
+							 getFloat(10) == 0 && getFloat(11) == 0 &&
+							 getFloat(12) == 0 && getFloat(13) == 0 &&
+							 getFloat(14) == 0 && getFloat(15) == 0;
+			else if (t == typeMat4x4Double)
+				return getDouble(0) == 0 && getDouble(1) == 0 &&
+							 getDouble(2) == 0 && getDouble(3) == 0 &&
+							 getDouble(4) == 0 && getDouble(5) == 0 &&
+							 getDouble(6) == 0 && getDouble(7) == 0 &&
+							 getDouble(8) == 0 && getDouble(9) == 0 &&
+							 getDouble(10) == 0 && getDouble(11) == 0 &&
+							 getDouble(12) == 0 && getDouble(13) == 0 &&
+							 getDouble(14) == 0 && getDouble(15) == 0;
+
+			else
 				return false;
 		}
 		return true;
 	}
 
 	bool var::isError() const {
-		auto container = sPtr.get();
-		return container && container->type == typeException;
+		auto con = sPtr.get();
+		return con && con->type == typeException;
 	}
 
 	bool var::isFunction() const {
-		auto container = sPtr.get();
-		return container && container->type == typeFunction;
+		auto con = sPtr.get();
+		return con && con->type == typeFunction;
 	}
 
 	bool var::isMethod() const {
-		auto container = sPtr.get();
-		return container && container->type == typeMethod;
+		auto con = sPtr.get();
+		return con && con->type == typeMethod;
 	}
 
 	bool var::isBinary() const {
-		auto container = sPtr.get();
-		return container && container->type == typeBinary;
+		auto con = sPtr.get();
+		return con && con->type == typeBinary;
+	}
+
+	bool var::isVec2() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeVec2Double ||
+									 con->type == typeVec2Float ||
+									 con->type == typeVec2Int16 ||
+									 con->type == typeVec2Int32 ||
+									 con->type == typeVec2Int64 ||
+									 con->type == typeVec2Int8 ||
+									 con->type == typeVec2UInt16 ||
+									 con->type == typeVec2UInt32 ||
+									 con->type == typeVec2UInt64 ||
+									 con->type == typeVec2UInt8);
+	}
+
+	bool var::isVec3() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeVec3Double ||
+									 con->type == typeVec3Float ||
+									 con->type == typeVec3Int16 ||
+									 con->type == typeVec3Int32 ||
+									 con->type == typeVec3Int64 ||
+									 con->type == typeVec3Int8 ||
+									 con->type == typeVec3UInt16 ||
+									 con->type == typeVec3UInt32 ||
+									 con->type == typeVec3UInt64 ||
+									 con->type == typeVec3UInt8);
+	}
+
+	bool var::isVec4() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeVec4Double ||
+									 con->type == typeVec4Float ||
+									 con->type == typeVec4Int16 ||
+									 con->type == typeVec4Int32 ||
+									 con->type == typeVec4Int64 ||
+									 con->type == typeVec4Int8 ||
+									 con->type == typeVec4UInt16 ||
+									 con->type == typeVec4UInt32 ||
+									 con->type == typeVec4UInt64 ||
+									 con->type == typeVec4UInt8);
+	}
+
+	bool var::isQuat() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeQuatFloat ||
+									 con->type == typeQuatDouble);
+	}
+
+	bool var::isMat3x3() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeMat3x3Float ||
+									 con->type == typeMat3x3Double);
+	}
+
+	bool var::isMat4x4() const {
+		auto con = sPtr.get();
+		return con && (con->type == typeMat4x4Float ||
+									 con->type == typeMat4x4Double);
+	}
+
+	void var::setInt64(size_t i, int64_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Int64:
+				con->i64[min(i, 1ul)] = v;
+				break;
+			case typeVec3Int64:
+				con->i64[min(i, 2ul)] = v;
+				break;
+			case typeVec4Int64:
+				con->i64[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setInt32(size_t i, int32_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Int32:
+				con->i32[min(i, 1ul)] = v;
+				break;
+			case typeVec3Int32:
+				con->i32[min(i, 2ul)] = v;
+				break;
+			case typeVec4Int32:
+				con->i32[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setInt16(size_t i, int16_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Int16:
+				con->i16[min(i, 1ul)] = v;
+				break;
+			case typeVec3Int16:
+				con->i16[min(i, 2ul)] = v;
+				break;
+			case typeVec4Int16:
+				con->i16[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setInt8(size_t i, int8_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Int8:
+				con->i8[min(i, 1ul)] = v;
+				break;
+			case typeVec3Int8:
+				con->i8[min(i, 2ul)] = v;
+				break;
+			case typeVec4Int8:
+				con->i8[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setUInt64(size_t i, uint64_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2UInt64:
+				con->u64[min(i, 1ul)] = v;
+				break;
+			case typeVec3UInt64:
+				con->u64[min(i, 2ul)] = v;
+				break;
+			case typeVec4UInt64:
+				con->u64[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setUInt32(size_t i, uint32_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2UInt32:
+				con->u32[min(i, 1ul)] = v;
+				break;
+			case typeVec3UInt32:
+				con->u32[min(i, 2ul)] = v;
+				break;
+			case typeVec4UInt32:
+				con->u32[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setUInt16(size_t i, uint16_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2UInt16:
+				con->u16[min(i, 1ul)] = v;
+				break;
+			case typeVec3UInt16:
+				con->u16[min(i, 2ul)] = v;
+				break;
+			case typeVec4UInt16:
+				con->u16[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setUInt8(size_t i, uint8_t v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2UInt16:
+				con->u8[min(i, 1ul)] = v;
+				break;
+			case typeVec3UInt16:
+				con->u8[min(i, 2ul)] = v;
+				break;
+			case typeVec4UInt16:
+				con->u8[min(i, 3ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setDouble(size_t i, double v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Double:
+				con->d[min(i, 1ul)] = v;
+				break;
+			case typeVec3Double:
+				con->d[min(i, 2ul)] = v;
+				break;
+			case typeQuatDouble:
+			case typeVec4Double:
+				con->d[min(i, 3ul)] = v;
+				break;
+			case typeMat3x3Double:
+				con->d[min(i, 8ul)] = v;
+				break;
+			case typeMat4x4Double:
+				con->d[min(i, 15ul)] = v;
+				break;
+			default:
+				break;
+		}
+	}
+
+	void var::setFloat(size_t i, float v) {
+		auto con = sPtr.get();
+		switch (con->type) {
+			case typeVec2Float:
+				con->f[min(i, 1ul)] = v;
+				break;
+			case typeVec3Float:
+				con->f[min(i, 2ul)] = v;
+				break;
+			case typeQuatFloat:
+			case typeVec4Float:
+				con->f[min(i, 3ul)] = v;
+				break;
+			case typeMat3x3Float:
+				con->f[min(i, 8ul)] = v;
+				break;
+			case typeMat4x4Float:
+				con->f[min(i, 15ul)] = v;
+				break;
+			default:
+				break;
+		}
 	}
 
 	string var::getString() const { return (string) * this; }
 
-	int64_t var::getInt64() const { return (int64_t) * this; }
-
-	int32_t var::getInt32() const { return (int32_t) * this; }
-
-	int16_t var::getInt16() const { return (int16_t) * this; }
-
-	int8_t var::getInt8() const { return (int8_t) * this; }
-
-	uint64_t var::getUInt64() const { return (uint64_t) * this; }
-
-	uint32_t var::getUInt32() const { return (uint32_t) * this; }
-
-	uint16_t var::getUInt16() const { return (uint16_t) * this; }
-
-	uint8_t var::getUInt8() const { return (uint8_t) * this; }
-
-	double var::getDouble() const { return (double)*this; }
-
-	float var::getFloat() const { return (float)*this; }
-
-	bool var::getBool() const { return (bool)*this; }
-
-	list var::getList() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeList)
-			return *(list*)container->data;
-		return list();
-	}
-
-	object var::getObject() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeObject)
-			return *(object*)container->data;
-		return object();
-	}
-
-	void var::returnList(list& result) const {
-		auto container = sPtr.get();
-		if (container && container->type == typeList)
-			result = *(list*)container->data;
-	}
-
-	void var::returnObject(obj& result) const {
-		auto container = sPtr.get();
-		if (container && container->type == typeObject)
-			result = *(object*)container->data;
-	}
-
-	method var::getMethod() const { return (method)(*this); }
-
-	func var::getFunction() const { return (func)(*this); }
-
-	void* var::getPtr() const { return (void*)*this; }
-
-	genericError* var::getError() const {
-		return (genericError*)*this;
-	}
-
-	binary var::getBinary() const {
-		auto container = sPtr.get();
-		if (container) {
-			if (container->type == typeBinary)
-				return *(binary*)container->data;
-			else if (container->type == typeString) {
-				auto str = *(string*)container->data;
-				size_t size = str.size();
-				auto result = binary(size);
-				memcpy(result.data(), str.data(), size);
-				return result;
-			}
-		}
-		return binary();
-	}
-
-	void var::returnBinary(binary& result) const {
-		auto container = sPtr.get();
-		if (container) {
-			if (container->type == typeBinary)
-				result = *(binary*)container->data;
-			else if (container->type == typeString) {
-				auto str = *(string*)container->data;
-				size_t size = str.size();
-				result = binary(size);
-				memcpy(result.data(), str.data(), size);
-			}
-		}
-	}
-
-	var::operator string() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	int64_t var::getInt64(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Int64:
+					return (con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return (con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return (con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return to_string(*(int64_t*)container->data);
+					return (*con->i64);
 				case typePtr:
-				case typeFunction:
-				case typeMethod:
-					return "0x" + to_string((uint64_t)container->data);
+					return (int64_t)(void*)con->data;
+				case typeVec2Int32:
+					return int64_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return int64_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return int64_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return to_string(*(int32_t*)container->data);
+					return int64_t(*con->i32);
+				case typeVec2Int16:
+					return int64_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return int64_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return int64_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return to_string(*(int16_t*)container->data);
+					return int64_t(*con->i16);
+				case typeVec2Int8:
+					return int64_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return int64_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return int64_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return to_string(*(int8_t*)container->data);
+					return int64_t(*con->i8);
+				case typeVec2UInt64:
+					return int64_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return int64_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return int64_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return to_string(*(uint64_t*)container->data);
+					return int64_t(*con->u64);
+				case typeVec2UInt32:
+					return int64_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return int64_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return int64_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return to_string(*(uint32_t*)container->data);
+					return int64_t(*con->u32);
+				case typeVec2UInt16:
+					return int64_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return int64_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return int64_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return to_string(*(uint16_t*)container->data);
+					return int64_t(*con->u16);
+				case typeVec2UInt8:
+					return int64_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return int64_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return int64_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return to_string(*(uint8_t*)container->data);
+					return int64_t(*con->u8);
+				case typeVec2Double:
+					return int64_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return int64_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return int64_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return int64_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return int64_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return to_string(*(double*)container->data);
+					return int64_t(*con->d);
+				case typeVec2Float:
+					return int64_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return int64_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return int64_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return int64_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return int64_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return to_string(*(float*)container->data);
+					return int64_t(*con->f);
 				case typeBool:
-					return *(bool*)container->data ? "true" : "false";
+					return int64_t(*con->b);
 				case typeString:
-					return *(string*)container->data;
-				case typeNull:
-					return "null";
-				case typeList:
-					return ((list*)container->data)->getJSON();
-				case typeObject:
-					return ((object*)container->data)->getJSON();
-				case typeException:
-					return string(*(genericError*)container->data);
-				case typeBinary: {
-					auto bin = (binary*)container->data;
-					return string((char*)bin->data(), bin->size());
-				}
-				default:
-					break;
-			}
-		}
-
-		return "";
-	}
-
-	var::operator const char*() const {
-		auto container = sPtr.get();
-		if (container) {
-			if (container->type == typeString)
-				return ((string*)container->data)->data();
-			else if (container->type == typeBinary)
-				return (char*)container->data;
-		}
-		return nullptr;
-	}
-
-	var::operator int64_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
-				case typeInt64:
-					return (*(int64_t*)container->data);
-				case typePtr:
-					return (int64_t)(void*)container->data;
-				case typeInt32:
-					return (int64_t)(*(int32_t*)container->data);
-				case typeInt16:
-					return (int64_t)(*(int16_t*)container->data);
-				case typeInt8:
-					return (int64_t)(*(int8_t*)container->data);
-				case typeUInt64:
-					return (int64_t)(*(uint64_t*)container->data);
-				case typeUInt32:
-					return (int64_t)(*(uint32_t*)container->data);
-				case typeUInt16:
-					return (int64_t)(*(uint16_t*)container->data);
-				case typeUInt8:
-					return (int64_t)(*(uint8_t*)container->data);
-				case typeDouble:
-					return (int64_t)(*(double*)container->data);
-				case typeFloat:
-					return (int64_t)(*(float*)container->data);
-				case typeBool:
-					return (int64_t)(*(bool*)container->data);
-				case typeString:
-					return atol((*(string*)container->data).c_str());
+					return atol((*con->str).c_str());
 				case typeNull:
 				case typeList:
 				case typeObject:
@@ -798,34 +2650,104 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator int32_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	int32_t var::getInt32(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Int32:
+					return (con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return (con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return (con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (*(int32_t*)container->data);
+					return (*con->i32);
+				case typeVec2Int64:
+					return int32_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return int32_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return int32_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (int32_t)(*(int64_t*)container->data);
+					return int32_t(*con->i64);
+				case typeVec2Int16:
+					return int32_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return int32_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return int32_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (int32_t)(*(int16_t*)container->data);
+					return int32_t(*con->i16);
+				case typeVec2Int8:
+					return int32_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return int32_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return int32_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (int32_t)(*(int8_t*)container->data);
+					return int32_t(*con->i8);
+				case typeVec2UInt64:
+					return int32_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return int32_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return int32_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (int32_t)(*(uint64_t*)container->data);
+					return int32_t(*con->u64);
+				case typeVec2UInt32:
+					return int32_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return int32_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return int32_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (int32_t)(*(uint32_t*)container->data);
+					return int32_t(*con->u32);
+				case typeVec2UInt16:
+					return int32_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return int32_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return int32_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (int32_t)(*(uint16_t*)container->data);
+					return int32_t(*con->u16);
+				case typeVec2UInt8:
+					return int32_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return int32_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return int32_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (int32_t)(*(uint8_t*)container->data);
+					return int32_t(*con->u8);
+				case typeVec2Double:
+					return int32_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return int32_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return int32_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return int32_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return int32_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (int32_t)(*(double*)container->data);
+					return int32_t(*con->d);
+				case typeVec2Float:
+					return int32_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return int32_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return int32_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return int32_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return int32_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (int32_t)(*(float*)container->data);
+					return int32_t(*con->f);
 				case typeBool:
-					return (int32_t)(*(bool*)container->data);
+					return int32_t(*con->b);
 				case typeString:
-					return atoi((*(string*)container->data).c_str());
+					return atoi((*con->str).c_str());
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -838,35 +2760,104 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator int16_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	int16_t var::getInt16(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Int16:
+					return (con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return (con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return (con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (*(int16_t*)container->data);
+					return (*con->i16);
+				case typeVec2Int64:
+					return int16_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return int16_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return int16_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (int16_t)(*(int64_t*)container->data);
+					return int16_t(*con->i64);
+				case typeVec2Int32:
+					return int16_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return int16_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return int16_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (int16_t)(*(int32_t*)container->data);
+					return int16_t(*con->i32);
+				case typeVec2Int8:
+					return int16_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return int16_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return int16_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (int16_t)(*(int8_t*)container->data);
+					return int16_t(*con->i8);
+				case typeVec2UInt64:
+					return int16_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return int16_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return int16_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (int16_t)(*(uint64_t*)container->data);
+					return int16_t(*con->u64);
+				case typeVec2UInt32:
+					return int16_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return int16_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return int16_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (int16_t)(*(uint32_t*)container->data);
+					return int16_t(*con->u32);
+				case typeVec2UInt16:
+					return int16_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return int16_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return int16_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (int16_t)(*(uint16_t*)container->data);
+					return int16_t(*con->u16);
+				case typeVec2UInt8:
+					return int16_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return int16_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return int16_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (int16_t)(*(uint8_t*)container->data);
+					return int16_t(*con->u8);
+				case typeVec2Double:
+					return int16_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return int16_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return int16_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return int16_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return int16_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (int16_t)(*(double*)container->data);
+					return int16_t(*con->d);
+				case typeVec2Float:
+					return int16_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return int16_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return int16_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return int16_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return int16_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (int16_t)(*(float*)container->data);
+					return int16_t(*con->f);
 				case typeBool:
-					return (int16_t)(*(bool*)container->data);
+					return int16_t(*con->b);
 				case typeString:
-					return (int16_t)atoi(
-						(*(string*)container->data).c_str());
+					return (int16_t)atoi((*con->str).c_str());
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -879,35 +2870,104 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator int8_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	int8_t var::getInt8(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Int8:
+					return (con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return (con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return (con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (*(int8_t*)container->data);
+					return (*con->i8);
+				case typeVec2Int64:
+					return int8_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return int8_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return int8_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (int8_t)(*(int64_t*)container->data);
+					return int8_t(*con->i64);
+				case typeVec2Int32:
+					return int8_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return int8_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return int8_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (int8_t)(*(int32_t*)container->data);
+					return int8_t(*con->i32);
+				case typeVec2Int16:
+					return int8_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return int8_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return int8_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (int8_t)(*(int16_t*)container->data);
+					return int8_t(*con->i16);
+				case typeVec2UInt64:
+					return int8_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return int8_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return int8_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (int8_t)(*(uint64_t*)container->data);
+					return int8_t(*con->u64);
+				case typeVec2UInt32:
+					return int8_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return int8_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return int8_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (int8_t)(*(uint32_t*)container->data);
+					return int8_t(*con->u32);
+				case typeVec2UInt16:
+					return int8_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return int8_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return int8_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (int8_t)(*(uint16_t*)container->data);
+					return int8_t(*con->u16);
+				case typeVec2UInt8:
+					return int8_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return int8_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return int8_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (int8_t)(*(uint8_t*)container->data);
+					return int8_t(*con->u8);
+				case typeVec2Double:
+					return int8_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return int8_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return int8_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return int8_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return int8_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (int8_t)(*(double*)container->data);
+					return int8_t(*con->d);
+				case typeVec2Float:
+					return int8_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return int8_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return int8_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return int8_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return int8_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (int8_t)(*(float*)container->data);
+					return int8_t(*con->f);
 				case typeBool:
-					return (int8_t)(*(bool*)container->data);
+					return int8_t(*con->b);
 				case typeString:
-					return (int8_t)atoi(
-						(*(string*)container->data).c_str());
+					return (int8_t)atoi((*con->str).c_str());
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -920,37 +2980,107 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator uint64_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	uint64_t var::getUInt64(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2UInt64:
+					return (con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return (con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return (con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (*(uint64_t*)container->data);
+					return (*con->u64);
+				case typeVec2Int64:
+					return uint64_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return uint64_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return uint64_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (uint64_t)(*(int64_t*)container->data);
+					return uint64_t(*con->i64);
 				case typePtr:
-					return (uint64_t)(void*)container->data;
+					return (uint64_t)(void*)con->data;
+				case typeVec2Int32:
+					return uint64_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return uint64_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return uint64_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (uint64_t)(*(int32_t*)container->data);
+					return uint64_t(*con->i32);
+				case typeVec2Int16:
+					return uint64_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return uint64_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return uint64_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (uint64_t)(*(int16_t*)container->data);
+					return uint64_t(*con->i16);
+				case typeVec2Int8:
+					return uint64_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return uint64_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return uint64_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (uint64_t)(*(int8_t*)container->data);
+					return uint64_t(*con->i8);
+				case typeVec2UInt32:
+					return uint64_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return uint64_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return uint64_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (uint64_t)(*(uint32_t*)container->data);
+					return uint64_t(*con->u32);
+				case typeVec2UInt16:
+					return uint64_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return uint64_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return uint64_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (uint64_t)(*(uint16_t*)container->data);
+					return uint64_t(*con->u16);
+				case typeVec2UInt8:
+					return uint64_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return uint64_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return uint64_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (uint64_t)(*(uint8_t*)container->data);
+					return uint64_t(*con->u8);
+				case typeVec2Double:
+					return uint64_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return uint64_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return uint64_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return uint64_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return uint64_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (uint64_t)(*(double*)container->data);
+					return uint64_t(*con->d);
+				case typeVec2Float:
+					return uint64_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return uint64_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return uint64_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return uint64_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return uint64_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (uint64_t)(*(float*)container->data);
+					return uint64_t(*con->f);
 				case typeBool:
-					return (uint64_t)(*(bool*)container->data);
+					return uint64_t(*con->b);
 				case typeString:
 					return (uint64_t)strtoul(
-						(*(string*)container->data).c_str(), NULL, 0);
+						(*con->str).c_str(), NULL, 0);
 				case typeNull:
 				case typeList:
 				case typeObject:
@@ -962,35 +3092,105 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator uint32_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	uint32_t var::getUInt32(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2UInt32:
+					return (con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return (con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return (con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (*(uint32_t*)container->data);
+					return (*con->u32);
+				case typeVec2Int64:
+					return uint32_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return uint32_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return uint32_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (uint32_t)(*(int64_t*)container->data);
+					return uint32_t(*con->i64);
+				case typeVec2Int32:
+					return uint32_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return uint32_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return uint32_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (uint32_t)(*(int32_t*)container->data);
+					return uint32_t(*con->i32);
+				case typeVec2Int16:
+					return uint32_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return uint32_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return uint32_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (uint32_t)(*(int16_t*)container->data);
+					return uint32_t(*con->i16);
+				case typeVec2Int8:
+					return uint32_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return uint32_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return uint32_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (uint32_t)(*(int8_t*)container->data);
+					return uint32_t(*con->i8);
+				case typeVec2UInt64:
+					return uint32_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return uint32_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return uint32_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (uint32_t)(*(uint64_t*)container->data);
+					return uint32_t(*con->u64);
+				case typeVec2UInt16:
+					return uint32_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return uint32_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return uint32_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (uint32_t)(*(uint16_t*)container->data);
+					return uint32_t(*con->u16);
+				case typeVec2UInt8:
+					return uint32_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return uint32_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return uint32_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (uint32_t)(*(uint8_t*)container->data);
+					return uint32_t(*con->u8);
+				case typeVec2Double:
+					return uint32_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return uint32_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return uint32_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return uint32_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return uint32_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (uint32_t)(*(double*)container->data);
+					return uint32_t(*con->d);
+				case typeVec2Float:
+					return uint32_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return uint32_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return uint32_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return uint32_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return uint32_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (uint32_t)(*(float*)container->data);
+					return uint32_t(*con->f);
 				case typeBool:
-					return (uint32_t)(*(bool*)container->data);
+					return uint32_t(*con->b);
 				case typeString:
 					return (uint32_t)strtoul(
-						(*(string*)container->data).c_str(), NULL, 0);
+						(*con->str).c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -1003,35 +3203,105 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator uint16_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	uint16_t var::getUInt16(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2UInt16:
+					return (con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return (con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return (con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (*(uint16_t*)container->data);
+					return (*con->u16);
+				case typeVec2Int64:
+					return uint16_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return uint16_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return uint16_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (uint16_t)(*(int64_t*)container->data);
+					return uint16_t(*con->i64);
+				case typeVec2Int32:
+					return uint16_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return uint16_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return uint16_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (uint16_t)(*(int32_t*)container->data);
+					return uint16_t(*con->i32);
+				case typeVec2Int16:
+					return uint16_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return uint16_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return uint16_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (uint16_t)(*(int16_t*)container->data);
+					return uint16_t(*con->i16);
+				case typeVec2Int8:
+					return uint16_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return uint16_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return uint16_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (uint16_t)(*(int8_t*)container->data);
+					return uint16_t(*con->i8);
+				case typeVec2UInt64:
+					return uint16_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return uint16_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return uint16_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (uint16_t)(*(uint64_t*)container->data);
+					return uint16_t(*con->u64);
+				case typeVec2UInt32:
+					return uint16_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return uint16_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return uint16_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (uint16_t)(*(uint32_t*)container->data);
+					return uint16_t(*con->u32);
+				case typeVec2UInt8:
+					return uint16_t(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return uint16_t(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return uint16_t(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (uint16_t)(*(uint8_t*)container->data);
+					return uint16_t(*con->u8);
+				case typeVec2Double:
+					return uint16_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return uint16_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return uint16_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return uint16_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return uint16_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (uint16_t)(*(double*)container->data);
+					return uint16_t(*con->d);
+				case typeVec2Float:
+					return uint16_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return uint16_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return uint16_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return uint16_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return uint16_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (uint16_t)(*(float*)container->data);
+					return uint16_t(*con->f);
 				case typeBool:
-					return (uint16_t)(*(bool*)container->data);
+					return uint16_t(*con->b);
 				case typeString:
 					return (uint16_t)strtoul(
-						(*(string*)container->data).c_str(), NULL, 0);
+						(*con->str).c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -1044,35 +3314,104 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator uint8_t() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	uint8_t var::getUInt8(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2UInt8:
+					return (con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return (con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return (con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (*(uint8_t*)container->data);
+					return (*con->u8);
+				case typeVec2Int64:
+					return uint8_t(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return uint8_t(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return uint8_t(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (uint8_t)(*(int64_t*)container->data);
+					return uint8_t(*con->i64);
+				case typeVec2Int32:
+					return uint8_t(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return uint8_t(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return uint8_t(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (uint8_t)(*(int32_t*)container->data);
+					return uint8_t(*con->i32);
+				case typeVec2Int16:
+					return uint8_t(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return uint8_t(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return uint8_t(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (uint8_t)(*(int16_t*)container->data);
+					return uint8_t(*con->i16);
+				case typeVec2Int8:
+					return uint8_t(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return uint8_t(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return uint8_t(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (uint8_t)(*(int8_t*)container->data);
+					return uint8_t(*con->i8);
+				case typeVec2UInt64:
+					return uint8_t(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return uint8_t(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return uint8_t(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (uint8_t)(*(uint64_t*)container->data);
+					return uint8_t(*con->u64);
+				case typeVec2UInt32:
+					return uint8_t(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return uint8_t(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return uint8_t(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (uint8_t)(*(uint32_t*)container->data);
+					return uint8_t(*con->u32);
+				case typeVec2UInt16:
+					return uint8_t(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return uint8_t(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return uint8_t(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (uint8_t)(*(uint16_t*)container->data);
+					return uint8_t(*con->u16);
+				case typeVec2Double:
+					return uint8_t(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return uint8_t(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return uint8_t(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return uint8_t(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return uint8_t(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (uint8_t)(*(double*)container->data);
+					return uint8_t(*con->d);
+				case typeVec2Float:
+					return uint8_t(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return uint8_t(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return uint8_t(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return uint8_t(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return uint8_t(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (uint8_t)(*(float*)container->data);
+					return uint8_t(*con->f);
 				case typeBool:
-					return (uint8_t)(*(bool*)container->data);
+					return uint8_t(*con->b);
 				case typeString:
-					return (uint8_t)strtoul(
-						(*(string*)container->data).c_str(), NULL, 0);
+					return (uint8_t)strtoul((*con->str).c_str(), NULL, 0);
 				case typePtr:
 				case typeNull:
 				case typeList:
@@ -1085,36 +3424,106 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator double() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	double var::getDouble(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Double:
+					return (con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return (con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return (con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return (con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return (con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (*(double*)container->data);
+					return (*con->d);
+				case typeVec2Int64:
+					return double(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return double(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return double(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (double)(*(int64_t*)container->data);
+					return double(*con->i64);
 				case typePtr:
-					return (double)(uint64_t)(void*)container->data;
+					return (double)(uint64_t)(void*)con->data;
+				case typeVec2Int32:
+					return double(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return double(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return double(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (double)(*(int32_t*)container->data);
+					return double(*con->i32);
+				case typeVec2Int16:
+					return double(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return double(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return double(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (double)(*(int16_t*)container->data);
+					return double(*con->i16);
+				case typeVec2Int8:
+					return double(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return double(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return double(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (double)(*(int8_t*)container->data);
+					return double(*con->i8);
+				case typeVec2UInt64:
+					return double(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return double(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return double(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (double)(*(uint64_t*)container->data);
+					return double(*con->u64);
+				case typeVec2UInt32:
+					return double(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return double(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return double(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (double)(*(uint32_t*)container->data);
+					return double(*con->u32);
+				case typeVec2UInt16:
+					return double(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return double(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return double(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (double)(*(uint16_t*)container->data);
+					return double(*con->u16);
+				case typeVec2UInt8:
+					return double(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return double(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return double(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (double)(*(uint8_t*)container->data);
+					return double(*con->u8);
+				case typeVec2Float:
+					return double(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return double(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return double(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return double(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return double(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (double)(*(float*)container->data);
+					return double(*con->f);
 				case typeBool:
-					return (double)(*(bool*)container->data);
+					return double(*con->b);
 				case typeString:
-					return stod((*(string*)container->data).c_str());
+					return stod((*con->str).c_str());
 				case typeNull:
 				case typeList:
 				case typeObject:
@@ -1126,36 +3535,106 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator float() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	float var::getFloat(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeVec2Float:
+					return (con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return (con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return (con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return (con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return (con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (*(float*)container->data);
+					return (*con->f);
+				case typeVec2Double:
+					return (con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return (con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return (con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return (con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return (con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (float)(*(double*)container->data);
+					return float(*con->d);
+				case typeVec2Int64:
+					return float(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return float(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return float(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (float)(*(int64_t*)container->data);
+					return float(*con->i64);
 				case typePtr:
-					return (float)(uint64_t)(void*)container->data;
+					return (float)(uint64_t)(void*)con->data;
+				case typeVec2Int32:
+					return float(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return float(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return float(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (float)(*(int32_t*)container->data);
+					return float(*con->i32);
+				case typeVec2Int16:
+					return float(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return float(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return float(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (float)(*(int16_t*)container->data);
+					return float(*con->i16);
+				case typeVec2Int8:
+					return float(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return float(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return float(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (float)(*(int8_t*)container->data);
+					return float(*con->i8);
+				case typeVec2UInt64:
+					return float(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return float(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return float(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (float)(*(uint64_t*)container->data);
+					return float(*con->u64);
+				case typeVec2UInt32:
+					return float(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return float(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return float(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (float)(*(uint32_t*)container->data);
+					return float(*con->u32);
+				case typeVec2UInt16:
+					return float(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return float(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return float(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (float)(*(uint16_t*)container->data);
+					return float(*con->u16);
+				case typeVec2UInt8:
+					return float(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return float(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return float(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (float)(*(uint8_t*)container->data);
+					return float(*con->u8);
 				case typeBool:
-					return (float)(*(bool*)container->data);
+					return float(*con->b);
 				case typeString:
-					return stof((*(string*)container->data).c_str());
+					return stof((*con->str).c_str());
 				case typeNull:
 				case typeList:
 				case typeObject:
@@ -1167,44 +3646,110 @@ namespace gold {
 		return 0;
 	}
 
-	var::operator bool() const {
-		auto container = sPtr.get();
-		if (container) {
-			switch (container->type) {
+	bool var::getBool(size_t i) const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
 				case typeBool:
-					return (bool)(*(bool*)container->data);
+					return bool(*con->b);
+				case typeVec2Int64:
+					return bool(con->i64[min(i, 1ul)]);
+				case typeVec3Int64:
+					return bool(con->i64[min(i, 2ul)]);
+				case typeVec4Int64:
+					return bool(con->i64[min(i, 3ul)]);
 				case typeInt64:
-					return (bool)(*(int64_t*)container->data);
+					return bool(*con->i64);
 				case typePtr:
-					return (bool)(void*)container->data;
+					return (bool)(void*)con->data;
+				case typeVec2Int32:
+					return bool(con->i32[min(i, 1ul)]);
+				case typeVec3Int32:
+					return bool(con->i32[min(i, 2ul)]);
+				case typeVec4Int32:
+					return bool(con->i32[min(i, 3ul)]);
 				case typeInt32:
-					return (bool)(*(int32_t*)container->data);
+					return bool(*con->i32);
+				case typeVec2Int16:
+					return bool(con->i16[min(i, 1ul)]);
+				case typeVec3Int16:
+					return bool(con->i16[min(i, 2ul)]);
+				case typeVec4Int16:
+					return bool(con->i16[min(i, 3ul)]);
 				case typeInt16:
-					return (bool)(*(int16_t*)container->data);
+					return bool(*con->i16);
+				case typeVec2Int8:
+					return bool(con->i8[min(i, 1ul)]);
+				case typeVec3Int8:
+					return bool(con->i8[min(i, 2ul)]);
+				case typeVec4Int8:
+					return bool(con->i8[min(i, 3ul)]);
 				case typeInt8:
-					return (bool)(*(int8_t*)container->data);
+					return bool(*con->i8);
+				case typeVec2UInt64:
+					return bool(con->u64[min(i, 1ul)]);
+				case typeVec3UInt64:
+					return bool(con->u64[min(i, 2ul)]);
+				case typeVec4UInt64:
+					return bool(con->u64[min(i, 3ul)]);
 				case typeUInt64:
-					return (bool)(*(uint64_t*)container->data);
+					return bool(*con->u64);
+				case typeVec2UInt32:
+					return bool(con->u32[min(i, 1ul)]);
+				case typeVec3UInt32:
+					return bool(con->u32[min(i, 2ul)]);
+				case typeVec4UInt32:
+					return bool(con->u32[min(i, 3ul)]);
 				case typeUInt32:
-					return (bool)(*(uint32_t*)container->data);
+					return bool(*con->u32);
+				case typeVec2UInt16:
+					return bool(con->u16[min(i, 1ul)]);
+				case typeVec3UInt16:
+					return bool(con->u16[min(i, 2ul)]);
+				case typeVec4UInt16:
+					return bool(con->u16[min(i, 3ul)]);
 				case typeUInt16:
-					return (bool)(*(uint16_t*)container->data);
+					return bool(*con->u16);
+				case typeVec2UInt8:
+					return bool(con->u8[min(i, 1ul)]);
+				case typeVec3UInt8:
+					return bool(con->u8[min(i, 2ul)]);
+				case typeVec4UInt8:
+					return bool(con->u8[min(i, 3ul)]);
 				case typeUInt8:
-					return (bool)(*(uint8_t*)container->data);
+					return bool(*con->u8);
+				case typeVec2Float:
+					return bool(con->f[min(i, 1ul)]);
+				case typeVec3Float:
+					return bool(con->f[min(i, 2ul)]);
+				case typeVec4Float:
+				case typeQuatFloat:
+					return bool(con->f[min(i, 3ul)]);
+				case typeMat3x3Float:
+					return bool(con->f[min(i, 8ul)]);
+				case typeMat4x4Float:
+					return bool(con->f[min(i, 15ul)]);
 				case typeFloat:
-					return (bool)(*(float*)container->data);
+					return bool(*con->f);
+				case typeVec2Double:
+					return bool(con->d[min(i, 1ul)]);
+				case typeVec3Double:
+					return bool(con->d[min(i, 2ul)]);
+				case typeVec4Double:
+				case typeQuatDouble:
+					return bool(con->d[min(i, 3ul)]);
+				case typeMat3x3Double:
+					return bool(con->d[min(i, 8ul)]);
+				case typeMat4x4Double:
+					return bool(con->d[min(i, 15ul)]);
 				case typeDouble:
-					return (bool)(*(double*)container->data);
+					return bool(*con->d);
 				case typeBinary:
-					return (*(binary*)container->data).size() > 0;
+					return (*con->bin).size() > 0;
 				case typeString:
-					if (
-						(*(string*)container->data) == "true" ||
-						(*(string*)container->data) == "1")
+					if ((*con->str) == "true" || (*con->str) == "1")
 						return true;
-					if (
-						(*(string*)container->data) == "false" ||
-						(*(string*)container->data) == "0")
+					if ((*con->str) == "false" || (*con->str) == "0")
 						return false;
 				case typeNull:
 				case typeList:
@@ -1217,31 +3762,174 @@ namespace gold {
 		return false;
 	}
 
+	list var::getList() const {
+		auto con = sPtr.get();
+		if (con && con->type == typeList) return *con->li;
+		return list();
+	}
+
+	object var::getObject() const {
+		auto con = sPtr.get();
+		if (con && con->type == typeObject) return *con->obj;
+		return object();
+	}
+
+	void var::returnList(list& result) const {
+		auto con = sPtr.get();
+		if (con && con->type == typeList) result = *con->li;
+	}
+
+	void var::returnObject(obj& result) const {
+		auto con = sPtr.get();
+		if (con && con->type == typeObject) result = *con->obj;
+	}
+
+	method var::getMethod() const { return method(*this); }
+
+	func var::getFunction() const { return func(*this); }
+
+	void* var::getPtr() const { return (void*)*this; }
+
+	genericError* var::getError() const {
+		return (genericError*)*this;
+	}
+
+	binary var::getBinary() const {
+		auto con = sPtr.get();
+		if (con) {
+			if (con->type == typeBinary)
+				return *con->bin;
+			else if (con->type == typeString) {
+				auto str = *con->str;
+				size_t size = str.size();
+				auto result = binary(size);
+				memcpy(result.data(), str.data(), size);
+				return result;
+			}
+		}
+		return binary();
+	}
+
+	void var::returnBinary(binary& result) const {
+		auto con = sPtr.get();
+		if (con) {
+			if (con->type == typeBinary)
+				result = *con->bin;
+			else if (con->type == typeString) {
+				auto str = *con->str;
+				size_t size = str.size();
+				result = binary(size);
+				memcpy(result.data(), str.data(), size);
+			}
+		}
+	}
+
+	var::operator string() const {
+		auto con = sPtr.get();
+		if (con) {
+			switch (con->type) {
+				case typeInt64:
+					return to_string(*con->i64);
+				case typePtr:
+				case typeFunction:
+				case typeMethod:
+					return "0x" + to_string((uint64_t)con->data);
+				case typeInt32:
+					return to_string(*con->i32);
+				case typeInt16:
+					return to_string(*con->i16);
+				case typeInt8:
+					return to_string(*con->i8);
+				case typeUInt64:
+					return to_string(*con->u64);
+				case typeUInt32:
+					return to_string(*con->u32);
+				case typeUInt16:
+					return to_string(*con->u16);
+				case typeUInt8:
+					return to_string(*con->u8);
+				case typeDouble:
+					return to_string(*con->d);
+				case typeFloat:
+					return to_string(*con->f);
+				case typeBool:
+					return *con->b ? "true" : "false";
+				case typeString:
+					return *con->str;
+				case typeNull:
+					return "null";
+				case typeList:
+					return (con->li)->getJSON();
+				case typeObject:
+					return (con->obj)->getJSON();
+				case typeException:
+					return string(*con->err);
+				case typeBinary: {
+					auto bin = con->bin;
+					return string((char*)bin->data(), bin->size());
+				}
+				default:
+					break;
+			}
+		}
+
+		return "";
+	}
+
+	var::operator const char*() const {
+		auto con = sPtr.get();
+		if (con) {
+			if (con->type == typeString)
+				return con->str->c_str();
+			else if (con->type == typeBinary)
+				return (char*)con->bin->data();
+		}
+		return nullptr;
+	}
+
+	var::operator int64_t() const { return getInt64(); }
+
+	var::operator int32_t() const { return getInt32(); }
+
+	var::operator int16_t() const { return getInt16(); }
+
+	var::operator int8_t() const { return getInt8(); }
+
+	var::operator uint64_t() const { return getUInt64(); }
+
+	var::operator uint32_t() const { return getUInt32(); }
+
+	var::operator uint16_t() const { return getUInt16(); }
+
+	var::operator uint8_t() const { return getUInt8(); }
+
+	var::operator double() const { return getDouble(); }
+
+	var::operator float() const { return getFloat(); }
+
+	var::operator bool() const { return getBool(); }
+
 	var::operator void*() const {
-		auto container = sPtr.get();
-		if (container && container->type == typePtr)
-			return (void*)container->data;
+		auto con = sPtr.get();
+		if (con && con->type != typeNull) return (void*)con->data;
 		return nullptr;
 	}
 
 	var::operator method() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeMethod)
-			return (*(method*)container->data);
+		auto con = sPtr.get();
+		if (con && con->type == typeMethod) return (*con->me);
 		return nullptr;
 	}
 
 	var::operator func() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeFunction)
-			return (*(func*)container->data);
+		auto con = sPtr.get();
+		if (con && con->type == typeFunction) return (*con->fu);
 		return nullptr;
 	}
 
 	var::operator genericError*() const {
-		auto container = sPtr.get();
-		if (container && container->type == typeException)
-			return ((genericError*)container->data);
+		auto con = sPtr.get();
+		if (con && con->type == typeException) return (con->err);
 		return nullptr;
 	}
 
@@ -1266,9 +3954,187 @@ namespace gold {
 	}
 
 	var var::operator()(list args) const {
-		auto container = sPtr.get();
-		if (container && container->type == typeFunction)
-			return (*(func*)container->data)(args);
+		auto con = sPtr.get();
+		if (con && con->type == typeFunction)
+			return (*con->fu)(args);
 		return var();
+	}
+
+	var vec2i64(int64_t x, int64_t y) {
+		return var(typeVec2Int64, {x, y});
+	}
+
+	var vec3i64(int64_t x, int64_t y, int64_t z) {
+		return var(typeVec3Int64, {x, y, z});
+	}
+
+	var vec4i64(int64_t x, int64_t y, int64_t z, int64_t w) {
+		return var(typeVec4Int64, {x, y, z, w});
+	}
+
+	var vec2i32(int32_t x, int32_t y) {
+		return var(typeVec2Int32, {x, y});
+	}
+
+	var vec3i32(int32_t x, int32_t y, int32_t z) {
+		return var(typeVec3Int32, {x, y, z});
+	}
+
+	var vec4i32(int32_t x, int32_t y, int32_t z, int32_t w) {
+		return var(typeVec4Int32, {x, y, z, w});
+	}
+
+	var vec2i16(int16_t x, int16_t y) {
+		return var(typeVec2Int16, {x, y});
+	}
+
+	var vec3i16(int16_t x, int16_t y, int16_t z) {
+		return var(typeVec3Int16, {x, y, z});
+	}
+
+	var vec4i16(int16_t x, int16_t y, int16_t z, int16_t w) {
+		return var(typeVec4Int16, {x, y, z, w});
+	}
+
+	var vec2i8(int8_t x, int8_t y) {
+		return var(typeVec2Int8, {x, y});
+	}
+
+	var vec3i8(int8_t x, int8_t y, int8_t z) {
+		return var(typeVec3Int8, {x, y, z});
+	}
+
+	var vec4i8(int8_t x, int8_t y, int8_t z, int8_t w) {
+		return var(typeVec4Int8, {x, y, z, w});
+	}
+
+	var vec2u64(uint64_t x, uint64_t y) {
+		return var(typeVec2UInt64, {x, y});
+	}
+
+	var vec3u64(uint64_t x, uint64_t y, uint64_t z) {
+		return var(typeVec3UInt64, {x, y, z});
+	}
+
+	var vec4u64(uint64_t x, uint64_t y, uint64_t z, uint64_t w) {
+		return var(typeVec4UInt64, {x, y, z, w});
+	}
+
+	var vec2u32(uint32_t x, uint32_t y) {
+		return var(typeVec2UInt32, {x, y});
+	}
+
+	var vec3u32(uint32_t x, uint32_t y, uint32_t z) {
+		return var(typeVec3UInt32, {x, y, z});
+	}
+
+	var vec4u32(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
+		return var(typeVec4UInt32, {x, y, z, w});
+	}
+
+	var vec2u16(uint16_t x, uint16_t y) {
+		return var(typeVec2UInt16, {x, y});
+	}
+
+	var vec3u16(uint16_t x, uint16_t y, uint16_t z) {
+		return var(typeVec3UInt16, {x, y, z});
+	}
+
+	var vec4u16(uint16_t x, uint16_t y, uint16_t z, uint16_t w) {
+		return var(typeVec4UInt16, {x, y, z, w});
+	}
+
+	var vec2u8(uint8_t x, uint8_t y) {
+		return var(typeVec2UInt8, {x, y});
+	}
+
+	var vec3u8(uint8_t x, uint8_t y, uint8_t z) {
+		return var(typeVec3UInt8, {x, y, z});
+	}
+
+	var vec4u8(uint8_t x, uint8_t y, uint8_t z, uint8_t w) {
+		return var(typeVec4UInt8, {x, y, z, w});
+	}
+
+	var vec2f(float x, float y) {
+		return var(typeVec2Float, {x, y});
+	}
+
+	var vec3f(float x, float y, float z) {
+		return var(typeVec3Float, {x, y, z});
+	}
+
+	var vec4f(float x, float y, float z, float w) {
+		return var(typeVec4Float, {x, y, z, w});
+	}
+
+	var vec2d(double x, double y) {
+		return var(typeVec2Double, {x, y});
+	}
+
+	var vec3d(double x, double y, double z) {
+		return var(typeVec3Double, {x, y, z});
+	}
+
+	var vec4d(double x, double y, double z, double w) {
+		return var(typeVec4Double, {x, y, z, w});
+	}
+
+	var quatf(float x, float y, float z, float w) {
+		return var(typeQuatFloat, {x, y, z, w});
+	}
+
+	var quatd(double x, double y, double z, double w) {
+		return var(typeQuatDouble, {x, y, z, w});
+	}
+
+	var mat3x3f(initializer_list<float> list) {
+		if (list.size() != 9)
+			return var(
+				typeMat3x3Float,
+				{
+					1.f, 0.f, 0.f,  // Row 1
+					0.f, 1.f, 0.f,  // Row 2
+					0.f, 0.f, 1.f,  // Row 3
+				});
+		return var(typeMat3x3Float, list);
+	}
+
+	var mat3x3d(initializer_list<double> list) {
+		if (list.size() != 9)
+			return var(
+				typeMat3x3Double,
+				{
+					1., 0., 0.,  // Row 1
+					0., 1., 0.,  // Row 2
+					0., 0., 1.,  // Row 3
+				});
+		return var(typeMat3x3Double, list);
+	}
+
+	var mat4x4f(initializer_list<float> list) {
+		if (list.size() != 16)
+			return var(
+				typeMat4x4Float,
+				{
+					1.f, 0.f, 0.f, 0.f,  // Row 1
+					0.f, 1.f, 0.f, 0.f,  // Row 2
+					0.f, 0.f, 1.f, 0.f,  // Row 3
+					0.f, 0.f, 0.f, 1.f,  // Row 3
+				});
+		return var(typeMat4x4Float, list);
+	}
+
+	var mat4x4d(initializer_list<double> list) {
+		if (list.size() != 16)
+			return var(
+				typeMat4x4Double,
+				{
+					1., 0., 0., 0.,  // Row 1
+					0., 1., 0., 0.,  // Row 2
+					0., 0., 1., 0.,  // Row 3
+					0., 0., 0., 1.,  // Row 3
+				});
+		return var(typeMat4x4Double, list);
 	}
 }  // namespace gold

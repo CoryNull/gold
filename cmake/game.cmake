@@ -10,16 +10,23 @@ add_library(
 	goldGame
 	STATIC
 		shaderSprite.hpp
-		src/component.cpp
-		src/engine.cpp
-		src/entity.cpp
-		src/graphics.cpp
-		src/mesh.cpp
-		src/renderable.cpp
-		src/sprite.cpp
-		src/texture.cpp
-		src/transform.cpp
-		src/window.cpp
+		src/game/boxShape.cpp
+		src/game/camera.cpp
+		src/game/component.cpp
+		src/game/engine.cpp
+		src/game/entity.cpp
+		src/game/graphics.cpp
+		src/game/mesh.cpp
+		src/game/physicsBody.cpp
+		src/game/polyShape.cpp
+		src/game/renderable.cpp
+		src/game/shape.cpp
+		src/game/sphereShape.cpp
+		src/game/sprite.cpp
+		src/game/texture.cpp
+		src/game/transform.cpp
+		src/game/window.cpp
+		src/game/world.cpp
 )
 add_dependencies(goldGame Shaders)
 add_library(
@@ -38,6 +45,7 @@ target_include_directories(
 		"include"
 		${GLM_INCLUDE_DIRS}
 		${CMAKE_CURRENT_BINARY_DIR}
+		3rdParty/bullet3/src
 )
 
 target_link_libraries (
@@ -45,6 +53,13 @@ target_link_libraries (
 	PUBLIC 
 		gold::shared
 		bgfx
+		Bullet3Common
+		BulletSoftBody 
+		BulletDynamics 
+		BulletCollision 
+		BulletInverseDynamicsUtils 
+		BulletInverseDynamics 
+		LinearMath
 		${SDL2_LIBRARIES}
 		${OPENGL_LIBRARIES}
 )

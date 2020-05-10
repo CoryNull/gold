@@ -38,7 +38,9 @@ namespace gold {
 			auto imageContainer = bimg::ImageContainer();
 			auto parsed = bimg::imageParse(
 				imageContainer, dataPtr, dataSize, &parseError);
-			auto flags = uint64_t(0);
+			auto flags = uint64_t(
+				0 | BGFX_SAMPLER_MIN_ANISOTROPIC |
+				BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT);
 			if (parsed) {
 				dataPtr =
 					imageContainer.m_data != nullptr

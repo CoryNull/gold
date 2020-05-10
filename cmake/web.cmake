@@ -8,9 +8,9 @@ find_package (libmongoc-1.0 1.9.2 REQUIRED)
 add_library(
 	goldWeb
 	STATIC
-		src/database.cpp
-		src/html.cpp
-		src/server.cpp
+		src/web/database.cpp
+		src/web/html.cpp
+		src/web/server.cpp
 )
 add_library(
 	gold::web ALIAS goldWeb

@@ -22,7 +22,7 @@ namespace gold {
 	struct object;
 	struct list;
 	struct var;
-	using method = var (object::*)(const list&);
+	using method = var (object::*)(list);
 	using func = function<var(const list&)>;
 	using binary = vector<uint8_t>;
 	using key = string;
@@ -47,7 +47,49 @@ namespace gold {
 		typeDouble,
 		typeFloat,
 		typeBool,
-		typeException
+		typeException,
+		// Advanced math
+		typeVec2Int64,
+		typeVec2Int32,
+		typeVec2Int16,
+		typeVec2Int8,
+		typeVec2UInt64,
+		typeVec2UInt32,
+		typeVec2UInt16,
+		typeVec2UInt8,
+
+		typeVec3Int64,
+		typeVec3Int32,
+		typeVec3Int16,
+		typeVec3Int8,
+		typeVec3UInt64,
+		typeVec3UInt32,
+		typeVec3UInt16,
+		typeVec3UInt8,
+
+		typeVec4Int64,
+		typeVec4Int32,
+		typeVec4Int16,
+		typeVec4Int8,
+		typeVec4UInt64,
+		typeVec4UInt32,
+		typeVec4UInt16,
+		typeVec4UInt8,
+
+		typeVec2Float,
+		typeVec2Double,
+		typeVec3Float,
+		typeVec3Double,
+		typeVec4Float,
+		typeVec4Double,
+
+		typeQuatFloat,
+		typeQuatDouble,
+
+		typeMat3x3Float,
+		typeMat3x3Double,
+		typeMat4x4Float,
+		typeMat4x4Double,
 	} types;
 
 	class genericError : public exception {
@@ -71,7 +113,27 @@ namespace gold {
 	 protected:
 		struct varContainer {
 		 public:
-			void* data;
+			union {
+				void* data;
+				object* obj;
+				list* li;
+				string* str;
+				genericError* err;
+				method* me;
+				func* fu;
+				binary* bin;
+				double* d;
+				float* f;
+				uint64_t* u64;
+				uint32_t* u32;
+				uint16_t* u16;
+				uint8_t* u8;
+				int64_t* i64;
+				int32_t* i32;
+				int16_t* i16;
+				int8_t* i8;
+				bool* b;
+			};
 			types type;
 			~varContainer();
 
@@ -105,12 +167,29 @@ namespace gold {
 		var(func v);
 		var(const genericError& v);
 		var(bool v);
+		var(types t, initializer_list<float>);
+		var(types t, initializer_list<double>);
+		var(types t, initializer_list<int64_t>);
+		var(types t, initializer_list<int32_t>);
+		var(types t, initializer_list<int16_t>);
+		var(types t, initializer_list<int8_t>);
+		var(types t, initializer_list<uint64_t>);
+		var(types t, initializer_list<uint32_t>);
+		var(types t, initializer_list<uint16_t>);
+		var(types t, initializer_list<uint8_t>);
 		template <class T> var(T* v, types t) : var(v, t) {}
 		~var();
 
 		var& operator=(const var& rhs);
 		bool operator==(const var& rhs) const;
 		bool operator!=(const var& rhs) const;
+
+		var operator-() const;
+		var operator+(const var& b) const;
+		var operator-(const var& b) const;
+		var operator*(const var& b) const;
+		var operator/(const var& b) const;
+		var operator%(const var& b) const;
 
 		types getType() const;
 		const char* getTypeString() const;
@@ -128,19 +207,38 @@ namespace gold {
 		bool isFunction() const;
 		bool isMethod() const;
 		bool isBinary() const;
+		bool isVec2() const;
+		bool isVec3() const;
+		bool isVec4() const;
+		bool isQuat() const;
+		bool isMat3x3() const;
+		bool isMat4x4() const;
+
+		void assign(types t, void* target);
+
+		void setInt64(size_t i, int64_t v);
+		void setInt32(size_t i, int32_t v);
+		void setInt16(size_t i, int16_t v);
+		void setInt8(size_t i, int8_t v);
+		void setUInt64(size_t i, uint64_t v);
+		void setUInt32(size_t i, uint32_t v);
+		void setUInt16(size_t i, uint16_t v);
+		void setUInt8(size_t i, uint8_t v);
+		void setDouble(size_t i, double v);
+		void setFloat(size_t i, float v);
 
 		string getString() const;
-		int64_t getInt64() const;
-		int32_t getInt32() const;
-		int16_t getInt16() const;
-		int8_t getInt8() const;
-		uint64_t getUInt64() const;
-		uint32_t getUInt32() const;
-		uint16_t getUInt16() const;
-		uint8_t getUInt8() const;
-		double getDouble() const;
-		float getFloat() const;
-		bool getBool() const;
+		int64_t getInt64(size_t i = 0) const;
+		int32_t getInt32(size_t i = 0) const;
+		int16_t getInt16(size_t i = 0) const;
+		int8_t getInt8(size_t i = 0) const;
+		uint64_t getUInt64(size_t i = 0) const;
+		uint32_t getUInt32(size_t i = 0) const;
+		uint16_t getUInt16(size_t i = 0) const;
+		uint8_t getUInt8(size_t i = 0) const;
+		double getDouble(size_t i = 0) const;
+		float getFloat(size_t i = 0) const;
+		bool getBool(size_t i = 0) const;
 		list getList() const;
 		object getObject() const;
 		void returnList(list& result) const;
@@ -186,6 +284,7 @@ namespace gold {
 		var operator()(object) const;
 		var operator()(list) const;
 	};
+
 	/* <List> */
 	struct list {
 	 protected:
@@ -204,7 +303,7 @@ namespace gold {
 		typedef initializer_list<avec::value_type> initList;
 
 		list();
-		list(list& copy);
+		list(const list& copy);
 		list(json value);
 		list(initList list);
 		list(var value);
@@ -219,15 +318,21 @@ namespace gold {
 		vector<uint8_t> getMsgPack();
 		vector<uint8_t> getUBJSON();
 
+		bool isAllFloating() const;
+		bool isAllNumber() const;
+		void assign(types t, void* target, size_t count) const;
+
 		avec::iterator begin();
 		avec::iterator end();
 		avec::reverse_iterator rbegin();
 		avec::reverse_iterator rend();
-		void erase(avec::iterator i);
+		list::avec::iterator erase(avec::iterator i);
 		avec::iterator find(object& proto);
 		avec::iterator find(object& proto, avec::iterator start);
 		avec::iterator find(var item);
 		avec::iterator find(var item, avec::iterator start);
+		avec::iterator find(types t);
+		avec::iterator find(types t, avec::iterator start);
 		void resize(size_t newSize);
 
 		list operator+=(list item);
@@ -295,7 +400,7 @@ namespace gold {
 		list getList(uint64_t index, list def = list());
 		object getObject(uint64_t index, object def);
 		method getMethod(uint64_t index, method def = 0);
-		func getFunc(uint64_t index, func def = 0);
+		func getFunction(uint64_t index, func def = 0);
 		void returnObject(uint64_t index, object& result);
 		void* getPtr(uint64_t index, void* def = 0);
 
@@ -329,6 +434,7 @@ namespace gold {
 
 	 public:
 		typedef initializer_list<omap::value_type> initList;
+		object(const object& copy);
 		object(initList copy);
 		object(json value);
 		object(var value);
@@ -403,6 +509,7 @@ namespace gold {
 		}
 
 		var operator[](string name);
+		var operator->*(string name);
 		var operator()(string name, list);
 		var operator()(string name);
 		bool operator==(object&);
@@ -451,4 +558,42 @@ namespace gold {
 	const char* getTypeString(types type);
 
 	/* </Types> */
+
+	var vec2i64(int64_t x, int64_t y);
+	var vec3i64(int64_t x, int64_t y, int64_t z);
+	var vec4i64(int64_t x, int64_t y, int64_t z, int64_t w);
+	var vec2i32(int32_t x, int32_t y);
+	var vec3i32(int32_t x, int32_t y, int32_t z);
+	var vec4i32(int32_t x, int32_t y, int32_t z, int32_t w);
+	var vec2i16(int16_t x, int16_t y);
+	var vec3i16(int16_t x, int16_t y, int16_t z);
+	var vec4i16(int16_t x, int16_t y, int16_t z, int16_t w);
+	var vec2i8(int8_t x, int8_t y);
+	var vec3i8(int8_t x, int8_t y, int8_t z);
+	var vec4i8(int8_t x, int8_t y, int8_t z, int8_t w);
+	var vec2u64(uint64_t x, uint64_t y);
+	var vec3u64(uint64_t x, uint64_t y, uint64_t z);
+	var vec4u64(uint64_t x, uint64_t y, uint64_t z, uint64_t w);
+	var vec2u32(uint32_t x, uint32_t y);
+	var vec3u32(uint32_t x, uint32_t y, uint32_t z);
+	var vec4u32(uint32_t x, uint32_t y, uint32_t z, uint32_t w);
+	var vec2u16(uint16_t x, uint16_t y);
+	var vec3u16(uint16_t x, uint16_t y, uint16_t z);
+	var vec4u16(uint16_t x, uint16_t y, uint16_t z, uint16_t w);
+	var vec2u8(uint8_t x, uint8_t y);
+	var vec3u8(uint8_t x, uint8_t y, uint8_t z);
+	var vec4u8(uint8_t x, uint8_t y, uint8_t z, uint8_t w);
+	var vec2f(float x, float y);
+	var vec3f(float x, float y, float z);
+	var vec4f(float x, float y, float z, float w);
+	var vec2d(double x, double y);
+	var vec3d(double x, double y, double z);
+	var vec4d(double x, double y, double z, double w);
+	var quatf(float x, float y, float z, float w);
+	var quatd(double x, double y, double z, double w);
+	var mat3x3f(initializer_list<float> list);
+	var mat3x3d(initializer_list<double> list);
+	var mat4x4f(initializer_list<float> list);
+	var mat4x4d(initializer_list<double> list);
+
 }  // namespace gold

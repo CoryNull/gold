@@ -10,7 +10,7 @@ namespace gold {
 
 	list::list() : data(nullptr) {}
 
-	list::list(list& copy) : data(copy.data) {}
+	list::list(const list& copy) : data(copy.data) {}
 
 	list::list(json value) : data(new arrData{avec(), mutex()}) {
 		if (value.is_array()) {
@@ -171,38 +171,119 @@ namespace gold {
 		return json::to_ubjson(getJSON());
 	}
 
+	bool list::isAllFloating() const {
+		if (!data) return false;
+		bool isAllFloating = true;
+		for (size_t i = 0; i < data->items.size(); ++i) {
+			if (!data->items[i].isFloating()) {
+				isAllFloating = false;
+				break;
+			}
+		}
+		return isAllFloating;
+	}
+
+	bool list::isAllNumber() const {
+		if (!data) return false;
+		bool isAllNumber = true;
+		for (size_t i = 0; i < data->items.size(); ++i) {
+			if (!data->items[i].isNumber()) {
+				isAllNumber = false;
+				break;
+			}
+		}
+		return isAllNumber;
+	}
+
+	void list::assign(types t, void* target, size_t count) const {
+		if (data) {
+			auto size = min(data->items.size(), count);
+			for (size_t i = 0; i < size; ++i) {
+				switch (t) {
+					case typeBool:
+						((bool*)target)[i] = data->items[i].getBool();
+						break;
+					case typeUInt64:
+						((uint64_t*)target)[i] = data->items[i].getUInt64();
+						break;
+					case typeUInt32:
+						((uint32_t*)target)[i] = data->items[i].getUInt32();
+						break;
+					case typeUInt16:
+						((uint16_t*)target)[i] = data->items[i].getUInt16();
+						break;
+					case typeUInt8:
+						((uint8_t*)target)[i] = data->items[i].getUInt8();
+						break;
+					case typeInt64:
+						((int64_t*)target)[i] = data->items[i].getInt64();
+						break;
+					case typeInt32:
+						((int32_t*)target)[i] = data->items[i].getInt32();
+						break;
+					case typeInt16:
+						((int16_t*)target)[i] = data->items[i].getInt16();
+						break;
+					case typeInt8:
+						((int8_t*)target)[i] = data->items[i].getInt8();
+						break;
+					case typeFloat:
+						((float*)target)[i] = data->items[i].getFloat();
+						break;
+					case typeDouble:
+						((double*)target)[i] = data->items[i].getDouble();
+						break;
+					case typePtr:
+						((void**)target)[i] = data->items[i].getPtr();
+						break;
+					case typeString:
+						((string*)target)[i] = data->items[i].getString();
+						break;
+					case typeObject:
+						((object*)target)[i] = data->items[i].getObject();
+						break;
+					case typeList:
+						((list*)target)[i] = data->items[i].getList();
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+
 	list::avec::iterator list::begin() {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		return data->items.begin();
 	}
 
 	list::avec::iterator list::end() {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		return data->items.end();
 	}
 
 	list::avec::reverse_iterator list::rbegin() {
-		if (!data) return list::avec::reverse_iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		return data->items.rbegin();
 	}
 
 	list::avec::reverse_iterator list::rend() {
-		if (!data) return list::avec::reverse_iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		return data->items.rend();
 	}
 
-	void list::erase(list::avec::iterator i) {
-		if (!data) return;
+	list::avec::iterator list::erase(list::avec::iterator i) {
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		data->items.erase(i);
+		return data->items.erase(i);
 	}
 
 	list::avec::iterator list::find(object& proto) {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		auto e = data->items.end();
 		auto it = data->items.begin();
@@ -213,7 +294,7 @@ namespace gold {
 
 	list::avec::iterator list::find(
 		object& proto, avec::iterator start) {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		auto e = data->items.end();
 		auto it = start;
@@ -223,7 +304,7 @@ namespace gold {
 	}
 
 	list::avec::iterator list::find(var item) {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		auto e = data->items.end();
 		auto it = data->items.begin();
@@ -234,12 +315,33 @@ namespace gold {
 
 	list::avec::iterator list::find(
 		var item, avec::iterator start) {
-		if (!data) return list::avec::iterator();
+		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
 		auto e = data->items.end();
 		auto it = start;
 		for (; it != e; ++it)
 			if ((*it) == item) return it;
+		return e;
+	}
+
+	list::avec::iterator list::find(
+		types t, avec::iterator start) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		auto e = data->items.end();
+		auto it = start;
+		for (; it != e; ++it)
+			if (it->getType() == t) return it;
+		return e;
+	}
+
+	list::avec::iterator list::find(types t) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		auto e = data->items.end();
+		auto it = data->items.begin();
+		for (; it != e; ++it)
+			if (it->getType() == t) return it;
 		return e;
 	}
 
@@ -282,6 +384,7 @@ namespace gold {
 	}
 
 	var list::operator[](uint64_t index) const {
+		if (!data) return var();
 		auto it = data->items.begin();
 		std::advance(it, index);
 		if (it != data->items.end()) return *it;
@@ -686,6 +789,24 @@ namespace gold {
 		if (index >= data->items.size()) return def;
 		auto item = data->items[index];
 		if (item.getType() == typeObject) return (object)item;
+		return def;
+	}
+
+	method list::getMethod(uint64_t index, method def) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		if (index >= data->items.size()) return def;
+		auto item = data->items[index];
+		if (item.getType() == typeMethod) return (method)item;
+		return def;
+	}
+
+	func list::getFunction(uint64_t index, func def) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		if (index >= data->items.size()) return def;
+		auto item = data->items[index];
+		if (item.getType() == typeFunction) return (func)item;
 		return def;
 	}
 

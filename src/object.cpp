@@ -88,6 +88,8 @@ namespace gold {
 			data = newObjData();
 	}
 
+	object::object(const obj& copy) : data(copy.data) {}
+
 	object::object(initList list)
 		: data(newObjData(object::omap(list), 0)) {
 		findParent();
@@ -138,53 +140,49 @@ namespace gold {
 			auto value = i->second;
 			switch (value.getType()) {
 				case typeNull:
-					j[name] = (nullptr);
+					j[name] = nullptr;
 					break;
-				case typeList: {
-					auto arr = value.getList();
-					j[name] = (arr.getJSON());
+				case typeList:
+					j[name] = value.getList().getJSON();
 					break;
-				}
-				case typeObject: {
-					auto obj = value.getObject();
-					j[name] = (obj.getJSON());
+				case typeObject:
+					j[name] = value.getObject().getJSON();
 					break;
-				}
 				case typeString:
-					j[name] = (value.getString());
+					j[name] = value.getString();
 					break;
 				case typeInt64:
-					j[name] = (value.getInt64());
+					j[name] = value.getInt64();
 					break;
 				case typeInt32:
-					j[name] = (value.getInt32());
+					j[name] = value.getInt32();
 					break;
 				case typeInt16:
-					j[name] = (value.getInt16());
+					j[name] = value.getInt16();
 					break;
 				case typeInt8:
-					j[name] = (value.getInt8());
+					j[name] = value.getInt8();
 					break;
 				case typeUInt64:
-					j[name] = (value.getUInt64());
+					j[name] = value.getUInt64();
 					break;
 				case typeUInt32:
-					j[name] = (value.getUInt32());
+					j[name] = value.getUInt32();
 					break;
 				case typeUInt16:
-					j[name] = (value.getUInt16());
+					j[name] = value.getUInt16();
 					break;
 				case typeUInt8:
-					j[name] = (value.getUInt8());
+					j[name] = value.getUInt8();
 					break;
 				case typeDouble:
-					j[name] = (value.getDouble());
+					j[name] = value.getDouble();
 					break;
 				case typeFloat:
-					j[name] = (value.getFloat());
+					j[name] = value.getFloat();
 					break;
 				case typeBool:
-					j[name] = (value.getBool());
+					j[name] = value.getBool();
 					break;
 				default:
 					break;
@@ -519,8 +517,9 @@ namespace gold {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
-		if (it != data->items.end()) it->second.returnList(result);
-		if (data->parent.data)
+		if (it != data->items.end())
+			it->second.returnList(result);
+		else if (data->parent.data)
 			data->parent.returnList(name, result);
 	}
 
@@ -625,6 +624,15 @@ namespace gold {
 		return var();
 	}
 
+	var object::operator->*(string name) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->omutex);
+		auto it = data->items.find(name);
+		if (it != data->items.end()) return it->second;
+		if (data->parent.data) return data->parent.operator[](name);
+		return var();
+	}
+
 	var object::operator()(string name, list args) {
 		return this->callMethod(name, args);
 	}
@@ -639,7 +647,7 @@ namespace gold {
 	}
 
 	object::operator bool() const {
-		return bool(this->data && (this->data->items.size() > 0));
+		return bool(this->data);
 	}
 
 	void object::parseURLEncoded(string value, object& result) {
@@ -667,8 +675,6 @@ namespace gold {
 				}
 				buffer = "";
 				key = "";
-			} else if (*it == '.') {
-				buffer += ".";
 			} else if (*it == '+') {
 				buffer += " ";
 			} else if (*it == '%') {

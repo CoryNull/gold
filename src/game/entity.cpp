@@ -17,9 +17,14 @@ namespace gold {
 		return proto;
 	}
 
+	transform entity::getTransform() {
+		return getComponent({transform::getPrototype()})
+			.getObject<transform>();
+	}
+
 	var entity::add(list args) {
 		auto comps = getList("components");
-		auto children = 	getList("children");
+		auto children = getList("children");
 		if (!comps) return var();
 		if (!children) return var();
 		for (auto it = args.begin(); it != args.end(); ++it) {
@@ -60,9 +65,9 @@ namespace gold {
 
 	var entity::initialize(list) {
 		if (getType("components") != typeList) {
-			auto comps = list({
-				transform(obj{})
-			});
+			auto comps = list({transform(obj{
+				{"object", *this},
+			})});
 			setList("components", comps);
 		}
 		if (getType("children") != typeList) {
@@ -90,10 +95,44 @@ namespace gold {
 		return var();
 	}
 
-	entity::entity() : object() {
+	var entity::getComponent(list args) {
+		auto proto = args[0].getObject();
+		auto comps = getList("components");
+		for (auto it = comps.begin(); it != comps.end(); ++it)
+			if (it->isObject(proto)) return *it;
+		return var();
 	}
 
-	entity::entity(object::initList config) : object(config) {
+	var entity::getComponents(list args) {
+		auto proto = args[0].getObject();
+		auto comps = getList("components");
+		auto ret = list({});
+		for (auto it = comps.begin(); it != comps.end(); ++it)
+			if (it->isObject(proto)) ret.pushVar(*it);
+		return ret;
+	}
+
+	var entity::getComponentsRecursive(list args) {
+		auto proto = args[0].getObject();
+		auto comps = getList("components");
+		auto children = getList("children");
+		auto ret = list({});
+		for (auto it = comps.begin(); it != comps.end(); ++it)
+			if (it->isObject(proto)) ret.pushVar(*it);
+		for (auto it = children.begin(); it != children.end();
+				 ++it) {
+			auto child = it->getObject<entity>();
+			if (child) {
+				auto childComps = child.getComponentsRecursive(args);
+				ret += childComps.getList();
+			}
+		}
+		return ret;
+	}
+
+	entity::entity() : object() {}
+
+	entity::entity(object config) : object(config) {
 		setParent(getPrototype());
 		initialize();
 	}

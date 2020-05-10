@@ -5,12 +5,12 @@
 namespace gold {
 	struct component : public object {
 	 protected:
-		var update(list args);
-		var draw(list args);
-
 	 public:
 		static object& getPrototype();
 		component();
 		component(object config);
+		var update(list args);
+		var draw(list args);
+
 	};
 }  // namespace gold

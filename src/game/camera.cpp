@@ -1,0 +1,139 @@
+#include "camera.hpp"
+
+#include <bgfx/bgfx.h>
+#include <bx/math.h>
+
+#include "transform.hpp"
+
+namespace gold {
+
+	object& camera::getPrototype() {
+		static auto proto = obj({
+			{"offset", vec2f(0, 0)},
+			{"view", uint16_t(0)},
+			{"fov", 60},
+			{"depth", 1.0f},
+			{"near", 0.1f},
+			{"far", 100.0f},
+			{"flags", uint16_t(BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH)},
+			{"rgba", uint32_t(0x6ab0deff)},
+			{"stencil", uint8_t(0)},
+			{"proto", entity::getPrototype()},
+		});
+		return proto;
+	}
+
+	var camera::setViewId(list args) {
+		uint16_t view = args[0].getUInt16();
+		setUInt16("view", view);
+		return var();
+	}
+
+	var camera::setViewClear(list args) {
+		if (args.isAllNumber())
+			for (auto it = args.begin(); it != args.end(); ++it) {
+				auto t = it->getType();
+				if (t == typeUInt16)
+					setVar("flags", *it);
+				else if (t == typeUInt32)
+					setVar("rgba", *it);
+				else if (t == typeUInt8)
+					setVar("stencil", *it);
+				else if (t == typeFloat || t == typeDouble)
+					setVar("depth", *it);
+			}
+		else if (args[0].isObject()) {
+			auto c = args[0].getObject();
+			auto flags = c.getVar("flags");
+			auto rgba = c.getVar("rgba");
+			auto stencil = c.getVar("stencil");
+			auto depth = c.getVar("depth");
+			if (flags.getType() == typeUInt16) setVar("flags", flags);
+			if (rgba.getType() == typeUInt32) setVar("rgba", rgba);
+			if (stencil.getType() == typeUInt8)
+				setVar("stencil", stencil);
+			auto dt = depth.getType();
+			if (dt == typeFloat || dt == typeDouble)
+				setVar("depth", depth);
+		}
+		return var();
+	}
+
+	var camera::setViewSize(list args) {
+		if (args[0].isList()) {
+			setViewSize(args[0].getList());
+		} else if (args[0].isVec2()) {
+			setVar("size", args[0]);
+		} else if (args.isAllNumber())
+			setVar(
+				"size", vec2f(args[0].getFloat(), args[1].getFloat()));
+		return var();
+	}
+	var camera::setViewOffset(list args) {
+		if (args[0].isList()) {
+			setViewOffset(args[0].getList());
+		} else if (args[0].isVec2()) {
+			setVar("offset", args[0]);
+		} else if (args.isAllNumber())
+			setVar(
+				"offset",
+				vec2f(args[0].getFloat(), args[1].getFloat()));
+		return var();
+	}
+
+	var camera::setViewTransform(list) {
+		float mtx[16];
+		auto parentTrans = getTransform();
+		parentTrans.getWorldMatrix(mtx);
+
+		float at[4];
+		float eye[4];
+		float zero[4] = {0, 0, 0, 1};
+		float forward[4] = {0, 0, 1, 1};
+		bx::vec4MulMtx(at, forward, mtx);
+		bx::vec4MulMtx(eye, zero, mtx);
+
+		float view[16];
+		bx::mtxLookAt(
+			view, bx::Vec3(eye[0], eye[1], eye[2]),
+			bx::Vec3(at[0], at[1], at[2]));
+
+		float proj[16];
+		auto fov = getFloat("fov");
+		auto near = getFloat("near");
+		auto far = getFloat("far");
+		auto size = getVar("size");
+		auto width = size.getFloat(0);
+		auto height = size.getFloat(1);
+		auto ratio = width / height;
+		auto homo = bgfx::getCaps()->homogeneousDepth;
+		auto viewId = getUInt16("view");
+		bx::mtxProj(proj, fov, ratio, near, far, homo);
+		bgfx::setViewTransform(viewId, view, proj);
+		return var();
+	}
+
+	var camera::setView(list) {
+		auto size = getVar("size");
+		auto offset = getVar("offset");
+		auto viewId = getUInt16("view");
+		auto width = size.getFloat(0);
+		auto height = size.getFloat(1);
+		auto x = offset.getFloat(0);
+		auto y = offset.getFloat(1);
+		auto flags = getUInt16("flags");
+		auto rgba = getUInt32("rgba");
+		auto stencil = getUInt8("stencil");
+		auto depth = getFloat("depth");
+		bgfx::setViewClear(viewId, flags, rgba, depth, stencil);
+		bgfx::setViewRect(viewId, x, y, width, height);
+		setViewTransform();
+		return var();
+	}
+
+	camera::camera() : entity() {}
+
+	camera::camera(object config) : entity(config) {
+		setParent(getPrototype());
+	}
+}  // namespace gold

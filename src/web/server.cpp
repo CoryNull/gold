@@ -217,9 +217,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -239,9 +237,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -261,9 +257,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -283,9 +277,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -305,9 +297,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -327,9 +317,7 @@ namespace gold {
 				pattern.c_str(),
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -361,9 +349,7 @@ namespace gold {
 				"/*",
 				[func](HttpResponse<false>* res, HttpRequest* req) {
 					try {
-						auto myReq = request(*req);
-						auto myRes = response(*res);
-						func({myReq, myRes});
+						func({request(*req), response(*res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}

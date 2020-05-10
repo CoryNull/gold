@@ -4,10 +4,14 @@ $input v_texcoord0
 
 SAMPLER2D(s_texColor, 0);
 uniform vec4 u_color0;
+uniform vec4 u_opacity;
 
 void main() {
 	vec4 texCol = texture2D(s_texColor, v_texcoord0);
-	vec4 color = mix(u_color0, texCol, texCol.w);
-	if(color.w < 1.0/255.0) { discard; }
-	gl_FragColor = color;
+	vec3 colorRGB = mix(
+		u_color0.xyz, texCol.xyz * u_opacity.xyz,
+		abs(-1.0 + u_color0.w));
+	vec4 colorRGBA = vec4(colorRGB, texCol.w * u_opacity.w);
+	if (colorRGBA.w < 1.0 / 255.0) discard;
+	gl_FragColor = colorRGBA;
 }
