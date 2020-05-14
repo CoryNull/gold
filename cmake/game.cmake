@@ -17,8 +17,9 @@ add_library(
 		src/game/entity.cpp
 		src/game/graphics.cpp
 		src/game/mesh.cpp
+		src/game/meshRenderer.cpp
+		src/game/meshShape.cpp
 		src/game/physicsBody.cpp
-		src/game/polyShape.cpp
 		src/game/renderable.cpp
 		src/game/shape.cpp
 		src/game/sphereShape.cpp
@@ -43,6 +44,7 @@ target_include_directories(
 	goldGame
 	PUBLIC
 		"include"
+		"include/game"
 		${GLM_INCLUDE_DIRS}
 		${CMAKE_CURRENT_BINARY_DIR}
 		3rdParty/bullet3/src

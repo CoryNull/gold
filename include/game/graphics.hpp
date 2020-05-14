@@ -1,5 +1,6 @@
 #pragma once
 
+#include "texture.hpp"
 #include "types.hpp"
 #include "window.hpp"
 

@@ -21,12 +21,31 @@ namespace gold {
 		var trash(list args = {});
 		var getWriteTime(list args = {});
 		var hash(list args = {});
+		var extension();
+		var asJSON();
+		var asBSON();
+		var asCBOR();
+		var asMsgPack();
+		var asUBJSON();
 
 		operator binary();
 		operator string();
 
-		static file& readFile(path p, file& results);
+		static file readFile(path p);
+		static file saveFile(path p, binary data);
 		static object& recursiveReadDirectory(
 			path p, object& results);
+		static var parseJSON(binary data);
+		static var parseBSON(binary data);
+		static var parseCBOR(binary data);
+		static var parseMsgPack(binary data);
+		static var parseUBJSON(binary data);
+		static binary serializeJSON(var data, bool pretty = false);
+		static binary serializeBSON(var data);
+		static binary serializeCBOR(var data);
+		static binary serializeMsgPack(var data);
+		static binary serializeUBJSON(var data);
+		static binary decodeDataURL(string v);
+		static binary decodeBase64(string v);
 	};
 }  // namespace gold

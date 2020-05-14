@@ -177,7 +177,7 @@ namespace gold {
 		var(types t, initializer_list<uint32_t>);
 		var(types t, initializer_list<uint16_t>);
 		var(types t, initializer_list<uint8_t>);
-		template <class T> var(T* v, types t) : var(v, t) {}
+		template <class T> var(T* v, types t) : var((void*)v, t) {}
 		~var();
 
 		var& operator=(const var& rhs);
@@ -304,7 +304,6 @@ namespace gold {
 
 		list();
 		list(const list& copy);
-		list(json value);
 		list(initList list);
 		list(var value);
 		~list();
@@ -334,6 +333,7 @@ namespace gold {
 		avec::iterator find(types t);
 		avec::iterator find(types t, avec::iterator start);
 		void resize(size_t newSize);
+		void sort(function<bool(var, var)> fn);
 
 		list operator+=(list item);
 		list operator+=(var item);
@@ -381,6 +381,7 @@ namespace gold {
 		void setFunc(uint64_t index, func& value);
 		void setMethod(uint64_t index, method& value);
 		void setPtr(uint64_t index, void* value);
+		void setVar(uint64_t index, var value);
 		void setNull(uint64_t index);
 
 		const char* getString(uint64_t index, char* def = 0);
@@ -403,6 +404,7 @@ namespace gold {
 		func getFunction(uint64_t index, func def = 0);
 		void returnObject(uint64_t index, object& result);
 		void* getPtr(uint64_t index, void* def = 0);
+		var getVar(uint64_t index);
 
 		template <typename OT = object>
 		void returnObject(uint64_t index, OT& result) {
@@ -436,7 +438,6 @@ namespace gold {
 		typedef initializer_list<omap::value_type> initList;
 		object(const object& copy);
 		object(initList copy);
-		object(json value);
 		object(var value);
 		object();
 		~object();
@@ -517,25 +518,26 @@ namespace gold {
 
 		static void parseURLEncoded(string value, object& result);
 
-		json getJSON();
+		string getJSON();
+		binary getJSONBin();
 		static var loadJSON(string path);
-		static void saveJSON(string path, object value);
+		static var saveJSON(string path, object value);
 
 		binary getBSON();
 		static var loadBSON(string path);
-		static void saveBSON(string path, object value);
+		static var saveBSON(string path, object value);
 
 		binary getCBOR();
 		static var loadCBOR(string path);
-		static void saveCBOR(string path, object value);
+		static var saveCBOR(string path, object value);
 
 		binary getMsgPack();
 		static var loadMsgPack(string path);
-		static void saveMsgPack(string path, object value);
+		static var saveMsgPack(string path, object value);
 
 		binary getUBJSON();
 		static var loadUBJSON(string path);
-		static void saveUBJSON(string path, object value);
+		static var saveUBJSON(string path, object value);
 
 		template <class oT = object>
 		oT create(string name, object config = object()) {
@@ -598,5 +600,7 @@ namespace gold {
 
 	var lookAt(var eye, var at);
 	var projection(var fov, var ratio, var near, var far, var homo);
+
+	list explode(string v, list chars);
 
 }  // namespace gold

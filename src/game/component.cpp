@@ -7,6 +7,7 @@
 namespace gold {
 	obj& component::getPrototype() {
 		static auto proto = obj({
+			{"priority", priorityEnum::genericPriority},
 			{"draw", method(&component::draw)},
 			{"update", method(&component::update)},
 		});
@@ -15,7 +16,9 @@ namespace gold {
 
 	var component::draw(list) { return var(); }
 
-	var component::update(list) { return var(); }
+	var component::update() { return var(); }
+
+	var component::initialize() { return var(); }
 
 	component::component() : obj() { setParent(getPrototype()); }
 

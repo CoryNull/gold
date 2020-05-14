@@ -1,16 +1,22 @@
 #include "physicsBody.hpp"
 
+#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionShapes/btCompoundShape.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <LinearMath/btDefaultMotionState.h>
 
+#include "engine.hpp"
 #include "entity.hpp"
 #include "shape.hpp"
+#include "world.hpp"
 
 namespace gold {
 	object& physicsBody::getPrototype() {
 		static auto proto = obj{
+			{"priority", priorityEnum::physicsPriority},
 			{"mass", float(0)},
+			{"initialize", method(&physicsBody::initialize)},
+			{"destroy", method(&physicsBody::destroy)},
 			{"proto", component::getPrototype()},
 		};
 		return proto;
@@ -22,39 +28,30 @@ namespace gold {
 		setParent(getPrototype());
 	}
 
-	var physicsBody::initialize(list args) {
+	var physicsBody::initialize(list) {
 		float mass = getFloat("mass");
 		auto parentObject = getObject<entity>("object");
+		auto eng = parentObject.getObject<engine>("engine");
+		auto phys = eng.getObject<world>("world");
+		auto worldBodies = phys.getList("bodies");
+		auto dWorld =
+			(btDiscreteDynamicsWorld*)phys.getPtr("dynamicsWorld");
 		auto parTrans = parentObject.getTransform();
-		auto posList = parTrans.getPosition().getList();
-		auto rotList = parTrans.getPosition().getList();
-		float pos[3];
-		float rot[4];
-		posList.assign(typeFloat, pos, 3);
-		rotList.assign(typeFloat, rot, 4);
-		auto btParTrans = btTransform(
-			btQuaternion(rot[0], rot[1], rot[2], rot[3]),
-			btVector3(pos[0], pos[1], pos[2]));
+		auto btParTrans = parTrans.getBtTransform().inverse();
 		auto shapes =
 			parentObject
 				.getComponentsRecursive({shape::getPrototype()})
 				.getList();
 		btCompoundShape* bodyShape = new btCompoundShape();
+		setPtr("shape", bodyShape);
 		for (auto it = shapes.begin(); it != shapes.end(); ++it) {
 			auto shapeComp = it->getObject<shape>();
 			auto shapeObj = shapeComp.getObject<entity>("object");
 			auto trans = shapeObj.getTransform();
-			auto posList = trans.getPosition().getList();
-			auto rotList = trans.getPosition().getList();
-			float pos[3];
-			float rot[4];
-			posList.assign(typeFloat, pos, 3);
-			rotList.assign(typeFloat, rot, 4);
-			auto btTrans = btTransform(
-				btQuaternion(rot[0], rot[1], rot[2], rot[3]),
-				btVector3(pos[0], pos[1], pos[2]));
+			auto btTrans = trans.getBtTransform() * btParTrans;
+
 			auto shape = (btCollisionShape*)shapeComp.getPtr("shape");
-			bodyShape->addChildShape(btTrans, shape);
+			if (shape) bodyShape->addChildShape(btTrans, shape);
 		}
 		bodyShape->createAabbTreeFromChildren();
 		btAssert(
@@ -67,18 +64,35 @@ namespace gold {
 		if (isDynamic)
 			bodyShape->calculateLocalInertia(mass, localInertia);
 
-		btDefaultMotionState* myMotionState =
+		btDefaultMotionState* motionState =
 			new btDefaultMotionState(btParTrans);
+		setPtr("motionState", motionState);
 
 		btRigidBody::btRigidBodyConstructionInfo cInfo(
-			mass, myMotionState, bodyShape, localInertia);
+			mass, motionState, bodyShape, localInertia);
 
 		btRigidBody* body = new btRigidBody(cInfo);
 
 		body->setUserIndex(-1);
 		setPtr("body", body);
+
+		dWorld->addRigidBody(body);
+		worldBodies.pushObject(*this);
+
 		return var();
 	}
 
-	var physicsBody::destroy(list args) {}
+	var physicsBody::destroy(list) {
+		auto body = (btRigidBody*)getPtr("body");
+		auto motionState =
+			(btDefaultMotionState*)getPtr("motionState");
+		auto shape = (btCollisionShape*)getPtr("shape");
+		if (body) delete body;
+		if (motionState) delete motionState;
+		if (shape) delete shape;
+		erase("body");
+		erase("motionState");
+		erase("shape");
+		return var();
+	}
 }  // namespace gold

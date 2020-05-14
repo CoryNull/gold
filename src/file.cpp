@@ -3,8 +3,10 @@
 #include <chrono>
 #include <fstream>
 #include <functional>
+#include <iostream>
 
 namespace gold {
+	using value_t = nlohmann::detail::value_t;
 	namespace fs = std::filesystem;
 
 	obj& file::getPrototype() {
@@ -14,11 +16,12 @@ namespace gold {
 			{"trash", method(&file::trash)},
 			{"getWriteTime", method(&file::getWriteTime)},
 			{"hash", method(&file::hash)},
+			{"extension", method(&file::extension)},
 		});
 		return proto;
 	}
 
-	file::file() : obj() { }
+	file::file() : obj() {}
 
 	file::file(path p) : obj() {
 		setParent(getPrototype());
@@ -140,6 +143,30 @@ namespace gold {
 		return to_string((uint64_t)h(strData));
 	}
 
+	var file::extension() {
+		return fs::path(getString("path")).extension().string();
+	}
+
+	var file::asJSON() {
+		return file::parseJSON(getBinary("data"));
+	}
+
+	var file::asBSON() {
+		return file::parseBSON(getBinary("data"));
+	}
+
+	var file::asCBOR() {
+		return file::parseCBOR(getBinary("data"));
+	}
+
+	var file::asMsgPack() {
+		return file::parseMsgPack(getBinary("data"));
+	}
+
+	var file::asUBJSON() {
+		return file::parseUBJSON(getBinary("data"));
+	}
+
 	file::operator binary() {
 		auto data = load();
 		return data.getBinary();
@@ -150,10 +177,16 @@ namespace gold {
 		return data.getString();
 	}
 
-	file& file::readFile(path p, file& results) {
-		results = file(p);
-		results.load();
-		return results;
+	file file::readFile(path p) {
+		auto f = file(p);
+		f.load();
+		return f;
+	}
+
+	file file::saveFile(path p, binary data) {
+		auto f = file(data);
+		f.save({p.string()});
+		return f;
 	}
 
 	obj& file::recursiveReadDirectory(path p, obj& results) {
@@ -191,4 +224,708 @@ namespace gold {
 			return results;
 		}
 	}
+
+	bool isTypedArray(
+		json value, bool& hasF, bool& allI, bool& allU) {
+		bool rightSize = false;
+		auto s = value.size();
+		if (s == 2)
+			rightSize = true;
+		else if (s == 3)
+			rightSize = true;
+		else if (s == 4)
+			rightSize = true;
+		else if (s == 9)
+			rightSize = true;
+		else if (s == 16)
+			rightSize = true;
+		if (rightSize) {
+			hasF = false;
+			allI = true;
+			allU = true;
+			for (auto it = value.begin(); it != value.end(); ++it) {
+				if (!hasF) hasF = it->is_number_float();
+				if (allI) allI = it->is_number_integer();
+				if (allU) allU = it->is_number_unsigned();
+				if (!hasF && !allI && !allU) return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	list json2List(json& value);
+	var evaluateList(json& value) {
+		var toSet;
+		bool hasF, allI, AllU;
+		if (isTypedArray(value, hasF, allI, AllU)) {
+			if (hasF) {
+				switch (value.size()) {
+					case 2:
+						toSet = vec2f(value[0], value[1]);
+						break;
+					case 3:
+						toSet = vec3f(value[0], value[1], value[2]);
+						break;
+					case 4:
+						toSet =
+							vec4f(value[0], value[1], value[2], value[3]);
+						break;
+					case 9:
+						toSet = mat3x3f({value[0], value[1], value[2],
+														 value[3], value[4], value[5],
+														 value[6], value[7], value[8]});
+						break;
+					case 16:
+						toSet = mat4x4f(
+							{value[0], value[1], value[2], value[3], value[4],
+							 value[5], value[6], value[7], value[8], value[9],
+							 value[10], value[11], value[12], value[13],
+							 value[14], value[15]});
+						break;
+					default:
+						break;
+				}
+			} else if (AllU) {
+				switch (value.size()) {
+					case 2:
+						toSet = vec2u32(value[0], value[1]);
+						break;
+					case 3:
+						toSet = vec3u32(value[0], value[1], value[2]);
+						break;
+					case 4:
+						toSet =
+							vec4u32(value[0], value[1], value[2], value[3]);
+						break;
+					default:
+						break;
+				}
+			} else if (allI) {
+				switch (value.size()) {
+					case 2:
+						toSet = vec2i32(value[0], value[1]);
+						break;
+					case 3:
+						toSet = vec3i32(value[0], value[1], value[2]);
+						break;
+					case 4:
+						toSet =
+							vec4i32(value[0], value[1], value[2], value[3]);
+						break;
+					default:
+						break;
+				}
+			} else {
+				toSet = json2List(value);
+			}
+		} else {
+			toSet = json2List(value);
+		}
+		return toSet;
+	}
+
+	object json2Object(json& value) {
+		auto ret = obj();
+		for (auto it = value.begin(); it != value.end(); ++it) {
+			auto name = it.key();
+			auto value = it.value();
+			var toSet = var();
+			switch (value.type()) {
+				case value_t::object:
+					toSet = json2Object(value);
+					break;
+				case value_t::array:
+					toSet = evaluateList(value);
+					break;
+				case value_t::string:
+					toSet = var((string)value);
+					break;
+				case value_t::boolean:
+					toSet = var((bool)value);
+					break;
+				case value_t::number_integer:
+					toSet = var((int64_t)value);
+					break;
+				case value_t::number_unsigned:
+					toSet = var((uint64_t)value);
+					break;
+				case value_t::number_float:
+					toSet = var((double)value);
+					break;
+				default:
+				case value_t::null:
+					break;
+			}
+			ret.setVar(name, toSet);
+		}
+		return ret;
+	}
+
+	list json2List(json& value) {
+		auto ret = list();
+		size_t i = 0;
+		for (auto it = value.begin(); it != value.end(); ++it) {
+			auto value = it.value();
+			var toSet = var();
+			switch (value.type()) {
+				case value_t::object:
+					toSet = json2Object(value);
+					break;
+				case value_t::array:
+					toSet = evaluateList(value);
+					break;
+				case value_t::string:
+					toSet = (string)value;
+					break;
+				case value_t::boolean:
+					toSet = (bool)value;
+					break;
+				case value_t::number_integer:
+					toSet = (int64_t)value;
+					break;
+				case value_t::number_unsigned:
+					toSet = (uint64_t)value;
+					break;
+				case value_t::number_float:
+					toSet = (double)value;
+					break;
+				case value_t::null:
+				default:
+					break;
+			}
+			ret.setVar(i, toSet);
+			i++;
+		}
+		return ret;
+	}
+
+	var file::parseJSON(binary data) {
+		json j = json::parse(data);
+		if (j.is_object())
+			return json2Object(j);
+		else if (j.is_array())
+			return json2List(j);
+		return var();
+	}
+
+	var file::parseBSON(binary data) {
+		json j = json::from_bson(data);
+		if (j.is_object())
+			return json2Object(j);
+		else if (j.is_array())
+			return json2List(j);
+		return var();
+	}
+
+	var file::parseCBOR(binary data) {
+		json j = json::from_bson(data);
+		if (j.is_object())
+			return json2Object(j);
+		else if (j.is_array())
+			return json2List(j);
+		return var();
+	}
+
+	var file::parseMsgPack(binary data) {
+		json j = json::from_bson(data);
+		if (j.is_object())
+			return json2Object(j);
+		else if (j.is_array())
+			return json2List(j);
+		return var();
+	}
+
+	var file::parseUBJSON(binary data) {
+		json j = json::from_bson(data);
+		if (j.is_object())
+			return json2Object(j);
+		else if (j.is_array())
+			return json2List(j);
+		return var();
+	}
+
+	json basicToJSON(var value);
+
+	json list2JSON(list li) {
+		json j = json::array();
+		auto end = li.end();
+		for (auto i = li.begin(); i != end; ++i) {
+			j.push_back(basicToJSON(*i));
+		}
+		return j;
+	}
+
+	json object2JSON(object obj) {
+		json j = json::object();
+		auto end = obj.end();
+		for (auto i = obj.begin(); i != end; ++i) {
+			auto name = i->first;
+			auto value = i->second;
+			j[name] = basicToJSON(value);
+		}
+		return j;
+	}
+
+	json basicToJSON(var value) {
+		switch (value.getType()) {
+			case typeNull:
+				return nullptr;
+			case typeList:
+				return list2JSON(value.getList());
+			case typeObject:
+				return object2JSON(value.getObject());
+			case typeString:
+				return value.getString();
+			case typeInt64:
+				return value.getInt64();
+			case typeInt32:
+				return value.getInt32();
+			case typeInt16:
+				return value.getInt16();
+			case typeInt8:
+				return value.getInt8();
+			case typeUInt64:
+				return value.getUInt64();
+			case typeUInt32:
+				return value.getUInt32();
+			case typeUInt16:
+				return value.getUInt16();
+			case typeUInt8:
+				return value.getUInt8();
+			case typeDouble:
+				return value.getDouble();
+			case typeFloat:
+				return value.getFloat();
+			case typeBool:
+				return value.getBool();
+			case typeVec2Int64: {
+				auto a = json();
+				a.push_back(value.getInt64(0));
+				a.push_back(value.getInt64(1));
+				return a;
+			}
+			case typeVec2Int32: {
+				auto a = json();
+				a.push_back(value.getInt32(0));
+				a.push_back(value.getInt32(1));
+				return a;
+			}
+			case typeVec2Int16: {
+				auto a = json();
+				a.push_back(value.getInt16(0));
+				a.push_back(value.getInt16(1));
+				return a;
+			}
+			case typeVec2Int8: {
+				auto a = json();
+				a.push_back(value.getInt8(0));
+				a.push_back(value.getInt8(1));
+				return a;
+			}
+			case typeVec2UInt64: {
+				auto a = json();
+				a.push_back(value.getUInt64(0));
+				a.push_back(value.getUInt64(1));
+				return a;
+			}
+			case typeVec2UInt32: {
+				auto a = json();
+				a.push_back(value.getUInt32(0));
+				a.push_back(value.getUInt32(1));
+				return a;
+			}
+			case typeVec2UInt16: {
+				auto a = json();
+				a.push_back(value.getUInt16(0));
+				a.push_back(value.getUInt16(1));
+				return a;
+			}
+			case typeVec2UInt8: {
+				auto a = json();
+				a.push_back(value.getUInt8(0));
+				a.push_back(value.getUInt8(1));
+				return a;
+			}
+			case typeVec3Int64: {
+				auto a = json();
+				a.push_back(value.getInt64(0));
+				a.push_back(value.getInt64(1));
+				a.push_back(value.getInt64(2));
+				return a;
+			}
+			case typeVec3Int32: {
+				auto a = json();
+				a.push_back(value.getInt32(0));
+				a.push_back(value.getInt32(1));
+				a.push_back(value.getInt32(2));
+				return a;
+			}
+			case typeVec3Int16: {
+				auto a = json();
+				a.push_back(value.getInt16(0));
+				a.push_back(value.getInt16(1));
+				a.push_back(value.getInt16(2));
+				return a;
+			}
+			case typeVec3Int8: {
+				auto a = json();
+				a.push_back(value.getInt8(0));
+				a.push_back(value.getInt8(1));
+				a.push_back(value.getInt8(2));
+				return a;
+			}
+			case typeVec3UInt64: {
+				auto a = json();
+				a.push_back(value.getUInt64(0));
+				a.push_back(value.getUInt64(1));
+				a.push_back(value.getUInt64(2));
+				return a;
+			}
+			case typeVec3UInt32: {
+				auto a = json();
+				a.push_back(value.getUInt32(0));
+				a.push_back(value.getUInt32(1));
+				a.push_back(value.getUInt32(2));
+				return a;
+			}
+			case typeVec3UInt16: {
+				auto a = json();
+				a.push_back(value.getUInt16(0));
+				a.push_back(value.getUInt16(1));
+				a.push_back(value.getUInt16(2));
+				return a;
+			}
+			case typeVec3UInt8: {
+				auto a = json();
+				a.push_back(value.getUInt8(0));
+				a.push_back(value.getUInt8(1));
+				a.push_back(value.getUInt8(2));
+				return a;
+			}
+			case typeVec4Int64: {
+				auto a = json();
+				a.push_back(value.getInt64(0));
+				a.push_back(value.getInt64(1));
+				a.push_back(value.getInt64(2));
+				a.push_back(value.getInt64(3));
+				return a;
+			}
+			case typeVec4Int32: {
+				auto a = json();
+				a.push_back(value.getInt32(0));
+				a.push_back(value.getInt32(1));
+				a.push_back(value.getInt32(2));
+				a.push_back(value.getInt32(3));
+				return a;
+			}
+			case typeVec4Int16: {
+				auto a = json();
+				a.push_back(value.getInt16(0));
+				a.push_back(value.getInt16(1));
+				a.push_back(value.getInt16(2));
+				a.push_back(value.getInt16(3));
+				return a;
+			}
+			case typeVec4Int8: {
+				auto a = json();
+				a.push_back(value.getInt8(0));
+				a.push_back(value.getInt8(1));
+				a.push_back(value.getInt8(2));
+				a.push_back(value.getInt8(3));
+				return a;
+			}
+			case typeVec4UInt64: {
+				auto a = json();
+				a.push_back(value.getUInt64(0));
+				a.push_back(value.getUInt64(1));
+				a.push_back(value.getUInt64(2));
+				a.push_back(value.getUInt64(3));
+				return a;
+			}
+			case typeVec4UInt32: {
+				auto a = json();
+				a.push_back(value.getUInt32(0));
+				a.push_back(value.getUInt32(1));
+				a.push_back(value.getUInt32(2));
+				a.push_back(value.getUInt32(3));
+				return a;
+			}
+			case typeVec4UInt16: {
+				auto a = json();
+				a.push_back(value.getUInt16(0));
+				a.push_back(value.getUInt16(1));
+				a.push_back(value.getUInt16(2));
+				a.push_back(value.getUInt16(3));
+				return a;
+			}
+			case typeVec4UInt8: {
+				auto a = json();
+				a.push_back(value.getUInt8(0));
+				a.push_back(value.getUInt8(1));
+				a.push_back(value.getUInt8(2));
+				a.push_back(value.getUInt8(3));
+				return a;
+			}
+			case typeVec2Float: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				return a;
+			}
+			case typeVec3Float: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				a.push_back(value.getFloat(2));
+				return a;
+			}
+			case typeVec4Float: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				a.push_back(value.getFloat(2));
+				a.push_back(value.getFloat(3));
+				return a;
+			}
+			case typeVec2Double: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				return a;
+			}
+			case typeVec3Double: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				a.push_back(value.getDouble(2));
+				return a;
+			}
+			case typeVec4Double: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				a.push_back(value.getDouble(2));
+				a.push_back(value.getDouble(3));
+				return a;
+			}
+			case typeQuatFloat: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				a.push_back(value.getFloat(2));
+				a.push_back(value.getFloat(3));
+				return a;
+			}
+			case typeQuatDouble: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				a.push_back(value.getDouble(2));
+				a.push_back(value.getDouble(3));
+				return a;
+			}
+			case typeMat3x3Float: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				a.push_back(value.getFloat(2));
+
+				a.push_back(value.getFloat(3));
+				a.push_back(value.getFloat(4));
+				a.push_back(value.getFloat(5));
+
+				a.push_back(value.getFloat(6));
+				a.push_back(value.getFloat(7));
+				a.push_back(value.getFloat(8));
+				return a;
+			}
+			case typeMat3x3Double: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				a.push_back(value.getDouble(2));
+
+				a.push_back(value.getDouble(3));
+				a.push_back(value.getDouble(4));
+				a.push_back(value.getDouble(5));
+
+				a.push_back(value.getDouble(6));
+				a.push_back(value.getDouble(7));
+				a.push_back(value.getDouble(8));
+				return a;
+			}
+			case typeMat4x4Float: {
+				auto a = json();
+				a.push_back(value.getFloat(0));
+				a.push_back(value.getFloat(1));
+				a.push_back(value.getFloat(2));
+				a.push_back(value.getFloat(3));
+
+				a.push_back(value.getFloat(4));
+				a.push_back(value.getFloat(5));
+				a.push_back(value.getFloat(6));
+				a.push_back(value.getFloat(7));
+
+				a.push_back(value.getFloat(8));
+				a.push_back(value.getFloat(9));
+				a.push_back(value.getFloat(10));
+				a.push_back(value.getFloat(11));
+
+				a.push_back(value.getFloat(12));
+				a.push_back(value.getFloat(13));
+				a.push_back(value.getFloat(14));
+				a.push_back(value.getFloat(15));
+				return a;
+			}
+			case typeMat4x4Double: {
+				auto a = json();
+				a.push_back(value.getDouble(0));
+				a.push_back(value.getDouble(1));
+				a.push_back(value.getDouble(2));
+				a.push_back(value.getDouble(3));
+
+				a.push_back(value.getDouble(4));
+				a.push_back(value.getDouble(5));
+				a.push_back(value.getDouble(6));
+				a.push_back(value.getDouble(7));
+
+				a.push_back(value.getDouble(8));
+				a.push_back(value.getDouble(9));
+				a.push_back(value.getDouble(10));
+				a.push_back(value.getDouble(11));
+
+				a.push_back(value.getDouble(12));
+				a.push_back(value.getDouble(13));
+				a.push_back(value.getDouble(14));
+				a.push_back(value.getDouble(15));
+				return a;
+			}
+			default:
+				break;
+		}
+		return nullptr;
+	}
+
+	binary file::serializeJSON(var data, bool pretty) {
+		auto j = basicToJSON(data);
+		auto str = pretty ? j.dump(1, '\t') : j.dump();
+		auto ret = binary(str.size());
+		memcpy(ret.data(), str.data(), str.size());
+		return ret;
+	}
+
+	binary file::serializeBSON(var data) {
+		return json::to_bson(basicToJSON(data));
+	}
+
+	binary file::serializeCBOR(var data) {
+		return json::to_cbor(basicToJSON(data));
+	}
+
+	binary file::serializeMsgPack(var data) {
+		return json::to_msgpack(basicToJSON(data));
+	}
+
+	binary file::serializeUBJSON(var data) {
+		return json::to_ubjson(basicToJSON(data));
+	}
+
+	binary file::decodeDataURL(string v) {
+		auto res = binary();
+		auto s = v.size();
+		if (s == 0) return res;
+		if (v.substr(0, 5).compare("data:") != 0) return res;
+		auto commaIndex = v.find(',');
+		if (commaIndex == string::npos) return res;
+		auto args = v.substr(5, commaIndex - 5);
+		auto data = v.substr(commaIndex + 1);
+		if (args.find(";base64") != string::npos) {
+			res = decodeBase64(data);
+		} else {
+			// TODO: Swap out escaped chars
+			auto ds = data.size();
+			res.reserve(ds);
+			memcpy(res.data(), data.data(), ds);
+		}
+		return res;
+	}
+
+	inline void decodeBlock(
+		string_view base64In, binary& binOut) {
+		// CREDIT: github.com/Jim-CodeHub/libmime
+		// CHANGES: variableNames, formatting
+
+		const unsigned char* _base64In =
+			(const unsigned char*)base64In.data();
+
+		const char table[] = {
+			/* clang-format off */
+/*		---------------------------------------------------------------------------------------------------!  "  #  $  %  &  '  (  )  *  +  */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 
+
+/*		,  -   .  /   0	  1   2   3   4   5   6   7   8   9   :  ;  <  =  >  ?  @  A  B  C  D  E  F  G  H  I  J  K   L   M   N   O   P   Q  */ 
+			0, 62, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+
+/*		R   S   T   U   V   W   X   Y   Z   [  \  ]  ^  _   `  a   b   c   d   e   f   g   h   i   g   k   l   m   n   o   p   q   r   s   t */
+			17, 18, 19, 20, 21, 22, 23, 24, 25, 0, 0, 0, 0, 63, 0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+
+/*		u   v   w   x   y   z */
+			46, 47, 48,	49, 50, 51
+			/* clang-format on */
+		};
+
+		switch (
+			base64In.size()) /*< Case 1,2,3 is to be compatible with
+						the base64 variant schema of omitted '=' */
+		{
+			case 0:
+				break;
+			case 1:
+				binOut.push_back(table[_base64In[0]] << 2);
+				break;
+			case 2:
+				binOut.push_back(
+					(table[_base64In[0]] << 2) |
+					(table[_base64In[1]] >> 4));
+				binOut.push_back(table[_base64In[1]] << 4);
+				break;
+			case 3:
+				binOut.push_back(
+					(table[_base64In[0]] << 2) |
+					(table[_base64In[1]] >> 4));
+				binOut.push_back(
+					(table[_base64In[1]] << 4) |
+					(table[_base64In[2]] >> 2));
+				binOut.push_back(table[_base64In[2]] << 6);
+				break;
+			default:
+				binOut.push_back(
+					(table[_base64In[0]] << 2) |
+					(table[_base64In[1]] >> 4));
+				binOut.push_back(
+					(table[_base64In[1]] << 4) |
+					(table[_base64In[2]] >> 2));
+				binOut.push_back(
+					(table[_base64In[2]] << 6) | (table[_base64In[3]]));
+		}
+	}
+
+	binary file::decodeBase64(string v) {
+		auto binOut = binary();
+		binOut.reserve(v.size() / 4 * 3);
+		size_t i = 0;
+		size_t k = 0;
+
+		while (i < v.size()) {
+			for (k = 0; k < 4; k++)
+				if ('\0' == v[i + k]) break;
+
+			auto view = string_view(v.data()+i, k);
+			i+=k;
+			decodeBlock(view, binOut);
+		}
+		return binOut;
+	}
+
 }  // namespace gold

@@ -59,6 +59,10 @@ if( NOT ${BGFX_OPENGL_VERSION} STREQUAL "" )
 	target_compile_definitions( bgfx PRIVATE BGFX_CONFIG_RENDERER_OPENGL=${BGFX_OPENGL_VERSION})
 endif()
 
+if(UNIX OR LINUX OR WIN32 OR APPLE)
+	target_compile_definitions( bgfx PRIVATE BGFX_CONFIG_RENDERER_VULKAN=1)
+endif()
+
 # Special Visual Studio Flags
 if( MSVC )
 	target_compile_definitions( bgfx PRIVATE "_CRT_SECURE_NO_WARNINGS" )
@@ -68,6 +72,7 @@ endif()
 target_include_directories( bgfx
 	PRIVATE
 		${BGFX_DIR}/3rdparty
+		${BGFX_DIR}/3rdparty/webgpu/include
 		${BGFX_DIR}/3rdparty/dxsdk/include
 		${BGFX_DIR}/3rdparty/khronos
 	PUBLIC

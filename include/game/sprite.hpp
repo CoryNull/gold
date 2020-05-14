@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types.hpp"
 #include "renderable.hpp"
 
 namespace gold {

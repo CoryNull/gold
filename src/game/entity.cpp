@@ -2,6 +2,7 @@
 
 #include "component.hpp"
 #include "transform.hpp"
+#include "engine.hpp"
 
 namespace gold {
 	object& entity::getPrototype() {
@@ -28,15 +29,14 @@ namespace gold {
 		if (!comps) return var();
 		if (!children) return var();
 		for (auto it = args.begin(); it != args.end(); ++it) {
-			auto obj = object();
 			if (it->isObject(getPrototype())) {
-				it->returnObject(obj);
-				obj.setObject("parent", *this);
-				children.pushObject(obj);
+				auto child = it->getObject<entity>();
+				child.setObject("parent", *this);
+				children.pushObject(child);
 			} else if (it->isObject(component::getPrototype())) {
-				it->returnObject(obj);
-				obj.setObject("object", *this);
-				comps.pushObject(obj);
+				auto comp = it->getObject<component>();
+				comp.setObject("object", *this);
+				comps.pushObject(comp);
 			}
 		}
 		return var();
@@ -45,35 +45,39 @@ namespace gold {
 	var entity::remove(list args) {
 		auto comps = getList("components");
 		auto children = getList("children");
+		auto eng = getObject<engine>("engine");
 		if (!comps) return var();
 		if (!children) return var();
 		for (auto it = args.begin(); it != args.end(); ++it) {
 			auto obj = object();
 			if (it->isObject(getPrototype())) {
 				it->returnObject(obj);
-				auto it = children.find(obj);
-				if (it != children.end()) children.erase(it);
+				auto cit = children.find(obj);
+				if (cit != children.end()) {
+					eng -= {*cit};
+					children.erase(cit);
+				}
 			} else if (it->isObject(component::getPrototype())) {
 				it->returnObject(obj);
-				auto it = comps.find(obj);
-				if (it != comps.end()) comps.erase(it);
+				auto cit = comps.find(obj);
+				if (cit != comps.end()) {
+					eng -= {*cit};
+					comps.erase(cit);
+				}
 			}
 		}
-
 		return var();
 	}
 
 	var entity::initialize(list) {
-		if (getType("components") != typeList) {
-			auto comps = list({transform(obj{
-				{"object", *this},
-			})});
-			setList("components", comps);
-		}
-		if (getType("children") != typeList) {
-			auto children = list({});
-			setList("children", children);
-		}
+		if (getType("components") != typeList)
+			setList(
+				"components",
+				list({transform(obj{
+					{"object", *this},
+				})}));
+		if (getType("children") != typeList)
+			setList("children", list({}));
 		if (getType("enabled") != typeBool)
 			setBool("enabled", true);
 		return var();

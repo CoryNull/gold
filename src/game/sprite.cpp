@@ -4,7 +4,7 @@
 #include <bx/math.h>
 #include <bx/timer.h>
 
-#include <vector>
+#include <iostream>
 
 #include "entity.hpp"
 #include "shaderSprite.hpp"
@@ -14,6 +14,8 @@
 namespace gold {
 	using namespace bgfx;
 
+	binary getSpriteShaderData(shaderType stype);
+
 	static ShaderHandle SpriteFragShader =
 		ShaderHandle{kInvalidHandle};
 	static ShaderHandle SpriteVertShader =
@@ -22,8 +24,6 @@ namespace gold {
 		ProgramHandle{kInvalidHandle};
 
 	struct PosColorVertex {
-		typedef vector<PosColorVertex> vec;
-
 		float x, y, z;
 		float u, v;
 
@@ -41,6 +41,7 @@ namespace gold {
 
 	obj& sprite::getPrototype() {
 		static auto proto = obj({
+			{"priority", priorityEnum::drawPriority},
 			{"offset", vec2f(0.5, 0.5)},
 			{"size", vec2f(1.0, 1.0)},
 			{"area", vec4f(0.0, 0.0, 1.0, 1.0)},
@@ -55,9 +56,9 @@ namespace gold {
 	void sprite::updateVertexBuffer() {
 		auto cvbh = VertexBufferHandle{
 			getUInt16("vbh", bgfx::kInvalidHandle)};
-		auto rebuild = getBool("rebuild") || !isValid(cvbh);
-		if (rebuild && isValid(cvbh)) bgfx::destroy(cvbh);
-		if (rebuild) {
+		auto rebuild = getBool("rebuild");
+		if (rebuild) bgfx::destroy(cvbh);
+		if (rebuild || !isValid(cvbh)) {
 			auto tex = getObject<texture>("texture");
 			if (!tex) return;
 			auto offset = getVar("offset");
@@ -110,6 +111,7 @@ namespace gold {
 				bgfx::copy(verts, sizeof(PosColorVertex) * 4);
 			auto vbh =
 				createVertexBuffer(vData, PosColorVertex::getLayout());
+			setName(vbh, "SpriteVertexBuffer");
 			if (isValid(vbh)) setUInt16("vbh", vbh.idx);
 			erase("rebuild");
 		}
@@ -209,12 +211,95 @@ namespace gold {
 		return var();
 	}
 
-	enum shaderType {
-		NullShaderType = 0,
-		VertexShaderType,
-		FragmentShaderType,
-		ComputeShaderType,
-	};
+	var sprite::initialize(list) {
+		updateVertexBuffer();
+		uint16_t indicies[6] = {
+			0, 1, 2,  // 1
+			1, 3, 2   // 2
+		};
+		auto iData = bgfx::copy(indicies, sizeof(uint16_t) * 6);
+		auto ibh = createIndexBuffer(iData);
+		setName(ibh, "SpriteIndexBuffer");
+		if (isValid(ibh)) setUInt16("ibh", ibh.idx);
+		if (
+			getUInt16("texColor", kInvalidHandle) == kInvalidHandle) {
+			auto textureUniform = bgfx::createUniform(
+				"s_texColor", bgfx::UniformType::Sampler);
+			getPrototype().setUInt16("texColor", textureUniform.idx);
+		}
+		if (
+			getUInt16("colorUniform", kInvalidHandle) ==
+			kInvalidHandle) {
+			auto colorUniform = bgfx::createUniform(
+				"u_color0", bgfx::UniformType::Vec4);
+			getPrototype().setUInt16(
+				"colorUniform", colorUniform.idx);
+			float white[4] = {1.0f, 1.0f, 1.0f, 0.0f};
+			setUniform(colorUniform, white);
+		}
+		if (
+			getUInt16("opacityUniform", kInvalidHandle) ==
+			kInvalidHandle) {
+			auto opacityUniform = bgfx::createUniform(
+				"u_opacity", bgfx::UniformType::Vec4);
+			getPrototype().setUInt16(
+				"opacityUniform", opacityUniform.idx);
+			float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+			setUniform(opacityUniform, white);
+		}
+
+		if (SpriteProgram.idx == kInvalidHandle) {
+			auto fragBin = getSpriteShaderData(FragmentShaderType);
+			auto vertBin = getSpriteShaderData(VertexShaderType);
+			auto vertMem =
+				bgfx::copy(&*vertBin.begin(), vertBin.size());
+			SpriteVertShader = createShader(vertMem);
+			auto SpriteVertName = "SpriteVert";
+			setName(
+				SpriteVertShader,
+				SpriteVertName,
+				strlen(SpriteVertName));
+			auto fragMem =
+				bgfx::copy(&*fragBin.begin(), fragBin.size());
+			SpriteFragShader = createShader(fragMem);
+			auto SpriteFragName = "SpriteFrag";
+			setName(
+				SpriteFragShader,
+				SpriteFragName,
+				strlen(SpriteFragName));
+			if (
+				isValid(SpriteVertShader) &&
+				isValid(SpriteFragShader)) {
+				SpriteProgram = createProgram(
+					SpriteVertShader, SpriteFragShader, false);
+				if (!isValid(SpriteProgram))
+					genericError(
+						"Failed to link shaders and create program");
+				sprite::getPrototype().setUInt16(
+					"program", SpriteProgram.idx);
+			} else {
+				return genericError("Failed to load sprite shaders.");
+			}
+		}
+		return var();
+	}
+
+	var sprite::destroy(list) {
+		auto vbh = VertexBufferHandle{
+			getUInt16("vbh", bgfx::kInvalidHandle)};
+		auto ibh =
+			IndexBufferHandle{getUInt16("ibh", bgfx::kInvalidHandle)};
+		bgfx::destroy(vbh);
+		bgfx::destroy(ibh);
+		return var();
+	}
+
+	sprite::sprite() : renderable() {}
+
+	sprite::sprite(obj config) : renderable() {
+		setParent(sprite::getPrototype());
+		copy(config);
+	}
 
 	binary getSpriteShaderData(shaderType stype) {
 		auto renderType = getRendererType();
@@ -287,93 +372,5 @@ namespace gold {
 				break;
 		}
 		return binary();
-	}
-
-	var sprite::initialize(list) {
-		updateVertexBuffer();
-		uint16_t indicies[6] = {
-			0, 1, 2,  // 1
-			1, 3, 2   // 2
-		};
-		auto iData = bgfx::copy(indicies, sizeof(uint16_t) * 6);
-		auto ibh = createIndexBuffer(iData);
-		if (isValid(ibh)) setUInt16("ibh", ibh.idx);
-		if (
-			getUInt16("texColor", kInvalidHandle) == kInvalidHandle) {
-			auto textureUniform = bgfx::createUniform(
-				"s_texColor", bgfx::UniformType::Sampler);
-			getPrototype().setUInt16("texColor", textureUniform.idx);
-		}
-		if (
-			getUInt16("colorUniform", kInvalidHandle) ==
-			kInvalidHandle) {
-			auto colorUniform = bgfx::createUniform(
-				"u_color0", bgfx::UniformType::Vec4);
-			getPrototype().setUInt16(
-				"colorUniform", colorUniform.idx);
-			float white[4] = {1.0f, 1.0f, 1.0f, 0.0f};
-			setUniform(colorUniform, white);
-		}
-		if (
-			getUInt16("opacityUniform", kInvalidHandle) ==
-			kInvalidHandle) {
-			auto opacityUniform = bgfx::createUniform(
-				"u_opacity", bgfx::UniformType::Vec4);
-			getPrototype().setUInt16(
-				"opacityUniform", opacityUniform.idx);
-			float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-			setUniform(opacityUniform, white);
-		}
-
-		if (SpriteProgram.idx == kInvalidHandle) {
-			auto fragBin = getSpriteShaderData(FragmentShaderType);
-			auto vertBin = getSpriteShaderData(VertexShaderType);
-			auto vertMem =
-				bgfx::copy(&*vertBin.begin(), vertBin.size());
-			SpriteVertShader = createShader(vertMem);
-			auto SpriteVertName = "SpriteVert";
-			setName(
-				SpriteVertShader,
-				SpriteVertName,
-				strlen(SpriteVertName));
-			auto fragMem =
-				bgfx::copy(&*fragBin.begin(), fragBin.size());
-			SpriteFragShader = createShader(fragMem);
-			auto SpriteFragName = "SpriteFrag";
-			setName(
-				SpriteFragShader,
-				SpriteVertName,
-				strlen(SpriteFragName));
-			if (
-				isValid(SpriteVertShader) &&
-				isValid(SpriteFragShader)) {
-				SpriteProgram = createProgram(
-					SpriteVertShader, SpriteFragShader, false);
-				if (isValid(SpriteProgram))
-					sprite::getPrototype().setUInt16(
-						"program", SpriteProgram.idx);
-			} else {
-				return genericError("Failed to load sprite shaders.");
-			}
-		}
-		return var();
-	}
-
-	var sprite::destroy(list) {
-		auto vbh = VertexBufferHandle{
-			getUInt16("vbh", bgfx::kInvalidHandle)};
-		auto ibh =
-			IndexBufferHandle{getUInt16("ibh", bgfx::kInvalidHandle)};
-		bgfx::destroy(vbh);
-		bgfx::destroy(ibh);
-		return var();
-	}
-
-	sprite::sprite() : renderable() {}
-
-	sprite::sprite(obj config) : renderable() {
-		setParent(sprite::getPrototype());
-		copy(config);
-		initialize();
 	}
 }  // namespace gold

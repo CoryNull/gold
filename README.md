@@ -10,7 +10,8 @@ What's in the box?
 * RAII Objects/Lists
 * Object inheritance (prototypes)
 * Type agnosticism with abstracted run-time type information
-* Universal RAII value container; var
+* Universal generic RAII value container; "var" <-- type name
+* First class Vector, Quaternion, Matrix3x3, Matrix4x4 var types
 * JSON/BSON/CBOR/MsgPack/UBJSON/URLForm serialization
 * Express.JS like HTTP(S)/WebSocket server
 * HTML5 rendering (with form handling/pragmatic templating)
@@ -19,19 +20,17 @@ What's in the box?
 * Basic window handling
 * 3D matrix transformation hierarchies
 * Texture loading(2D/3D/Cube)
-* Automatic multi-platform shader compilation, compiled to be inlined
+* Auto shader compilation, with inlining
 * CMake utilities
 * Still experimental threading stuff (workers/promises)
-* Quick dev time, fast compilation times, creating fast code
-* All 3rdParty dependencies are sub modules to other GitHub projects
+* 3rdParty dependencies are sub modules to other GitHub projects
+* Hard parts of C++ have been abstracted to JS/Python difficulty
 
 Where it falls short?
 * Memory overhead (not ideal for very low spec hardware (Arduino/IOT))
 * Lacks in depth error handling (see genericError)
-* Threading is limited and experimental (off by default)
-* Has a couple heavy 3rdParty dependencies that have it's own dependencies
-* If used incorrectly produces undefined behaviors and doesn't stop you
-* It feels like it's still in alpha but functional enough for business
+* Threading is subsystem limited and experimental (off by default)
+* Has heavy 3rdParty dependencies that have it's own dependencies
 * Needs the latest bleeding edge compiler and STL library
 * Uses the C++17/20 standard
 
@@ -59,4 +58,4 @@ What's planned?
 * Asset packing
 * Error reporting
 * Scripting language interface
-* Compile to WebAssembly/ASM.JS
+* Compile to WebAssembly/ASM.JS?

@@ -823,7 +823,6 @@ namespace gold {
 							getFloat(10),
 							getFloat(11),
 							getFloat(15),
-							getFloat(16),
 						});
 						bx::mtxTranslate(
 							(float*)x.getPtr(),
@@ -869,7 +868,6 @@ namespace gold {
 							getFloat(10),
 							getFloat(11),
 							getFloat(15),
-							getFloat(16),
 						});
 						bx::mtxTranslate(
 							(float*)x.getPtr(),
@@ -4270,4 +4268,48 @@ namespace gold {
 			homo.getBool());
 		return x;
 	}
+
+	list explode(string v, list chars) {
+		auto numList = list({});
+		auto numBuff = string("");
+		for (size_t i = 0; i < v.size(); ++i) {
+			auto c = v[i];
+			bool breakOut = false;
+			for (auto bi = chars.begin(); bi != chars.end(); ++bi) {
+				if (uint8_t(*bi) == uint8_t(c)) {
+					breakOut = true;
+					break;
+				}
+			}
+			if (breakOut) {
+				numList.pushString(numBuff);
+				numBuff = "";
+				i++;
+				bool good = true;
+				for (auto bi = chars.begin(); bi != chars.end(); ++bi) {
+					if (uint8_t(*bi) == uint8_t(v[i])) {
+						good = false;
+						break;
+					}
+				}
+				while (!good) {
+					i++;
+					good = true;
+					if (i < v.size() && i != string::npos)
+						for (auto bi = chars.begin(); bi != chars.end();
+								 ++bi) {
+							if (uint8_t(*bi) == uint8_t(v[i])) {
+								good = false;
+								break;
+							}
+						}
+				}
+				i--;
+			} else
+				numBuff.push_back(c);
+		}
+		numList.pushString(numBuff);
+		return numList;
+	}
+
 }  // namespace gold

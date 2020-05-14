@@ -24,15 +24,14 @@ namespace gold {
 		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
 
-		var destroy(list args = {});
-		var start(list args = {});
-		var initialize(list args = {});
-		var loadSettings(list args = {});
-		var saveSettings(list args = {});
+		var destroy();
+		var start();
+		var initialize();
+		var loadSettings();
+		var saveSettings();
 		var handleEntity(list args);
 		var addElement(list args);
-		var getPrimaryCamera(list args = {});
-		var addRegisterCompnentCallback(list args);
+		var getPrimaryCamera();
 
 		engine& operator+=(list element);
 		engine& operator-=(list element);

@@ -1,5 +1,6 @@
 #include "transform.hpp"
 
+#include <LinearMath/btDefaultMotionState.h>
 #include <bx/math.h>
 
 #include "entity.hpp"
@@ -7,16 +8,19 @@
 namespace gold {
 	object& transform::getPrototype() {
 		static auto proto = obj(initList{
+			{"priority", priorityEnum::dataPriority},
 			{"pos", vec3f(0, 0, 0)},
 			{"rot", quatf(0, 0, 0, 1)},
 			{"scl", vec3f(1, 1, 1)},
+			{"getMatrix", method(&transform::getMatrix)},
+			{"getWorldMatrix", method(&transform::getWorldMatrix)},
+			{"relative", method(&transform::relative)},
 			{"setPosition", method(&transform::setPosition)},
 			{"setRotation", method(&transform::setRotation)},
 			{"setScale", method(&transform::setScale)},
 			{"getPosition", method(&transform::getPosition)},
 			{"getRotation", method(&transform::getRotation)},
 			{"getScale", method(&transform::getScale)},
-			{"getMatrix", method(&transform::getMatrix)},
 			{"reset", method(&transform::reset)},
 			{"proto", component::getPrototype()},
 		});
@@ -27,8 +31,19 @@ namespace gold {
 
 	transform::transform(object config) : component() {
 		setParent(getPrototype());
-		setBool("rebuild", true);
 		copy(config);
+	}
+
+	var transform::relative(list args) {
+		auto mtx = getMatrix();
+		if (args.size() > 1) {
+			auto ret = list({});
+			for (auto it = args.begin(); it != args.end(); ++it)
+				ret.pushVar(mtx * (*it));
+			return ret;
+		} else if (args.size() == 1)
+			return mtx * args[0];
+		return mtx * vec4f(0, 0, 0, 1);
 	}
 
 	var transform::setPosition(list args) {
@@ -92,10 +107,9 @@ namespace gold {
 
 	var transform::getScale(list) { return getVar("scl"); }
 
-	var transform::getMatrix() {
-		if (
-			getBool("rebuild", false) && getType("mtx") != typeNull) {
-			return getVar("mtx");
+	var transform::getMatrix(list) {
+		if (getBool("rebuild", false) == false) {
+			if (getType("mtx") != typeNull) return getVar("mtx");
 		}
 
 		auto pos = getVar("pos");
@@ -112,7 +126,7 @@ namespace gold {
 		return results;
 	}
 
-	var transform::getWorldMatrix() {
+	var transform::getWorldMatrix(list args) {
 		auto parentObj = entity();
 		returnObject<entity>("object", parentObj);
 		auto parentChain = list();
@@ -129,11 +143,29 @@ namespace gold {
 			auto parentTrans = comps.find(transform::getPrototype());
 			if (parentTrans != comps.end()) {
 				auto trans = parentTrans->getObject<transform>();
-				auto mtx = trans.getMatrix();
-				results = results * mtx;
+				results = results * trans.getMatrix();
 			}
 		}
 		return results;
+	}
+
+	btVector3 transform::getBtPosition() {
+		auto pos = getVar("pos");
+		return btVector3(
+			pos.getFloat(0), pos.getFloat(1), pos.getFloat(2));
+	}
+
+	btQuaternion transform::getBtRotation() {
+		auto rot = getVar("rot");
+		return btQuaternion(
+			rot.getFloat(0),
+			rot.getFloat(1),
+			rot.getFloat(2),
+			rot.getFloat(3));
+	}
+
+	btTransform transform::getBtTransform() {
+		return btTransform(getBtRotation(), getBtPosition());
 	}
 
 	var transform::reset(list) {

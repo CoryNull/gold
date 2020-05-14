@@ -14,14 +14,13 @@ namespace gold {
 		transform(object config);
 
 		// Low level
-		var getMatrix();
-		var getWorldMatrix();
 		btVector3 getBtPosition();
 		btQuaternion getBtRotation();
 		btTransform getBtTransform();
 
-		var relativePos(list args);
-		var relativeRot(list args);
+		var getMatrix(list args = {});
+		var getWorldMatrix(list args = {});
+		var relative(list args);
 		var setPosition(list args);
 		var setRotation(list args);
 		var setScale(list args);

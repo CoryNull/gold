@@ -27,20 +27,7 @@ namespace gold {
 		return proto;
 	}
 
-	void engine::registerComponent(component& comp) {
-		auto callbacks = getList("registerCallbacks");
-		for (auto it = callbacks.begin(); it != callbacks.end();
-				 ++it) {
-			auto pair = it->getList();
-			auto proto = pair.getObject<component>(0);
-			if (comp.getParent() == proto) {
-				auto fu = pair.getFunction(1);
-				fu({comp});
-			}
-		}
-	}
-
-	var engine::destroy(list) {
+	var engine::destroy() {
 		auto win = getObject<window>("window");
 		if (win) win("destroy");
 		setNull("window");
@@ -62,7 +49,7 @@ namespace gold {
 		return string(engine::getSettingsDir() + "config.json");
 	}
 
-	var engine::loadSettings(list) {
+	var engine::loadSettings() {
 		auto configPath = getSettingsPath();
 		auto configJSON = object::loadJSON(configPath);
 		object config;
@@ -76,7 +63,7 @@ namespace gold {
 		return var(config);
 	}
 
-	var engine::saveSettings(list) {
+	var engine::saveSettings() {
 		auto config = getObject("config");
 		auto win = getObject<window>("window");
 		auto gfx = getObject<backend>("graphics");
@@ -101,7 +88,7 @@ namespace gold {
 		return var();
 	}
 
-	var engine::getPrimaryCamera(list args) {
+	var engine::getPrimaryCamera() {
 		auto cameras = getList("cameras");
 		for (auto it = cameras.begin(); it != cameras.end(); ++it) {
 			auto cam = it->getObject<camera>();
@@ -143,7 +130,7 @@ namespace gold {
 		return var();
 	}
 
-	var engine::initialize(list) {
+	var engine::initialize() {
 		SDL_SetMainReady();
 		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
 			cout << "[SDL2]" << SDL_GetError() << endl;
@@ -151,7 +138,7 @@ namespace gold {
 		}
 		setList("entites", list({}));
 
-		auto configVar = loadSettings({});
+		auto configVar = loadSettings();
 		auto config = configVar.getObject();
 		auto gameName = getString("gameName");
 
@@ -162,8 +149,9 @@ namespace gold {
 		win.create();
 		auto gfx = create<backend>("graphics", backendConfig);
 		gfx.initialize({win});
-		auto phys = create<world>("world", object{});
+		auto phys = world(obj{});
 		phys.initialize({*this});
+		setObject("world", phys);
 
 		auto w = win.getUInt32("width");
 		auto h = win.getUInt32("height");
@@ -188,13 +176,14 @@ namespace gold {
 		promises.resize(0);
 	}
 
-	var engine::start(list) {
+	var engine::start() {
 		auto win = getObject<window>("window");
 		auto gfx = getObject<backend>("graphics");
+		auto phys = getObject<world>("world");
 		gfx.setObject("window", win);
 
-		auto entites = getList("entites");
 		auto cameras = getList("cameras");
+		auto comps = getList("components");
 
 		setBool("running", true);
 		SDL_Event e;
@@ -203,14 +192,39 @@ namespace gold {
 				if (e.type == SDL_QUIT) setBool("running", false);
 				win.handleEvent({var((void*)&e)});
 			}
+			phys.step();
 			gfx.preFrame();
 			for (auto it = cameras.begin(); it != cameras.end();
 					 ++it) {
 				auto c = it->getObject<camera>();
 				c.setView();
 			}
-			for (auto it = entites.begin(); it != entites.end(); ++it)
-				handleEntity({(*it)});
+			comps.sort([](var a, var b) {
+				auto objA = a.getObject();
+				auto objB = b.getObject();
+				auto aP = objA.getUInt64("priority");
+				auto bP = objB.getUInt64("priority");
+				return aP < bP;
+			});
+			auto it = comps.begin();
+			for (; it != comps.end(); ++it) {
+				auto comp = it->getObject<component>();
+				if (!comp.getBool("_inited")) {
+					comp.callMethod("initialize");
+					comp.setBool("_inited", true);
+				}
+			}
+			it = comps.begin();
+			for (; it != comps.end(); ++it) {
+				auto comp = it->getObject<component>();
+				auto priority = comp.getUInt64("priority");
+				if (priority < priorityEnum::drawPriority) {
+					comp.callMethod("update");
+				} else {
+					comp.callMethod("update");
+					comp.callMethod("draw");
+				}
+			}
 			gfx.renderFrame();
 		}
 		saveSettings();
@@ -219,25 +233,13 @@ namespace gold {
 		return var();
 	}
 
-	var engine::addRegisterCompnentCallback(list args) {
-		auto callbacks = getList("registerCallbacks");
-		auto obit = args.find(typeObject);
-		auto comp = component();
-		if (obit != args.end()) comp = obit->getObject<component>();
-		auto fuit = args.find(typeFunction);
-		func fu;
-		if (fuit != args.end()) fu = fuit->getFunction();
-		callbacks.pushList(list{comp, fu});
-		return var();
-	}
-
 	engine::engine() : obj() {}
 
 	engine::engine(string company, string gameName) : obj() {
 		setParent(getPrototype());
-		setList("entites", list());
-		setList("cameras", list());
-		setList("registerCallbacks", list());
+		setList("entites", list({}));
+		setList("cameras", list({}));
+		setList("components", list({}));
 		setString("company", company);
 		setString("gameName", gameName);
 		initialize();
@@ -250,8 +252,11 @@ namespace gold {
 	engine& engine::operator+=(list items) {
 		auto a = getList("entites");
 		auto c = getList("cameras");
+		auto components = getList("components");
 		if (!a) return *this;
 		function<void(entity&)> forEntity = [&](entity& ent) {
+			a.pushObject(ent);
+			ent.setObject("engine", *this);
 			auto children = ent.getList("children");
 			for (auto cit = children.begin(); cit != children.end();
 					 ++cit) {
@@ -262,14 +267,15 @@ namespace gold {
 			for (auto cit = comps.begin(); cit != comps.end();
 					 ++cit) {
 				auto comp = cit->getObject<component>();
-				if (comp) registerComponent(comp);
+				if (comp) {
+					components.pushObject(comp);
+				}
 			}
 		};
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			if (it->isObject(camera::getPrototype()))
 				c += {*it};
 			else if (it->isObject(entity::getPrototype())) {
-				a += {*it};
 				auto ent = it->getObject<entity>();
 				forEntity(ent);
 			}
@@ -280,12 +286,38 @@ namespace gold {
 	engine& engine::operator-=(list items) {
 		auto a = getList("entites");
 		auto c = getList("cameras");
+		auto components = getList("components");
 		if (!a) return *this;
+		function<void(var&)> forComp = [&](var& compVar) {
+			auto comp = compVar.getObject<component>();
+			if (comp) {
+				comp.callMethod("destroy");
+				components.pushObject(comp);
+			}
+		};
+		function<void(var&)> forEntity = [&](var& entVar) {
+			auto ent = entVar.getObject<entity>();
+			if (ent) {
+				auto children = ent.getList("children");
+				for (auto cit = children.begin(); cit != children.end();
+						 ++cit)
+					forEntity(*cit);
+				auto comps = ent.getList("components");
+				for (auto cit = comps.begin(); cit != comps.end();
+						 ++cit) {
+					forComp(*cit);
+				}
+				ent.callMethod("destroy");
+				ent.erase("engine");
+				a.pushObject(ent);
+			}
+		};
 		for (auto it = items.begin(); it != items.end(); ++it) {
-			if (it->isObject(camera::getPrototype()))
-				c -= {*it};
-			else if (it->isObject(entity::getPrototype()))
-				a -= {*it};
+			if (it->isObject(entity::getPrototype())) {
+				forEntity(*it);
+			} else if (it->isObject(component::getPrototype())) {
+				forComp(*it);
+			}
 		}
 		return *this;
 	}

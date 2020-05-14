@@ -26,6 +26,7 @@ target_include_directories(
 	goldWeb
 	PUBLIC
 		"include"
+		"include/web"
 		${MONGOC_INCLUDE_DIRS}
 		3rdParty/uWebSockets/src
 )

@@ -148,48 +148,48 @@ function( inline_shader NAME HEADER BUFFER)
 	# dx9
 	set( DX9_FRAG_OUTPUT ${SHADERS_ROOT}/dx9/${FRAG_NAME}.bin )
 	set( DX9_VERT_OUTPUT ${SHADERS_ROOT}/dx9/${VERT_NAME}.bin )
-	read_to_hex_const(${DX9_FRAG_OUTPUT} "dx9_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${DX9_VERT_OUTPUT} "dx9_vs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${DX9_FRAG_OUTPUT} "dx9_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${DX9_VERT_OUTPUT} "dx9_vs_${NAME}" ${BUFFER} DEPENDS)
 
 	# dx11
 	set( DX11_FRAG_OUTPUT ${SHADERS_ROOT}/dx11/${FRAG_NAME}.bin )
 	set( DX11_VERT_OUTPUT ${SHADERS_ROOT}/dx11/${VERT_NAME}.bin )
 	set( DX11_COMP_OUTPUT ${SHADERS_ROOT}/dx11/${COMP_NAME}.bin )
-	read_to_hex_const(${DX11_FRAG_OUTPUT} "dx11_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${DX11_VERT_OUTPUT} "dx11_vs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${DX11_COMP_OUTPUT} "dx11_cs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${DX11_FRAG_OUTPUT} "dx11_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${DX11_VERT_OUTPUT} "dx11_vs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${DX11_COMP_OUTPUT} "dx11_cs_${NAME}" ${BUFFER} DEPENDS)
 
 	# metal
 	set( METAL_FRAG_OUTPUT ${SHADERS_ROOT}/metal/${FRAG_NAME}.bin )
 	set( METAL_VERT_OUTPUT ${SHADERS_ROOT}/metal/${VERT_NAME}.bin )
 	set( METAL_COMP_OUTPUT ${SHADERS_ROOT}/metal/${COMP_NAME}.bin )
-	read_to_hex_const(${METAL_FRAG_OUTPUT} "metal_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${METAL_VERT_OUTPUT} "metal_vs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${METAL_COMP_OUTPUT} "metal_cs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${METAL_FRAG_OUTPUT} "metal_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${METAL_VERT_OUTPUT} "metal_vs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${METAL_COMP_OUTPUT} "metal_cs_${NAME}" ${BUFFER} DEPENDS)
 
 	# essl
 	set( ESSL_FRAG_OUTPUT ${SHADERS_ROOT}/essl/${FRAG_NAME}.bin )
 	set( ESSL_VERT_OUTPUT ${SHADERS_ROOT}/essl/${VERT_NAME}.bin )
 	set( ESSL_COMP_OUTPUT ${SHADERS_ROOT}/essl/${COMP_NAME}.bin )
-	read_to_hex_const(${ESSL_FRAG_OUTPUT} "essl_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${ESSL_VERT_OUTPUT} "essl_vs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${ESSL_COMP_OUTPUT} "essl_cs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${ESSL_FRAG_OUTPUT} "essl_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${ESSL_VERT_OUTPUT} "essl_vs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${ESSL_COMP_OUTPUT} "essl_cs_${NAME}" ${BUFFER} DEPENDS)
 
 	# glsl
 	set( GLSL_FRAG_OUTPUT ${SHADERS_ROOT}/glsl/${FRAG_NAME}.bin )
 	set( GLSL_VERT_OUTPUT ${SHADERS_ROOT}/glsl/${VERT_NAME}.bin )
 	set( GLSL_COMP_OUTPUT ${SHADERS_ROOT}/glsl/${COMP_NAME}.bin )
-	read_to_hex_const(${GLSL_FRAG_OUTPUT} "glsl_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${GLSL_VERT_OUTPUT} "glsl_vs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${GLSL_COMP_OUTPUT} "glsl_cs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${GLSL_FRAG_OUTPUT} "glsl_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${GLSL_VERT_OUTPUT} "glsl_vs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${GLSL_COMP_OUTPUT} "glsl_cs_${NAME}" ${BUFFER} DEPENDS)
 
 	# spirv
 	set( SPIRV_FRAG_OUTPUT ${SHADERS_ROOT}/spirv/${FRAG_NAME}.bin )
 	set( SPIRV_VERT_OUTPUT ${SHADERS_ROOT}/spirv/${VERT_NAME}.bin )
 	set( SPIRV_COMP_OUTPUT ${SHADERS_ROOT}/spirv/${COMP_NAME}.bin )
-	read_to_hex_const(${SPIRV_FRAG_OUTPUT} "spirv_fs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${SPIRV_VERT_OUTPUT} "spirv_vs_sprite" ${BUFFER} DEPENDS)
-	read_to_hex_const(${SPIRV_COMP_OUTPUT} "spirv_cs_sprite" ${BUFFER} DEPENDS)
+	read_to_hex_const(${SPIRV_FRAG_OUTPUT} "spirv_fs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${SPIRV_VERT_OUTPUT} "spirv_vs_${NAME}" ${BUFFER} DEPENDS)
+	read_to_hex_const(${SPIRV_COMP_OUTPUT} "spirv_cs_${NAME}" ${BUFFER} DEPENDS)
 
 	if(EXISTS ${HEADER})
 		file(READ ${HEADER} CURRENT_CONTENT)
@@ -217,4 +217,12 @@ add_custom_target(Shaders ALL DEPENDS ${SHADERS})
 source_group( "Shader Files" FILES ${GLOB_SHADERS})
 
 set(spriteBuffer "")
-inline_shader("sprite" "${CMAKE_CURRENT_BINARY_DIR}/shaderSprite.hpp" spriteBuffer)
+inline_shader(
+	"sprite" 
+	"${CMAKE_CURRENT_BINARY_DIR}/shaderSprite.hpp" 
+	spriteBuffer)
+set(pbrBuffer "")
+inline_shader(
+	"pbr" 
+	"${CMAKE_CURRENT_BINARY_DIR}/shaderPBR.hpp" 
+	pbrBuffer)

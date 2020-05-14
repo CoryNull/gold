@@ -21,7 +21,7 @@ namespace gold {
 		return proto;
 	}
 
-	world::world() {}
+	world::world() : object() {}
 
 	world::world(object config) : object(config) {
 		setParent(getPrototype());
@@ -50,10 +50,8 @@ namespace gold {
 				auto wTrans = body->getWorldTransform();
 				auto rot = wTrans.getRotation();
 				auto pos = wTrans.getOrigin();
-				trans.setList(
-					"rot", {rot.x(), rot.y(), rot.z(), rot.w()});
-				trans.setList("pos", {pos.x(), pos.y(), pos.z()});
-				trans.setBool("rebuild", true);
+				trans.setPosition({vec3f(pos.x(), pos.y(), pos.z())});
+				trans.setRotation({quatf(rot.x(), rot.y(), rot.z(), rot.w())});
 			} else {
 				it = bodies.erase(it);
 			}
@@ -83,33 +81,10 @@ namespace gold {
 	}
 
 	var world::initialize(list args) {
+		setList("bodies", list({}));
 		auto engIt = args.find(engine::getPrototype());
 		if (engIt != args.end()) {
 			auto eng = engIt->getObject<engine>();
-			eng.addRegisterCompnentCallback(
-				{physicsBody::getPrototype(),
-				 func([this](const list& args) {
-					 // This gets called when a physicsBody gets added to
-					 // the parent engine
-					 auto ar =
-						 (list&)args;  // Container is const, the data isn't
-					 auto comp = physicsBody();
-					 auto body = (btRigidBody*)nullptr;
-					 auto dWorld = (btDiscreteDynamicsWorld*)nullptr;
-					 auto compIt = ar.find(physicsBody::getPrototype());
-					 if (
-						 compIt != ar.end() &&
-						 (comp = compIt->getObject<physicsBody>()) &&
-						 (body = (btRigidBody*)comp.getPtr("body")) &&
-						 (dWorld = (btDiscreteDynamicsWorld*)getPtr(
-								"dynamicsWorld"))) {
-						 dWorld->addRigidBody(body);
-						 comp.setObject("world", *this);
-						 auto bodies = getList("bodies");
-						 bodies.pushObject(comp);
-					 }
-					 return var();
-				 })});
 			setObject("engine", eng);
 		} else {
 			return genericError("Expected engine to be first arg");

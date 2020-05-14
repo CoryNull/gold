@@ -12,48 +12,6 @@ namespace gold {
 
 	list::list(const list& copy) : data(copy.data) {}
 
-	list::list(json value) : data(new arrData{avec(), mutex()}) {
-		if (value.is_array()) {
-			for (auto it = value.begin(); it != value.end(); ++it) {
-				auto name = std::stoul(it.key());
-				auto value = it.value();
-				switch (value.type()) {
-					case value_t::null:
-						this->setNull(name);
-						break;
-					case value_t::object: {
-						auto obj = object(value);
-						this->setObject(name, obj);
-						break;
-					}
-					case value_t::array: {
-						auto arr = list(value);
-						this->setList(name, arr);
-						break;
-					}
-					case value_t::string:
-						this->setString(
-							name, (char*)((string)value).c_str());
-						break;
-					case value_t::boolean:
-						this->setBool(name, (bool)value);
-						break;
-					case value_t::number_integer:
-						this->setInt64(name, (int64_t)value);
-						break;
-					case value_t::number_unsigned:
-						this->setUInt64(name, (uint64_t)value);
-						break;
-					case value_t::number_float:
-						this->setDouble(name, (double)value);
-						break;
-					default:
-						break;
-				}
-			}
-		}
-	}
-
 	list::list(initializer_list<var> list)
 		: data(new arrData{avec(list), mutex()}) {}
 
@@ -351,6 +309,12 @@ namespace gold {
 		data->items.resize(newSize);
 	}
 
+	void list::sort(function<bool(var, var)> fn) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		std::sort(data->items.begin(), data->items.end(), fn);
+	}
+
 	list list::operator+=(list item) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
@@ -520,133 +484,140 @@ namespace gold {
 	void list::setString(uint64_t index, char* value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setString(uint64_t index, string value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setInt64(uint64_t index, int64_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setInt32(uint64_t index, int32_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setInt16(uint64_t index, int16_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setInt8(uint64_t index, int8_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setUInt64(uint64_t index, uint64_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setUInt32(uint64_t index, uint32_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setUInt16(uint64_t index, uint16_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setUInt8(uint64_t index, uint8_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setDouble(uint64_t index, double value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setFloat(uint64_t index, float value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setBool(uint64_t index, bool value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setList(uint64_t index, list value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setObject(uint64_t index, object value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setFunc(uint64_t index, func& value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setMethod(uint64_t index, method& value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
 	}
 
 	void list::setPtr(uint64_t index, void* value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var(value);
+	}
+
+	void list::setVar(uint64_t index, var value) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		if (data->items.size() <= index) data->items.resize(index+1);
+		data->items[index] = value;
 	}
 
 	void list::setNull(uint64_t index) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->amutex);
-		if (data->items.size() <= index) data->items.resize(index);
+		if (data->items.size() <= index) data->items.resize(index+1);
 		data->items[index] = var();
 	}
 
@@ -824,5 +795,13 @@ namespace gold {
 		auto item = data->items[index];
 		if (item.getType() == typePtr) return (void*)item;
 		return def;
+	}
+
+	var list::getVar(uint64_t index) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->amutex);
+		if (index >= data->items.size()) return var();
+		auto item = data->items[index];
+		return item;
 	}
 }  // namespace gold

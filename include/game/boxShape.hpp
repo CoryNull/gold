@@ -1,18 +1,16 @@
 #pragma once
 
-#include "types.hpp"
-#include "component.hpp"
+#include "shape.hpp"
 
 namespace gold {
-	struct physicsBody : public component {
+	struct boxShape : public shape {
 	 protected:
 		static object& getPrototype();
-		friend struct world;
+		friend struct physicsBody;
 
 	 public:
-		physicsBody();
-		physicsBody(object config);
-
+		boxShape();
+		boxShape(object config);
 
 		var initialize(list args = {});
 		var destroy(list args = {});

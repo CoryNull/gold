@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 
+#include "file.hpp"
 #include "types.hpp"
 
 namespace gold {
@@ -37,45 +38,6 @@ namespace gold {
 			if (parent) {
 				setParent(parent);
 				data->items.erase(parentIt);
-			}
-		}
-	}
-
-	object::object(json value) : data(newObjData()) {
-		if (value.is_object()) {
-			for (auto it = value.begin(); it != value.end(); ++it) {
-				auto name = it.key();
-				auto value = it.value();
-				var toSet = var();
-				switch (value.type()) {
-					case value_t::object: {
-						toSet = object(value);
-						break;
-					}
-					case value_t::array: {
-						toSet = list(value);
-						break;
-					}
-					case value_t::string:
-						toSet = var((char*)((string)value).c_str());
-						break;
-					case value_t::boolean:
-						toSet = var((bool)value);
-						break;
-					case value_t::number_integer:
-						toSet = var((int64_t)value);
-						break;
-					case value_t::number_unsigned:
-						toSet = var((uint64_t)value);
-						break;
-					case value_t::number_float:
-						toSet = var((double)value);
-						break;
-					default:
-					case value_t::null:
-						break;
-				}
-				setVar(name, toSet);
 			}
 		}
 	}
@@ -130,77 +92,29 @@ namespace gold {
 		return typeNull;
 	}
 
-	json object::getJSON() {
-		initMemory();
-		unique_lock<mutex> gaurd(data->omutex);
-		json j = json::object();
-		auto end = data->items.end();
-		for (auto i = data->items.begin(); i != end; ++i) {
-			auto name = i->first;
-			auto value = i->second;
-			switch (value.getType()) {
-				case typeNull:
-					j[name] = nullptr;
-					break;
-				case typeList:
-					j[name] = value.getList().getJSON();
-					break;
-				case typeObject:
-					j[name] = value.getObject().getJSON();
-					break;
-				case typeString:
-					j[name] = value.getString();
-					break;
-				case typeInt64:
-					j[name] = value.getInt64();
-					break;
-				case typeInt32:
-					j[name] = value.getInt32();
-					break;
-				case typeInt16:
-					j[name] = value.getInt16();
-					break;
-				case typeInt8:
-					j[name] = value.getInt8();
-					break;
-				case typeUInt64:
-					j[name] = value.getUInt64();
-					break;
-				case typeUInt32:
-					j[name] = value.getUInt32();
-					break;
-				case typeUInt16:
-					j[name] = value.getUInt16();
-					break;
-				case typeUInt8:
-					j[name] = value.getUInt8();
-					break;
-				case typeDouble:
-					j[name] = value.getDouble();
-					break;
-				case typeFloat:
-					j[name] = value.getFloat();
-					break;
-				case typeBool:
-					j[name] = value.getBool();
-					break;
-				default:
-					break;
-			}
-		}
-		return j;
+	string object::getJSON() {
+		auto bin = file::serializeJSON(*this);
+		return string((char*)bin.data(), bin.size());
 	}
 
-	binary object::getBSON() { return json::to_bson(getJSON()); }
+	binary object::getJSONBin() {
+		return file::serializeJSON(*this);
+	}
 
-	binary object::getCBOR() { return json::to_cbor(getJSON()); }
+	binary object::getBSON() {
+		return file::serializeBSON(*this);
+	}
+
+	binary object::getCBOR() {
+		return file::serializeCBOR(*this);
+	}
 
 	binary object::getMsgPack() {
-		return json::to_msgpack(getJSON());
+		return file::serializeMsgPack(*this);
 	}
 
 	binary object::getUBJSON() {
-		return json::to_ubjson(getJSON());
+		return file::serializeUBJSON(*this);
 	}
 
 	var object::callMethod(string name) {
@@ -228,7 +142,7 @@ namespace gold {
 			unique_lock<mutex> gaurd(other.data->omutex);
 			auto end = other.data->items.end();
 			for (auto it = other.data->items.begin(); it != end; ++it)
-				data->items[it->first] = var(it->second);
+				data->items[it->first] = it->second;
 			findParent();
 		}
 	}
@@ -646,9 +560,7 @@ namespace gold {
 		return false;
 	}
 
-	object::operator bool() const {
-		return bool(this->data);
-	}
+	object::operator bool() const { return bool(this->data); }
 
 	void object::parseURLEncoded(string value, object& result) {
 		auto it = value.begin();
@@ -693,136 +605,43 @@ namespace gold {
 	}
 
 	var object::loadJSON(string path) {
-		try {
-			ifstream ss(path);
-			if (!ss.good())
-				return var(genericError("file doesn't exist"));
-			json j = json();
-			ss >> j;
-			ss.close();
-			if (j.is_object()) {
-				object obj(j);
-				return var(obj);
-			} else
-				return var(genericError("not object"));
-		} catch (exception& err) {
-			return var(genericError(err));
-		}
+		return file::readFile(path).asJSON();
 	}
 
-	void object::saveJSON(string path, object value) {
-		ofstream ss(path);
-		json j = value.getJSON();
-		ss << j.dump(1, '\t') << endl;
-		ss.close();
+	var object::saveJSON(string path, object value) {
+		return file::saveFile(path, value.getJSONBin());
 	}
 
 	var object::loadBSON(string path) {
-		try {
-			ifstream ss(path);
-			vector<uint8_t> data;
-			ss.seekg(0, ss.end);
-			data.resize(ss.tellg());
-			ss.seekg(0, ss.beg);
-			ss.read((char*)data.data(), data.size());
-			ss.close();
-			json j = json::from_bson(data);
-			if (j.is_object()) {
-				auto obj = object(j);
-				return var(obj);
-			} else
-				return var(genericError("failed to parse"));
-		} catch (exception& err) {
-			return var(genericError(err));
-		}
+		return file::readFile(path).asBSON();
 	}
 
-	void object::saveBSON(string path, object value) {
-		ofstream ss(path);
-		auto data = value.getBSON();
-		ss.write((char*)data.data(), data.size());
-		ss.close();
+	var object::saveBSON(string path, object value) {
+		return file::saveFile(path, value.getBSON());
 	}
 
 	var object::loadCBOR(string path) {
-		try {
-			ifstream ss(path);
-			auto data = binary();
-			ss.seekg(0, ss.end);
-			data.resize(ss.tellg());
-			ss.seekg(0, ss.beg);
-			ss.read((char*)data.data(), data.size());
-			ss.close();
-			json j = json::from_cbor(data);
-			if (j.is_object()) {
-				auto obj = object(j);
-				return var(obj);
-			} else
-				return var();
-		} catch (exception& err) {
-			return genericError(err);
-		}
+		return file::readFile(path).asCBOR();
 	}
 
-	void object::saveCBOR(string path, object value) {
-		ofstream ss(path);
-		auto data = value.getCBOR();
-		ss.write((char*)data.data(), data.size());
-		ss.close();
+	var object::saveCBOR(string path, object value) {
+		return file::saveFile(path, value.getCBOR());
 	}
 
 	var object::loadMsgPack(string path) {
-		try {
-			ifstream ss(path);
-			vector<uint8_t> data;
-			ss.seekg(0, ss.end);
-			data.resize(ss.tellg());
-			ss.seekg(0, ss.beg);
-			ss.read((char*)data.data(), data.size());
-			ss.close();
-			json j = json::from_msgpack(data);
-			if (j.is_object()) {
-				auto obj = object(j);
-				return var(obj);
-			} else
-				return var();
-		} catch (exception& err) {
-			return var();
-		}
+		return file::readFile(path).asMsgPack();
 	}
 
-	void object::saveMsgPack(string path, object value) {
-		ofstream ss(path);
-		auto data = value.getMsgPack();
-		ss.write((char*)data.data(), data.size());
-		ss.close();
+	var object::saveMsgPack(string path, object value) {
+		return file::saveFile(path, value.getMsgPack());
 	}
 
 	var object::loadUBJSON(string path) {
-		try {
-			ifstream ss(path);
-			vector<uint8_t> data;
-			ss.seekg(0, ss.end);
-			data.resize(ss.tellg());
-			ss.seekg(0, ss.beg);
-			ss.read((char*)data.data(), data.size());
-			ss.close();
-			json j = json::from_ubjson(data);
-			if (j.is_object()) {
-				auto obj = object(j);
-				return obj;
-			} else
-				return var();
-		} catch (exception& err) {
-			return var();
-		}
+		return file::readFile(path).asUBJSON();
 	}
 
-	void object::saveUBJSON(string path, object value) {
-		ofstream ss(path);
-		auto data = value.getUBJSON();
-		ss.write((char*)data.data(), data.size());
-		ss.close();
+	var object::saveUBJSON(string path, object value) {
+		return file::saveFile(path, value.getUBJSON());
 	}
 
 }  // namespace gold
