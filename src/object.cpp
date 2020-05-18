@@ -60,7 +60,7 @@ namespace gold {
 	object::object() : data(nullptr) {}
 
 	object::~object() {
-		if (data && data.use_count() == 1) {
+		if (data && data.use_count() <= 1) {
 			data->items.clear();
 			data->parent = object();
 		}
@@ -77,10 +77,14 @@ namespace gold {
 		return std::end(data->items);
 	}
 
-	uint64_t object::size() {
-		initMemory();
-		unique_lock<mutex> gaurd(data->omutex);
-		return data->items.size();
+	uint64_t object::refs() const {
+		if (data) return data.use_count();
+		return 0;
+	}
+
+	uint64_t object::size() const {
+		if (data) return data->items.size();
+		return 0;
 	}
 
 	types object::getType(string name) {
@@ -92,29 +96,40 @@ namespace gold {
 		return typeNull;
 	}
 
-	string object::getJSON() {
-		auto bin = file::serializeJSON(*this);
-		return string((char*)bin.data(), bin.size());
+	string object::getJSON(bool pretty) {
+		auto str = string();
+		file::serializeJSON(*this, &str, pretty);
+		return str;
 	}
 
-	binary object::getJSONBin() {
-		return file::serializeJSON(*this);
+	binary object::getJSONBin(bool pretty) {
+		auto str = string();
+		file::serializeJSON(*this, &str, pretty);
+		return binary(str.begin(), str.end());
 	}
 
 	binary object::getBSON() {
-		return file::serializeBSON(*this);
+		auto bin = binary();
+		file::serializeBSON(*this, &bin);
+		return bin;
 	}
 
 	binary object::getCBOR() {
-		return file::serializeCBOR(*this);
+		auto bin = binary();
+		file::serializeCBOR(*this, &bin);
+		return bin;
 	}
 
 	binary object::getMsgPack() {
-		return file::serializeMsgPack(*this);
+		auto bin = binary();
+		file::serializeMsgPack(*this, &bin);
+		return bin;
 	}
 
 	binary object::getUBJSON() {
-		return file::serializeUBJSON(*this);
+		auto bin = binary();
+		file::serializeUBJSON(*this, &bin);
+		return bin;
 	}
 
 	var object::callMethod(string name) {
@@ -499,7 +514,7 @@ namespace gold {
 		return def;
 	}
 
-	binary object::getBinary(string name, binary def) {
+	binary* object::getBinary(string name, binary* def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
@@ -609,7 +624,7 @@ namespace gold {
 	}
 
 	var object::saveJSON(string path, object value) {
-		return file::saveFile(path, value.getJSONBin());
+		return file::saveFile(path, value.getJSONBin(true));
 	}
 
 	var object::loadBSON(string path) {

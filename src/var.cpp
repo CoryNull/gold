@@ -121,7 +121,7 @@ namespace gold {
 	var::var(string v) { initVar(v, typeString, string); }
 
 	var::var(const binary& bin) {
-		initVar(bin, typeBinary, binary);
+		initVar((binary&)bin, typeBinary, binary);
 	}
 
 	var::var(int64_t v) { initVar(v, typeInt64, int64_t); }
@@ -2198,9 +2198,8 @@ namespace gold {
 	}
 
 	bool var::isObject(obj& proto) const {
-		auto con = sPtr.get();
-		if (con && con->type == typeObject) {
-			auto p = *con->obj;
+		if (sPtr && sPtr->type == typeObject) {
+			auto p = *sPtr->obj;
 			while (p) {
 				if (p == proto) return true;
 				p = p.data->parent;
@@ -3902,20 +3901,11 @@ namespace gold {
 		return (genericError*)*this;
 	}
 
-	binary var::getBinary() const {
+	binary* var::getBinary() const {
 		auto con = sPtr.get();
-		if (con) {
-			if (con->type == typeBinary)
-				return *con->bin;
-			else if (con->type == typeString) {
-				auto str = *con->str;
-				size_t size = str.size();
-				auto result = binary(size);
-				memcpy(result.data(), str.data(), size);
-				return result;
-			}
-		}
-		return binary();
+		if (con && con->type == typeBinary) return con->bin;
+
+		return nullptr;
 	}
 
 	void var::returnBinary(binary& result) const {

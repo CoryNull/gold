@@ -160,7 +160,8 @@ namespace gold {
 								res->writeHeader("Cache-Control", CacheControl);
 								res->end();
 							} else {
-								auto bin = loaded.getBinary();
+								auto bin = binary();
+								loaded.returnBinary(bin);
 								auto strView =
 									string_view((char*)bin.data(), bin.size());
 								res->writeStatus(HTTP_200_OK);
@@ -370,8 +371,7 @@ namespace gold {
 		return var();
 	}
 
-	server::server() : obj() {
-	}
+	server::server() : obj() {}
 
 	server::server(obj config) : obj() {
 		copy(config);
@@ -379,7 +379,7 @@ namespace gold {
 		initialize({});
 	}
 
-	response::response() : obj() { }
+	response::response() : obj() {}
 
 	response::response(HttpResponse<true>& res) : obj() {
 		setParent(getPrototype());
@@ -445,7 +445,8 @@ namespace gold {
 	}
 
 	var response::end(list args) {
-		auto data = args[0].getBinary();
+		auto data = binary();
+		args[0].returnBinary(data);
 		auto strV = string_view((char*)data.data(), data.size());
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -459,7 +460,8 @@ namespace gold {
 	}
 
 	var response::tryEnd(list args) {
-		auto data = args[0].getBinary();
+		auto data = binary();
+		args[0].returnBinary(data);
 		auto strV = string_view((char*)data.data(), data.size());
 		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
 		auto ssl = getBool("ssl");
@@ -561,7 +563,7 @@ namespace gold {
 		return var();
 	}
 
-	request::request() : obj() { }
+	request::request() : obj() {}
 
 	request::request(uWS::HttpRequest& req) : obj() {
 		setParent(getPrototype());

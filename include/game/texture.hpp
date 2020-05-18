@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.hpp"
 #include "file.hpp"
+#include "types.hpp"
 
 namespace gold {
 	struct texture : public file {
@@ -16,6 +16,5 @@ namespace gold {
 
 		var load(list args = {});
 		var bind(list args);
-
 	};
 }  // namespace gold

@@ -19,21 +19,10 @@ namespace gold {
 		static auto proto = object({
 			{"initialize", method(&engine::initialize)},
 			{"start", method(&engine::start)},
-			{"destroy", method(&engine::destroy)},
 			{"loadSettings", method(&engine::loadSettings)},
-			{"handleEntity", method(&engine::handleEntity)},
 			{"saveSettings", method(&engine::saveSettings)},
 		});
 		return proto;
-	}
-
-	var engine::destroy() {
-		auto win = getObject<window>("window");
-		if (win) win("destroy");
-		setNull("window");
-		setBool("running", false);
-		SDL_Quit();
-		return var();
 	}
 
 	string engine::getSettingsDir() {
@@ -66,7 +55,7 @@ namespace gold {
 	var engine::saveSettings() {
 		auto config = getObject("config");
 		auto win = getObject<window>("window");
-		auto gfx = getObject<backend>("graphics");
+		auto gfx = getObject<gfxBackend>("graphics");
 		if (config && win && gfx) {
 			auto windowConfigVar = win.getConfig({});
 			auto windowConfig = windowConfigVar.getObject();
@@ -97,39 +86,6 @@ namespace gold {
 		return var();
 	}
 
-	var engine::handleEntity(list args) {
-		auto o = args[0].getObject();
-		if (o) {
-			auto comps = o.getList("components");
-			auto objs = o.getList("children");
-			if (comps) {
-				for (auto it = comps.begin(); it != comps.end(); ++it) {
-					auto comp = it->getObject();
-					if (comp) {
-						if (it->isObject(component::getPrototype())) {
-							auto m = comp.getMethod("update");
-							if (m) (comp.*m)({});
-						}
-						if (it->isObject(renderable::getPrototype())) {
-							auto m = comp.getMethod("draw");
-							if (m) {
-								auto views = comp.getList("view");
-								for (auto vit = views.begin();
-										 vit != views.end();
-										 ++vit)
-									(comp.*m)({vit->getUInt16()});
-							}
-						}
-					}
-				}
-			}
-			if (objs)
-				for (auto it = objs.begin(); it != objs.end(); ++it)
-					handleEntity({*it});
-		}
-		return var();
-	}
-
 	var engine::initialize() {
 		SDL_SetMainReady();
 		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
@@ -147,7 +103,7 @@ namespace gold {
 		auto win = create<window>("window", windowConfig);
 		win.setTitle({gameName});
 		win.create();
-		auto gfx = create<backend>("graphics", backendConfig);
+		auto gfx = create<gfxBackend>("graphics", backendConfig);
 		gfx.initialize({win});
 		auto phys = world(obj{});
 		phys.initialize({*this});
@@ -178,7 +134,7 @@ namespace gold {
 
 	var engine::start() {
 		auto win = getObject<window>("window");
-		auto gfx = getObject<backend>("graphics");
+		auto gfx = getObject<gfxBackend>("graphics");
 		auto phys = getObject<world>("world");
 		gfx.setObject("window", win);
 
@@ -227,9 +183,7 @@ namespace gold {
 			}
 			gfx.renderFrame();
 		}
-		saveSettings();
-		gfx.destroy();
-		destroy();
+		cleanUp();
 		return var();
 	}
 
@@ -292,8 +246,9 @@ namespace gold {
 			auto comp = compVar.getObject<component>();
 			if (comp) {
 				comp.callMethod("destroy");
-				components.pushObject(comp);
 			}
+			auto it = components.find(compVar);
+			if (it != components.end()) components.erase(it);
 		};
 		function<void(var&)> forEntity = [&](var& entVar) {
 			auto ent = entVar.getObject<entity>();
@@ -309,10 +264,13 @@ namespace gold {
 				}
 				ent.callMethod("destroy");
 				ent.erase("engine");
-				a.pushObject(ent);
 			}
+			auto it = a.find(entVar);
+			if (it != a.end()) a.erase(it);
 		};
-		for (auto it = items.begin(); it != items.end(); ++it) {
+
+		while(items.size() > 0) {
+			auto it = items.begin();
 			if (it->isObject(entity::getPrototype())) {
 				forEntity(*it);
 			} else if (it->isObject(component::getPrototype())) {
@@ -320,6 +278,59 @@ namespace gold {
 			}
 		}
 		return *this;
+	}
+
+	void engine::cleanUp() {
+		auto win = getObject<window>("window");
+		auto gfx = getObject<gfxBackend>("graphics");
+		auto phys = getObject<world>("world");
+
+		saveSettings();
+
+		auto a = getList("entites");
+		auto c = getList("cameras");
+		auto components = getList("components");
+
+		function<void(var&)> forComp = [&](var& compVar) {
+			auto comp = compVar.getObject<component>();
+			if (comp) {
+				comp.callMethod("destroy");
+			}
+			auto it = components.find(compVar);
+			if (it != components.end()) components.erase(it);
+		};
+		function<void(var&)> forEntity = [&](var& entVar) {
+			auto ent = entVar.getObject<entity>();
+			if (ent) {
+				auto children = ent.getList("children");
+				for (auto cit = children.begin(); cit != children.end();
+						 ++cit)
+					forEntity(*cit);
+				auto comps = ent.getList("components");
+				for (auto cit = comps.begin(); cit != comps.end();
+						 ++cit) {
+					forComp(*cit);
+				}
+				ent.callMethod("destroy");
+				ent.erase("engine");
+			}
+			auto it = a.find(entVar);
+			if (it != a.end()) a.erase(it);
+		};
+
+		while(components.size() > 0) {
+			auto it = components.begin();
+			if (it->isObject(entity::getPrototype())) {
+				forEntity(*it);
+			} else if (it->isObject(component::getPrototype())) {
+				forComp(*it);
+			}
+		}
+
+		gfx.destroy();
+		win.destroy();
+		SDL_Quit();
+		empty();
 	}
 
 }  // namespace gold

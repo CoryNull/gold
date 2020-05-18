@@ -7,8 +7,8 @@
 #include <iostream>
 
 #include "entity.hpp"
+#include "graphics.hpp"
 #include "shaderSprite.hpp"
-#include "texture.hpp"
 #include "transform.hpp"
 
 namespace gold {
@@ -16,27 +16,12 @@ namespace gold {
 
 	binary getSpriteShaderData(shaderType stype);
 
-	static ShaderHandle SpriteFragShader =
-		ShaderHandle{kInvalidHandle};
-	static ShaderHandle SpriteVertShader =
-		ShaderHandle{kInvalidHandle};
-	static ProgramHandle SpriteProgram =
-		ProgramHandle{kInvalidHandle};
+	float colorValue[4] = {1.0f, 1.0f, 1.0f, 0.0f};
+	float opacityValue[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	struct PosColorVertex {
 		float x, y, z;
 		float u, v;
-
-		static VertexLayout& getLayout() {
-			static VertexLayout layout = VertexLayout();
-			if (layout.m_stride == 0) {
-				layout.begin()
-					.add(Attrib::Position, 3, AttribType::Float)
-					.add(Attrib::TexCoord0, 2, AttribType::Float)
-					.end();
-			}
-			return layout;
-		}
 	};
 
 	obj& sprite::getPrototype() {
@@ -54,67 +39,84 @@ namespace gold {
 	}
 
 	void sprite::updateVertexBuffer() {
-		auto cvbh = VertexBufferHandle{
-			getUInt16("vbh", bgfx::kInvalidHandle)};
+		auto current = getObject<vertexBuffer>("vbh");
 		auto rebuild = getBool("rebuild");
-		if (rebuild) bgfx::destroy(cvbh);
-		if (rebuild || !isValid(cvbh)) {
-			auto tex = getObject<texture>("texture");
-			if (!tex) return;
-			auto offset = getVar("offset");
-			auto size = getVar("size");
-			auto area = getVar("area");
-			auto texWidth = tex.getFloat("width");
-			auto texHeight = tex.getFloat("height");
-			if (!area.isFloating() && area.isNumber()) {
-				auto x = area.getFloat(0) / texWidth;
-				auto y = area.getFloat(1) / texHeight;
-				auto w = area.getFloat(2) / texWidth;
-				auto h = area.getFloat(3) / texHeight;
-				area = vec4f(x, y, w, h);
-			}
-			if (!size.isFloating() && size.isNumber()) {
-				auto w =
-					(texWidth * area.getFloat(2)) / size.getFloat(0);
-				auto h =
-					(texHeight * area.getFloat(3)) / size.getFloat(1);
-				size = vec2f(w, h);
-			}
-			if (!offset.isFloating() && offset.isNumber()) {
-				auto x = offset.getFloat(0) /
-								 (texWidth * area.getFloat(2)) *
-								 size.getFloat(0);
-				auto y = -(offset.getFloat(1) /
-									 (texHeight * area.getFloat(3))) *
-								 size.getFloat(1);
-				offset = vec2f(x, y);
-			}
-			auto width = size.getFloat(0);
-			auto height = size.getFloat(1);
-
-			auto tx0 = area.getFloat(0);
-			auto ty0 = area.getFloat(1);
-			auto tx1 = area.getFloat(0) + area.getFloat(2);
-			auto ty1 = -area.getFloat(3) + area.getFloat(1);
-
-			auto px0 = -offset.getFloat(0);
-			auto py0 = -offset.getFloat(1);
-			auto px1 = -offset.getFloat(0) + width;
-			auto py1 = -offset.getFloat(1) + height;
-			PosColorVertex verts[4] = {
-				{px0, py1, 1, tx0, ty1},
-				{px1, py1, 1, tx1, ty1},
-				{px0, py0, 1, tx0, ty0},
-				{px1, py0, 1, tx1, ty0},
-			};
-			auto vData =
-				bgfx::copy(verts, sizeof(PosColorVertex) * 4);
-			auto vbh =
-				createVertexBuffer(vData, PosColorVertex::getLayout());
-			setName(vbh, "SpriteVertexBuffer");
-			if (isValid(vbh)) setUInt16("vbh", vbh.idx);
-			erase("rebuild");
+		if (current && rebuild) {
+			current.destroy();
+			current = vertexBuffer();
+			erase("vbh");
+		} else if (current)
+			return;
+		auto tex = getObject<gpuTexture>("texture");
+		if (!tex) return;
+		auto offset = getVar("offset");
+		auto size = getVar("size");
+		auto area = getVar("area");
+		auto texWidth = tex.getFloat("width");
+		auto texHeight = tex.getFloat("height");
+		if (!area.isFloating() && area.isNumber()) {
+			auto x = area.getFloat(0) / texWidth;
+			auto y = area.getFloat(1) / texHeight;
+			auto w = area.getFloat(2) / texWidth;
+			auto h = area.getFloat(3) / texHeight;
+			area = vec4f(x, y, w, h);
 		}
+		if (!size.isFloating() && size.isNumber()) {
+			auto w = (texWidth * area.getFloat(2)) / size.getFloat(0);
+			auto h =
+				(texHeight * area.getFloat(3)) / size.getFloat(1);
+			size = vec2f(w, h);
+		}
+		if (!offset.isFloating() && offset.isNumber()) {
+			auto x = offset.getFloat(0) /
+							 (texWidth * area.getFloat(2)) * size.getFloat(0);
+			auto y =
+				-(offset.getFloat(1) / (texHeight * area.getFloat(3))) *
+				size.getFloat(1);
+			offset = vec2f(x, y);
+		}
+		auto width = size.getFloat(0);
+		auto height = size.getFloat(1);
+
+		auto tx0 = area.getFloat(0);
+		auto ty0 = area.getFloat(1);
+		auto tx1 = area.getFloat(0) + area.getFloat(2);
+		auto ty1 = -area.getFloat(3) + area.getFloat(1);
+
+		auto px0 = -offset.getFloat(0);
+		auto py0 = -offset.getFloat(1);
+		auto px1 = -offset.getFloat(0) + width;
+		auto py1 = -offset.getFloat(1) + height;
+		PosColorVertex verts[4] = {
+			{px0, py1, 1, tx0, ty1},
+			{px1, py1, 1, tx1, ty1},
+			{px0, py0, 1, tx0, ty0},
+			{px1, py0, 1, tx1, ty0},
+		};
+		auto vSize = sizeof(PosColorVertex) * 4;
+		auto vBin = binary(vSize);
+		vBin.resize(vSize, 0);
+		memcpy(vBin.data(), verts, vSize);
+
+		using a = vertexLayout::attrib;
+		using aT = vertexLayout::attribType;
+		auto layout =
+			vertexLayout::findInCache("SpriteVertexLayout");
+		if (!layout) {
+			layout = vertexLayout({{"name", "SpriteVertexLayout"}})
+								 .begin()
+								 .add(a::aPosition, aT::Float, 3)
+								 .add(a::aTexCoord0, aT::Float, 2)
+								 .end();
+		}
+
+		auto vbh = vertexBuffer({
+			{"data", vBin},
+			{"type", standardBufferType},
+			{"layout", layout},
+		});
+		setObject("vbh", vbh);
+		erase("rebuild");
 	}
 
 	var sprite::setSize(list args) {
@@ -179,118 +181,79 @@ namespace gold {
 	var sprite::draw(list args) {
 		auto view = args[0].getUInt16();
 		updateVertexBuffer();
-		auto vbh = VertexBufferHandle{
-			getUInt16("vbh", bgfx::kInvalidHandle)};
-		auto ibh =
-			IndexBufferHandle{getUInt16("ibh", bgfx::kInvalidHandle)};
-		auto program = SpriteProgram;
-		auto tex = getObject<texture>("texture");
+		auto vbh = getObject<vertexBuffer>("vbh");
+		auto ibh = getObject<indexBuffer>("ibh");
+		auto program = getObject<shaderProgram>("program");
+		auto tex = getObject<gpuTexture>("texture");
 		if (!tex) return genericError("Missing texture on sprite.");
-		auto texColor = bgfx::UniformHandle{
-			getUInt16("texColor", kInvalidHandle)};
-		if (!isValid(texColor))
-			return genericError("Invalid texture uniform.");
-		if (!isValid(vbh))
-			return genericError("Invalid vertex buffer handle");
-		if (!isValid(ibh))
-			return genericError("Invalid index buffer handle");
 
 		auto parentObject = getObject<entity>("object");
 		auto parentTrans = parentObject.getTransform();
 		auto mtx = parentTrans.getWorldMatrix();
 
-		setTransform(mtx.getPtr());
-		setVertexBuffer(0, vbh);
-		tex.bind({0, texColor.idx});
-		setIndexBuffer(ibh);
-		setState(
-			0 | BGFX_STATE_BLEND_NORMAL | BGFX_STATE_WRITE_RGB |
-			BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z |
-			BGFX_STATE_DEPTH_TEST_LESS | BGFX_STATE_MSAA);
-		submit(view, program);
+		program.setTransform(mtx);
+		shaderProgram::bindTexture("s_texColor", 0, tex);
+		shaderProgram::setUniform("u_opacity", opacityValue);
+		shaderProgram::setUniform("u_color0", colorValue);
+		vbh.set(0);
+		ibh.set();
+		program.defaultState();
+		program.submit(view);
 		return var();
 	}
 
 	var sprite::initialize(list) {
 		updateVertexBuffer();
-		uint16_t indicies[6] = {
+		uint16_t indicies[4 * 3] = {
 			0, 1, 2,  // 1
-			1, 3, 2   // 2
+			1, 3, 2,  // 2
+			1, 0, 2,  // Backside 1
+			1, 2, 3,  // Backside 2
 		};
-		auto iData = bgfx::copy(indicies, sizeof(uint16_t) * 6);
-		auto ibh = createIndexBuffer(iData);
-		setName(ibh, "SpriteIndexBuffer");
-		if (isValid(ibh)) setUInt16("ibh", ibh.idx);
-		if (
-			getUInt16("texColor", kInvalidHandle) == kInvalidHandle) {
-			auto textureUniform = bgfx::createUniform(
-				"s_texColor", bgfx::UniformType::Sampler);
-			getPrototype().setUInt16("texColor", textureUniform.idx);
-		}
-		if (
-			getUInt16("colorUniform", kInvalidHandle) ==
-			kInvalidHandle) {
-			auto colorUniform = bgfx::createUniform(
-				"u_color0", bgfx::UniformType::Vec4);
-			getPrototype().setUInt16(
-				"colorUniform", colorUniform.idx);
-			float white[4] = {1.0f, 1.0f, 1.0f, 0.0f};
-			setUniform(colorUniform, white);
-		}
-		if (
-			getUInt16("opacityUniform", kInvalidHandle) ==
-			kInvalidHandle) {
-			auto opacityUniform = bgfx::createUniform(
-				"u_opacity", bgfx::UniformType::Vec4);
-			getPrototype().setUInt16(
-				"opacityUniform", opacityUniform.idx);
-			float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-			setUniform(opacityUniform, white);
-		}
+		auto iSize = sizeof(uint16_t) * 4 * 3;
+		auto iBin = binary(iSize);
+		iBin.resize(iSize, 0);
+		memcpy(iBin.data(), indicies, iSize);
+		setObject(
+			"ibh",
+			indexBuffer({
+				{"type", standardBufferType},
+				{"data", iBin},
+			}));
 
-		if (SpriteProgram.idx == kInvalidHandle) {
-			auto fragBin = getSpriteShaderData(FragmentShaderType);
-			auto vertBin = getSpriteShaderData(VertexShaderType);
-			auto vertMem =
-				bgfx::copy(&*vertBin.begin(), vertBin.size());
-			SpriteVertShader = createShader(vertMem);
-			auto SpriteVertName = "SpriteVert";
-			setName(
-				SpriteVertShader,
-				SpriteVertName,
-				strlen(SpriteVertName));
-			auto fragMem =
-				bgfx::copy(&*fragBin.begin(), fragBin.size());
-			SpriteFragShader = createShader(fragMem);
-			auto SpriteFragName = "SpriteFrag";
-			setName(
-				SpriteFragShader,
-				SpriteFragName,
-				strlen(SpriteFragName));
-			if (
-				isValid(SpriteVertShader) &&
-				isValid(SpriteFragShader)) {
-				SpriteProgram = createProgram(
-					SpriteVertShader, SpriteFragShader, false);
-				if (!isValid(SpriteProgram))
-					genericError(
-						"Failed to link shaders and create program");
-				sprite::getPrototype().setUInt16(
-					"program", SpriteProgram.idx);
-			} else {
-				return genericError("Failed to load sprite shaders.");
-			}
+		using uT = uniformType;
+		shaderProgram::createUniform(
+			"s_texColor", uT::Sampler);
+		shaderProgram::createUniform("u_color0", uT::Vec4);
+		shaderProgram::createUniform("u_opacity", uT::Vec4);
+
+		auto spriteProgram =
+			shaderProgram::findInCache("SpriteProgram");
+		if (!spriteProgram) {
+			spriteProgram = shaderProgram({
+				{"name", "SpriteProgram"},
+				{"vert",
+				 shaderObject({
+					 {"data", getSpriteShaderData(VertexShaderType)},
+				 })},
+				{"frag",
+				 shaderObject({
+					 {"data", getSpriteShaderData(FragmentShaderType)},
+				 })},
+			});
 		}
+		setObject("program", spriteProgram);
+
+
 		return var();
 	}
 
 	var sprite::destroy(list) {
-		auto vbh = VertexBufferHandle{
-			getUInt16("vbh", bgfx::kInvalidHandle)};
-		auto ibh =
-			IndexBufferHandle{getUInt16("ibh", bgfx::kInvalidHandle)};
-		bgfx::destroy(vbh);
-		bgfx::destroy(ibh);
+		auto ibh = getObject<indexBuffer>("ibh");
+		ibh.destroy();
+		auto vbh = getObject<vertexBuffer>("vbh");
+		vbh.destroy();
+		empty();
 		return var();
 	}
 

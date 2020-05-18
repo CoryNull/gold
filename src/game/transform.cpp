@@ -126,7 +126,7 @@ namespace gold {
 		return results;
 	}
 
-	var transform::getWorldMatrix(list args) {
+	var transform::getWorldMatrix(list) {
 		auto parentObj = entity();
 		returnObject<entity>("object", parentObj);
 		auto parentChain = list();

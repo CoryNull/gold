@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "component.hpp"
 
 namespace gold {
 
@@ -11,7 +12,7 @@ namespace gold {
 		ComputeShaderType,
 	};
 
-	struct renderable : public object {
+	struct renderable : public component {
 	 public:
 		static object& getPrototype();
 

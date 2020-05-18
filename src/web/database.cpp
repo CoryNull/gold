@@ -54,7 +54,8 @@ namespace gold {
 					break;
 				}
 				case typeBinary: {
-					auto bin = item.getBinary();
+					auto bin = binary();
+					item.returnBinary(bin);
 					bson_append_binary(
 						b,
 						key.data(),
@@ -62,6 +63,7 @@ namespace gold {
 						bson_subtype_t::BSON_SUBTYPE_BINARY,
 						bin.data(),
 						bin.size());
+
 					break;
 				}
 				case typeUInt64:
@@ -127,7 +129,8 @@ namespace gold {
 					break;
 				}
 				case typeBinary: {
-					auto bin = it->second.getBinary();
+					auto bin = binary();
+					it->second.returnBinary(bin);
 					bson_append_binary(
 						b,
 						key.data(),

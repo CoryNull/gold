@@ -29,10 +29,9 @@ namespace gold {
 		auto textRet = file::load(args);
 		if (textRet.isBinary()) {
 			auto textureBinary = textRet.getBinary();
-			if (textureBinary.size() == 0)
-				getBinary("data", textureBinary);
-			auto dataSize = textureBinary.size();
-			auto dataPtr = (void*)textureBinary.data();
+			if(!textureBinary) return var();
+			auto dataSize = textureBinary->size();
+			auto dataPtr = (void*)textureBinary->data();
 			auto textureHandle = bgfx::TextureHandle();
 			auto parseError = bx::Error();
 			auto imageContainer = bimg::ImageContainer();

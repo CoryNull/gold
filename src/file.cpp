@@ -34,8 +34,8 @@ namespace gold {
 	}
 
 	var file::save(list args) {
-		string path = getString("path");
-		binary data = getBinary("data");
+		auto path = getString("path");
+		auto data = getBinary("data");
 		for (auto it = args.begin(); it != args.end(); ++it)
 			if (it->isString())
 				path = it->getString();
@@ -45,13 +45,13 @@ namespace gold {
 			return genericError(
 				"path is empty, supply as argument or set path on "
 				"object");
-		if (data.size() == 0)
+		if (data && data->size() == 0)
 			return genericError(
 				"data is empty, supply as argument or set data on "
 				"object");
 		auto str = ofstream(path);
 		if (str.is_open()) {
-			str.write((char*)data.data(), data.size());
+			str.write((char*)data->data(), data->size());
 			str.close();
 			auto writeTime = fs::last_write_time(path);
 			auto wtms =
@@ -74,16 +74,15 @@ namespace gold {
 					"path is empty, supply as argument or set path on "
 					"object");
 			if (fs::exists(path)) {
-				auto data = binary();
-				getBinary("data", data);
+				auto data = getBinary("data");
 				auto writeTime = fs::last_write_time(path);
 				auto wtms = (uint64_t)std::chrono::duration_cast<
 											std::chrono::nanoseconds>(
 											writeTime.time_since_epoch())
 											.count();
 				auto lastWriteTime = getUInt64("writeTime");
-				if (data.size() > 0 && wtms == lastWriteTime)
-					return data;
+				if (data && data->size() > 0 && wtms == lastWriteTime)
+					return *data;
 				auto str = ifstream(path);
 				if (str.is_open()) {
 					str.seekg(0, str.end);
@@ -148,26 +147,36 @@ namespace gold {
 	}
 
 	var file::asJSON() {
-		return file::parseJSON(getBinary("data"));
+		auto bin = getBinary("data");
+		if (!bin) return var();
+		return file::parseJSON(*bin);
 	}
 
 	var file::asBSON() {
-		return file::parseBSON(getBinary("data"));
+		auto bin = getBinary("data");
+		if (!bin) return var();
+		return file::parseBSON(*bin);
 	}
 
 	var file::asCBOR() {
-		return file::parseCBOR(getBinary("data"));
+		auto bin = getBinary("data");
+		if (!bin) return var();
+		return file::parseCBOR(*bin);
 	}
 
 	var file::asMsgPack() {
-		return file::parseMsgPack(getBinary("data"));
+		auto bin = getBinary("data");
+		if (!bin) return var();
+		return file::parseMsgPack(*bin);
 	}
 
 	var file::asUBJSON() {
-		return file::parseUBJSON(getBinary("data"));
+		auto bin = getBinary("data");
+		if (!bin) return var();
+		return file::parseUBJSON(*bin);
 	}
 
-	file::operator binary() {
+	file::operator binary*() {
 		auto data = load();
 		return data.getBinary();
 	}
@@ -807,52 +816,53 @@ namespace gold {
 		return nullptr;
 	}
 
-	binary file::serializeJSON(var data, bool pretty) {
+	void file::serializeJSON(var data, string* out, bool pretty) {
 		auto j = basicToJSON(data);
 		auto str = pretty ? j.dump(1, '\t') : j.dump();
-		auto ret = binary(str.size());
-		memcpy(ret.data(), str.data(), str.size());
-		return ret;
+		out->resize(str.size());
+		memcpy(out->data(), str.data(), str.size());
 	}
 
-	binary file::serializeBSON(var data) {
-		return json::to_bson(basicToJSON(data));
+	void file::serializeBSON(var data, binary* out) {
+		if (!out) return;
+		*out = json::to_bson(basicToJSON(data));
 	}
 
-	binary file::serializeCBOR(var data) {
-		return json::to_cbor(basicToJSON(data));
+	void file::serializeCBOR(var data, binary* out) {
+		if (!out) return;
+		*out = json::to_cbor(basicToJSON(data));
 	}
 
-	binary file::serializeMsgPack(var data) {
-		return json::to_msgpack(basicToJSON(data));
+	void file::serializeMsgPack(var data, binary* out) {
+		if (!out) return;
+		*out = json::to_msgpack(basicToJSON(data));
 	}
 
-	binary file::serializeUBJSON(var data) {
-		return json::to_ubjson(basicToJSON(data));
+	void file::serializeUBJSON(var data, binary* out) {
+		if (!out) return;
+		*out = json::to_ubjson(basicToJSON(data));
 	}
 
-	binary file::decodeDataURL(string v) {
-		auto res = binary();
+	void file::decodeDataURL(string v, binary* out) {
 		auto s = v.size();
-		if (s == 0) return res;
-		if (v.substr(0, 5).compare("data:") != 0) return res;
+		if (s == 0) return;
+		if (v.substr(0, 5).compare("data:") != 0) return;
 		auto commaIndex = v.find(',');
-		if (commaIndex == string::npos) return res;
+		if (commaIndex == string::npos) return;
 		auto args = v.substr(5, commaIndex - 5);
 		auto data = v.substr(commaIndex + 1);
 		if (args.find(";base64") != string::npos) {
-			res = decodeBase64(data);
+			decodeBase64(data, out);
 		} else {
 			// TODO: Swap out escaped chars
 			auto ds = data.size();
-			res.reserve(ds);
-			memcpy(res.data(), data.data(), ds);
+			out->reserve(ds);
+			memcpy(out->data(), data.data(), ds);
 		}
-		return res;
 	}
 
 	inline void decodeBlock(
-		string_view base64In, binary& binOut) {
+		string_view base64In, binary* binOut) {
 		// CREDIT: github.com/Jim-CodeHub/libmime
 		// CHANGES: variableNames, formatting
 
@@ -882,38 +892,37 @@ namespace gold {
 			case 0:
 				break;
 			case 1:
-				binOut.push_back(table[_base64In[0]] << 2);
+				binOut->push_back(table[_base64In[0]] << 2);
 				break;
 			case 2:
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[0]] << 2) |
 					(table[_base64In[1]] >> 4));
-				binOut.push_back(table[_base64In[1]] << 4);
+				binOut->push_back(table[_base64In[1]] << 4);
 				break;
 			case 3:
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[0]] << 2) |
 					(table[_base64In[1]] >> 4));
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[1]] << 4) |
 					(table[_base64In[2]] >> 2));
-				binOut.push_back(table[_base64In[2]] << 6);
+				binOut->push_back(table[_base64In[2]] << 6);
 				break;
 			default:
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[0]] << 2) |
 					(table[_base64In[1]] >> 4));
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[1]] << 4) |
 					(table[_base64In[2]] >> 2));
-				binOut.push_back(
+				binOut->push_back(
 					(table[_base64In[2]] << 6) | (table[_base64In[3]]));
 		}
 	}
 
-	binary file::decodeBase64(string v) {
-		auto binOut = binary();
-		binOut.reserve(v.size() / 4 * 3);
+	void file::decodeBase64(string v, binary* out) {
+		out->reserve(v.size() / 4 * 3);
 		size_t i = 0;
 		size_t k = 0;
 
@@ -921,11 +930,10 @@ namespace gold {
 			for (k = 0; k < 4; k++)
 				if ('\0' == v[i + k]) break;
 
-			auto view = string_view(v.data()+i, k);
-			i+=k;
-			decodeBlock(view, binOut);
+			auto view = string_view(v.data() + i, k);
+			i += k;
+			decodeBlock(view, out);
 		}
-		return binOut;
 	}
 
 }  // namespace gold

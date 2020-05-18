@@ -16,6 +16,8 @@ namespace gold {
 
 		void registerComponent(component& comp);
 
+		void cleanUp();
+
 	 public:
 		string getSettingsDir();
 		string getSettingsPath();
@@ -24,12 +26,10 @@ namespace gold {
 		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
 
-		var destroy();
 		var start();
 		var initialize();
 		var loadSettings();
 		var saveSettings();
-		var handleEntity(list args);
 		var addElement(list args);
 		var getPrimaryCamera();
 

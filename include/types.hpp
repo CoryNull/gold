@@ -247,7 +247,7 @@ namespace gold {
 		func getFunction() const;
 		void* getPtr() const;
 		genericError* getError() const;
-		binary getBinary() const;
+		binary* getBinary() const;
 		void returnBinary(binary& result) const;
 		template <typename OT = object>
 		void returnObject(OT& result) const {
@@ -445,7 +445,8 @@ namespace gold {
 		omap::iterator begin();
 		omap::iterator end();
 
-		uint64_t size();
+		uint64_t refs() const;
+		uint64_t size() const;
 		types getType(string name);
 		var callMethod(string name);
 		var callMethod(string name, list args);
@@ -495,7 +496,7 @@ namespace gold {
 		method getMethod(string name);
 		func getFunc(string name);
 		void* getPtr(string name, void* def = 0);
-		binary getBinary(string name, binary def = binary());
+		binary* getBinary(string name, binary* def = nullptr);
 		void returnBinary(string name, binary& result);
 		var getVar(string name);
 		template <typename OT = object>
@@ -518,8 +519,8 @@ namespace gold {
 
 		static void parseURLEncoded(string value, object& result);
 
-		string getJSON();
-		binary getJSONBin();
+		string getJSON(bool pretty = false);
+		binary getJSONBin(bool pretty = false);
 		static var loadJSON(string path);
 		static var saveJSON(string path, object value);
 
