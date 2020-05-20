@@ -131,7 +131,7 @@ namespace gold {
 
 	var promise::addArgs(list args) {
 		auto cArgs = list();
-		returnList("args", cArgs);
+		assignList("args", cArgs);
 		cArgs += args;
 		return cArgs;
 	}

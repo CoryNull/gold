@@ -35,23 +35,27 @@ namespace gold {
 
 	var file::save(list args) {
 		auto path = getString("path");
-		auto data = getBinary("data");
+		auto data = getStringView("data");
 		for (auto it = args.begin(); it != args.end(); ++it)
-			if (it->isString())
+			if (it->isString() && path == "")
 				path = it->getString();
-			else if (it->isBinary())
-				data = it->getBinary();
+			else if (
+				(it->isBinary() || it->isString() || it->isView()) &&
+				data.size() == 0)
+				data = it->getStringView();
+			else
+				break;
 		if (path.size() == 0)
 			return genericError(
 				"path is empty, supply as argument or set path on "
 				"object");
-		if (data && data->size() == 0)
+		if (data.size() == 0)
 			return genericError(
 				"data is empty, supply as argument or set data on "
 				"object");
 		auto str = ofstream(path);
 		if (str.is_open()) {
-			str.write((char*)data->data(), data->size());
+			str.write((char*)data.data(), data.size());
 			str.close();
 			auto writeTime = fs::last_write_time(path);
 			auto wtms =
@@ -74,15 +78,15 @@ namespace gold {
 					"path is empty, supply as argument or set path on "
 					"object");
 			if (fs::exists(path)) {
-				auto data = getBinary("data");
+				auto data = getStringView("data");
 				auto writeTime = fs::last_write_time(path);
 				auto wtms = (uint64_t)std::chrono::duration_cast<
 											std::chrono::nanoseconds>(
 											writeTime.time_since_epoch())
 											.count();
 				auto lastWriteTime = getUInt64("writeTime");
-				if (data && data->size() > 0 && wtms == lastWriteTime)
-					return *data;
+				if (data.size() > 0 && wtms == lastWriteTime)
+					return data;
 				auto str = ifstream(path);
 				if (str.is_open()) {
 					str.seekg(0, str.end);
@@ -93,7 +97,7 @@ namespace gold {
 					str.close();
 					setUInt64("writeTime", wtms);
 					setBinary("data", bin);
-					return var(bin);
+					return getStringView("data");
 				}
 			}
 			return gold::var();
@@ -134,9 +138,9 @@ namespace gold {
 	var file::hash(list args) {
 		auto data = binary();
 		if (args.size() > 0)
-			args[0].returnBinary(data);
+			args[0].assignBinary(data);
 		else
-			returnBinary("data", data);
+			assignBinary("data", data);
 		auto strData = string_view((char*)data.data(), data.size());
 		auto h = std::hash<string_view>();
 		return to_string((uint64_t)h(strData));
@@ -147,43 +151,31 @@ namespace gold {
 	}
 
 	var file::asJSON() {
-		auto bin = getBinary("data");
-		if (!bin) return var();
-		return file::parseJSON(*bin);
+		return file::parseJSON(getBinary("data"));
 	}
 
 	var file::asBSON() {
-		auto bin = getBinary("data");
-		if (!bin) return var();
-		return file::parseBSON(*bin);
+		return file::parseBSON(getBinary("data"));
 	}
 
 	var file::asCBOR() {
-		auto bin = getBinary("data");
-		if (!bin) return var();
-		return file::parseCBOR(*bin);
+		return file::parseCBOR(getBinary("data"));
 	}
 
 	var file::asMsgPack() {
-		auto bin = getBinary("data");
-		if (!bin) return var();
-		return file::parseMsgPack(*bin);
+		return file::parseMsgPack(getBinary("data"));
 	}
 
 	var file::asUBJSON() {
-		auto bin = getBinary("data");
-		if (!bin) return var();
-		return file::parseUBJSON(*bin);
+		return file::parseUBJSON(getBinary("data"));
 	}
 
-	file::operator binary*() {
-		auto data = load();
-		return data.getBinary();
-	}
+	file::operator binary() { return load().getBinary(); }
 
-	file::operator string() {
-		auto data = load();
-		return data.getString();
+	file::operator string() { return load().getString(); }
+
+	file::operator string_view() {
+		return load().getStringView();
 	}
 
 	file file::readFile(path p) {
@@ -816,49 +808,46 @@ namespace gold {
 		return nullptr;
 	}
 
-	void file::serializeJSON(var data, string* out, bool pretty) {
+	string file::serializeJSON(var data, bool pretty) {
 		auto j = basicToJSON(data);
 		auto str = pretty ? j.dump(1, '\t') : j.dump();
-		out->resize(str.size());
-		memcpy(out->data(), str.data(), str.size());
+		auto out = string();
+		out.resize(str.size(), 0);
+		memcpy(out.data(), str.data(), str.size());
+		return out;
 	}
 
-	void file::serializeBSON(var data, binary* out) {
-		if (!out) return;
-		*out = json::to_bson(basicToJSON(data));
+	binary file::serializeBSON(var data) {
+		return json::to_bson(basicToJSON(data));
 	}
 
-	void file::serializeCBOR(var data, binary* out) {
-		if (!out) return;
-		*out = json::to_cbor(basicToJSON(data));
+	binary file::serializeCBOR(var data) {
+		return json::to_cbor(basicToJSON(data));
 	}
 
-	void file::serializeMsgPack(var data, binary* out) {
-		if (!out) return;
-		*out = json::to_msgpack(basicToJSON(data));
+	binary file::serializeMsgPack(var data) {
+		return json::to_msgpack(basicToJSON(data));
 	}
 
-	void file::serializeUBJSON(var data, binary* out) {
-		if (!out) return;
-		*out = json::to_ubjson(basicToJSON(data));
+	binary file::serializeUBJSON(var data) {
+		return json::to_ubjson(basicToJSON(data));
 	}
 
-	void file::decodeDataURL(string v, binary* out) {
+	binary file::decodeDataURL(string v) {
+		binary out;
 		auto s = v.size();
-		if (s == 0) return;
-		if (v.substr(0, 5).compare("data:") != 0) return;
+		if (s == 0) return out;
+		if (v.substr(0, 5).compare("data:") != 0) return out;
 		auto commaIndex = v.find(',');
-		if (commaIndex == string::npos) return;
+		if (commaIndex == string::npos) return out;
 		auto args = v.substr(5, commaIndex - 5);
 		auto data = v.substr(commaIndex + 1);
 		if (args.find(";base64") != string::npos) {
-			decodeBase64(data, out);
-		} else {
+			out = decodeBase64(data);
+		} else
 			// TODO: Swap out escaped chars
-			auto ds = data.size();
-			out->reserve(ds);
-			memcpy(out->data(), data.data(), ds);
-		}
+			out = binary(data.begin(), data.end());
+		return out;
 	}
 
 	inline void decodeBlock(
@@ -921,8 +910,9 @@ namespace gold {
 		}
 	}
 
-	void file::decodeBase64(string v, binary* out) {
-		out->reserve(v.size() / 4 * 3);
+	binary file::decodeBase64(string v) {
+		auto out = binary();
+		out.reserve(v.size() / 4 * 3);
 		size_t i = 0;
 		size_t k = 0;
 
@@ -932,8 +922,9 @@ namespace gold {
 
 			auto view = string_view(v.data() + i, k);
 			i += k;
-			decodeBlock(view, out);
+			decodeBlock(view, &out);
 		}
+		return out;
 	}
 
 }  // namespace gold

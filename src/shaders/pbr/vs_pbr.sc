@@ -1,10 +1,11 @@
 $input a_position, a_texcoord0, a_normal, a_tangent
 $output v_position, v_uv, v_normal, v_tbn0, v_tbn1, v_tbn2
 
-// x=Occlusion, y=Tangents, z=Normals, w=UV
-uniform vec4 u_HasTable1;
+// AUTHOR: KhronosGroup/glTF-Sample-Viewer
+// LICENSE: APACHE 2
 
 #include "bgfx_shader.sh"
+#include "defines.sh"
 
 void main()
 {
@@ -12,8 +13,8 @@ void main()
 	vec4 pos = modelMtx * a_position;
 	v_position = vec3(pos.xyz) / pos.w;
 
-	if(u_HasTable1.z > 0.0) { // HAS NORMALS
-		if(u_HasTable1.y > 0.0) { // HAS TANGENTS
+	if(u_hasNormals > 0.0) { // HAS NORMALS
+		if(u_hasTangents > 0.0) { // HAS TANGENTS
 			vec3 normalW = normalize(
 				vec3(modelMtx * vec4(a_normal.xyz, 0.0)));
 			vec3 tangentW = normalize(
@@ -29,7 +30,7 @@ void main()
 		}
 	}
 
-	if(u_HasTable1.w > 0.0) { // HAS UV
+	if(u_hasUV > 0.0) { // HAS UV
 		v_uv = a_texcoord0;
 	} else {
 		v_uv = vec2(0.,0.);

@@ -51,14 +51,14 @@ namespace gold {
 		for (auto it = args.begin(); it != args.end(); ++it) {
 			auto obj = object();
 			if (it->isObject(getPrototype())) {
-				it->returnObject(obj);
+				it->assignObject(obj);
 				auto cit = children.find(obj);
 				if (cit != children.end()) {
 					eng -= {*cit};
 					children.erase(cit);
 				}
 			} else if (it->isObject(component::getPrototype())) {
-				it->returnObject(obj);
+				it->assignObject(obj);
 				auto cit = comps.find(obj);
 				if (cit != comps.end()) {
 					eng -= {*cit};

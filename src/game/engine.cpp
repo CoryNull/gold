@@ -181,6 +181,7 @@ namespace gold {
 					comp.callMethod("draw");
 				}
 			}
+			phys.debugDraw();
 			gfx.renderFrame();
 		}
 		cleanUp();
@@ -269,7 +270,7 @@ namespace gold {
 			if (it != a.end()) a.erase(it);
 		};
 
-		while(items.size() > 0) {
+		while (items.size() > 0) {
 			auto it = items.begin();
 			if (it->isObject(entity::getPrototype())) {
 				forEntity(*it);
@@ -318,7 +319,7 @@ namespace gold {
 			if (it != a.end()) a.erase(it);
 		};
 
-		while(components.size() > 0) {
+		while (components.size() > 0) {
 			auto it = components.begin();
 			if (it->isObject(entity::getPrototype())) {
 				forEntity(*it);

@@ -53,7 +53,6 @@ namespace gold {
 			auto shape = (btCollisionShape*)shapeComp.getPtr("shape");
 			if (shape) bodyShape->addChildShape(btTrans, shape);
 		}
-		bodyShape->createAabbTreeFromChildren();
 		btAssert(
 			(!bodyShape ||
 			 bodyShape->getShapeType() != INVALID_SHAPE_PROXYTYPE));

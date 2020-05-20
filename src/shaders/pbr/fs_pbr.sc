@@ -1,6 +1,10 @@
 $input v_position, v_uv, v_normal, v_tbn0, v_tbn1, v_tbn2
 
+// ORIGINAL AUTHORS: KhronosGroup/glTF-Sample-Viewer
+// LICENSE: APACHE 2
+
 #include "bgfx_shader.sh"
+#include "defines.sh"
 
 //
 // This fragment shader defines a reference implementation for Physically Based Shading of
@@ -15,38 +19,14 @@ $input v_position, v_uv, v_normal, v_tbn0, v_tbn1, v_tbn2
 //     https://github.com/KhronosGroup/glTF-WebGL-PBR/#environment-maps
 // [4] "An Inexpensive BRDF Model for Physically based Rendering" by Christophe Schlick
 //     https://www.cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf
-
-uniform vec4 u_LightDirection;
-uniform vec4 u_LightColor;
-uniform vec4 u_AmbientLightColor;
-uniform vec4 u_Camera;
-uniform vec4 u_EmissiveFactor;
-uniform vec4 u_BaseColorFactor;
-uniform vec4 u_MetallicRoughnessValues;
-
-// debugging flags used for shader output of intermediate PBR variables
-uniform vec4 u_ScaleDiffBaseMR;
-uniform vec4 u_ScaleFGDSpec;
-uniform vec4 u_ScaleIBLAmbient;
-
-SAMPLERCUBE(u_DiffuseEnvSampler, 0);
-SAMPLERCUBE(u_SpecularEnvSampler, 1);
-SAMPLER2D(u_brdfLUT, 3);
-SAMPLER2D(u_BaseColorSampler, 4);
-SAMPLER2D(u_NormalSampler, 5);
-SAMPLER2D(u_EmissiveSampler, 6);
-SAMPLER2D(u_MetallicRoughnessSampler, 7);
-SAMPLER2D(u_OcclusionSampler, 8);
-
-// x=Base, y=Normal, z=Emissive, w=M/R 
-uniform vec4 u_HasTable0;
-// x=Occlusion, y=Tangents, z=Normals, w=UV
-uniform vec4 u_HasTable1;
-// x=LightBlinnPhong, y=LightLambert, z=LightPBR, w=Null
-uniform vec4 u_UseLightTable;
-
-// x=IBL, y=TexLoD, z=OcclusionStrength, w=NormalScale
-uniform vec4 u_Data0;
+// [5] "KHR_materials_clearcoat"
+//     https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_clearcoat
+// [6] "KHR_materials_specular"
+//     https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_specular
+// [7] "KHR_materials_subsurface"
+//     https://github.com/KhronosGroup/glTF/pull/1766
+// [8] "KHR_materials_thinfilm"
+//     https://github.com/ux3d/glTF/tree/extensions/KHR_materials_thinfilm/extensions/2.0/Khronos/KHR_materials_thinfilm
 
 // Encapsulate the various inputs used by the various functions in the shading equation
 // We store values in this struct to simplify the integration of alternative implementations
@@ -74,7 +54,7 @@ vec3 getNormal(
 	vec3 pos, vec2 uv, vec3 norm, vec3 tbn0, vec3 tbn1, vec3 tbn2) {
 	// Retrieve the tangent space matrix
 	mat3 tbn;
-	if(u_HasTable1.y > 0.0) { // HAS TANGENTS
+	if(u_hasTangents > 0.0) { // HAS TANGENTS
 		vec3 pos_dx = dFdx(pos);
 		vec3 pos_dy = dFdy(pos);
 		vec3 tex_dx = dFdx(vec3(uv, 0.0));
@@ -82,7 +62,7 @@ vec3 getNormal(
 		vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
 
 		vec3 ng;
-		if(u_HasTable1.z > 0.0) { // HAS NORMALS
+		if(u_hasNormals > 0.0) { // HAS NORMALS
 			ng = normalize(norm);
 		} else {
 			ng = cross(pos_dx, pos_dy);
@@ -98,9 +78,9 @@ vec3 getNormal(
 	}
 
 	vec3 n;
-	if(u_HasTable0.y > 0.0) { // HAS NORMALMAP
+	if(u_hasNormalMap > 0.0) { // HAS NORMALMAP
 		n = texture2D(u_NormalSampler, uv).rgb;
-		n = normalize(tbn * ((2.0 * n - 1.0) * vec3(u_Data0.w, u_Data0.w, 1.0)));
+		n = normalize(tbn * ((2.0 * n - 1.0) * vec3(u_NormalScale, u_NormalScale, 1.0)));
 	} else {
 		n = tbn[2].xyz;
 	}
@@ -119,7 +99,7 @@ vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection) {
 	vec3 diffuseLight = textureCube(u_DiffuseEnvSampler, n).rgb;
 
 	vec3 specularLight;
-	if(u_Data0.y > 0.0) { // USE TEX LOD
+	if(u_TexLoD > 0.0) { // USE TEX LOD
 		specularLight = textureCubeLod(u_SpecularEnvSampler, reflection, lod).rgb;
 	} else {
 		specularLight = textureCube(u_SpecularEnvSampler, reflection).rgb;
@@ -184,7 +164,7 @@ void main()
 	// or from a metallic-roughness map
 	float perceptualRoughness = u_MetallicRoughnessValues.y;
 	float metallic = u_MetallicRoughnessValues.x;
-	if(u_HasTable0.w > 0.0) { // HAS METAL ROUGHNESS MAP
+	if(u_hasMetal > 0.0) { // HAS METAL ROUGHNESS MAP
 		// Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
 		// This layout intentionally reserves the 'r' channel for (optional) occlusion map data
 		vec4 mrSample = texture2D(u_MetallicRoughnessSampler, v_uv);
@@ -201,7 +181,7 @@ void main()
 	
 	// The albedo may be defined from a base texture or a flat color
 	vec4 baseColor;
-	if(u_HasTable0.x > 0.0) { // HAS BASE COLOR MAP
+	if(u_hasBase > 0.0) { // HAS BASE COLOR MAP
 		baseColor = texture2D(u_BaseColorSampler, v_uv) * u_BaseColorFactor;
 	} else {
 		baseColor = u_BaseColorFactor;
@@ -258,7 +238,7 @@ void main()
 	vec3 specContrib = vec3(0.0);
 	vec3 color = vec3(0.0);
 
-	if(u_UseLightTable.x > 0.0) { // USE BLINN PHONG
+	if(u_LightBlinnPhong > 0.0) { // USE BLINN PHONG
 		// simplified blinn-phong lighting model
 		diffuseContrib = vec3(NdotL);
 		float specPow = 2.0/alphaRoughness-1.0;
@@ -268,19 +248,19 @@ void main()
 		color = baseColor.rgb * u_LightColor.rgb * (diffuseContrib + specContrib);
 	}
 	
-	if(u_UseLightTable.y > 0.0) { // USE LAMBERT
+	if(u_LightLambert > 0.0) { // USE LAMBERT
 		diffuseContrib = vec3(NdotL);
 		color = baseColor.rgb * u_LightColor.rgb * (diffuseContrib);
 	}
 
-	if(u_UseLightTable.z > 0.0) { // USE PBR MR
+	if(u_LightPBR > 0.0) { // USE PBR MR
 		// Calculation of analytical lighting contribution
 		diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
 		specContrib = F * G * D / (4.0 * NdotL * NdotV);
 		color = NdotL * u_LightColor.rgb * (diffuseContrib + specContrib);
 	}
 
-	if(u_Data0.x > 0.0) { // USE IBL
+	if(u_IBL > 0.0) { // USE IBL
 		// Calculate lighting contribution from image based lighting source (IBL)
 		color += getIBLContribution(pbrInputs, n, reflection);
 	}
@@ -288,17 +268,17 @@ void main()
 	color += baseColor.rgb * u_AmbientLightColor.rgb;
 
 	// Apply optional PBR terms for additional (optional) shading
-	if(u_HasTable1.x > 0.0) { // HAS OCCLUSIONMAP
+	if(u_hasOcclusion > 0.0) { // HAS OCCLUSIONMAP
 		float ao = texture2D(u_OcclusionSampler, v_uv).r;
-		color = mix(color, color * ao, u_Data0.z);
+		color = mix(color, color * ao, u_OcclusionStrength);
 	}
 
-	if(u_HasTable0.z > 0.0) { // HAS EMMISIVEMAP
+	if(u_hasEmissive > 0.0) { // HAS EMMISIVEMAP
 		vec3 emissive = texture2D(u_EmissiveSampler, v_uv).rgb * u_EmissiveFactor.rgb;
 		color += emissive;
 	}
 
-	if(u_UseLightTable.z > 0.0) { // USE PBR MR 
+	if(u_LightPBR > 0.0) { // USE PBR MR 
 		// This section uses mix to override final color for reference app visualization
 		// of various parameters in the lighting equation.
 		color = mix(color, F, u_ScaleFGDSpec.x);

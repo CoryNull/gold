@@ -275,9 +275,10 @@ namespace gold {
 	};
 
 	enum BufferType {
-		standardBufferType = 0,
-		dynamicBufferType = 1,
-		transientBufferType = 2,
+		nullBufferType = 0,
+		standardBufferType = 1,
+		dynamicBufferType = 2,
+		transientBufferType = 3,
 	};
 
 	struct vertexBuffer : public object {

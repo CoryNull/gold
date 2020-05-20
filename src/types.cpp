@@ -31,6 +31,8 @@ namespace gold {
 				return "Pointer";
 			case typeString:
 				return "String";
+			case typeStringView:
+				return "StringView";
 			case typeBinary:
 				return "Binary";
 			case typeInt64:
@@ -74,63 +76,63 @@ namespace gold {
 			case typeVec2UInt16:
 				return "Vec2UInt16";
 			case typeVec2UInt8:
-				return "typeVec2UInt8";
+				return "Vec2UInt8";
 			case typeVec3Int64:
-				return "typeVec3Int64";
+				return "Vec3Int64";
 			case typeVec3Int32:
-				return "typeVec3Int32";
+				return "Vec3Int32";
 			case typeVec3Int16:
-				return "typeVec3Int16";
+				return "Vec3Int16";
 			case typeVec3Int8:
-				return "typeVec3Int8";
+				return "Vec3Int8";
 			case typeVec3UInt64:
-				return "typeVec3UInt64";
+				return "Vec3UInt64";
 			case typeVec3UInt32:
-				return "typeVec3UInt32";
+				return "Vec3UInt32";
 			case typeVec3UInt16:
-				return "typeVec3UInt16";
+				return "Vec3UInt16";
 			case typeVec3UInt8:
-				return "typeVec3UInt8";
+				return "Vec3UInt8";
 			case typeVec4Int64:
-				return "typeVec4Int64";
+				return "Vec4Int64";
 			case typeVec4Int32:
-				return "typeVec4Int32";
+				return "Vec4Int32";
 			case typeVec4Int16:
-				return "typeVec4Int16";
+				return "Vec4Int16";
 			case typeVec4Int8:
-				return "typeVec4Int8";
+				return "Vec4Int8";
 			case typeVec4UInt64:
-				return "typeVec4UInt64";
+				return "Vec4UInt64";
 			case typeVec4UInt32:
-				return "typeVec4UInt32";
+				return "Vec4UInt32";
 			case typeVec4UInt16:
-				return "typeVec4UInt16";
+				return "Vec4UInt16";
 			case typeVec4UInt8:
-				return "typeVec4UInt8";
+				return "Vec4UInt8";
 			case typeVec2Float:
-				return "typeVec2Float";
+				return "Vec2Float";
 			case typeVec2Double:
-				return "typeVec2Double";
+				return "Vec2Double";
 			case typeVec3Float:
-				return "typeVec3Float";
+				return "Vec3Float";
 			case typeVec3Double:
-				return "typeVec3Double";
+				return "Vec3Double";
 			case typeVec4Float:
-				return "typeVec4Float";
+				return "Vec4Float";
 			case typeVec4Double:
-				return "typeVec4Double";
+				return "Vec4Double";
 			case typeQuatFloat:
-				return "typeQuatFloat";
+				return "QuatFloat";
 			case typeQuatDouble:
-				return "typeQuatDouble";
+				return "QuatDouble";
 			case typeMat3x3Float:
-				return "typeMat3x3Float";
+				return "Mat3x3Float";
 			case typeMat3x3Double:
-				return "typeMat3x3Double";
+				return "Mat3x3Double";
 			case typeMat4x4Float:
-				return "typeMat4x4Float";
+				return "Mat4x4Float";
 			case typeMat4x4Double:
-				return "typeMat4x4Double";
+				return "Mat4x4Double";
 		}
 		return "Undefined";
 	}

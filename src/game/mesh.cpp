@@ -46,8 +46,7 @@ namespace gold {
 				auto bufferObj = it->getObject();
 				if (bufferObj.getType("uri") == typeString) {
 					auto uri = bufferObj.getString("uri");
-					auto bin = binary();
-					file::decodeDataURL(uri, &bin);
+					auto bin = file::decodeDataURL(uri);
 					bufferObj.setBinary("data", bin);
 					erase("uri");
 				}
@@ -67,12 +66,7 @@ namespace gold {
 				auto data = bufferObj.getBinary("data");
 				auto parsed = list();
 				parseGLTFBuffer(
-					type,
-					scalarType,
-					offset,
-					count,
-					data->data(),
-					parsed);
+					type, scalarType, offset, count, data.data(), parsed);
 				section.setList("parsed", parsed);
 			}
 			for (auto it = nodes.begin(); it != nodes.end(); ++it) {

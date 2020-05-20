@@ -101,9 +101,9 @@ namespace gold {
 		using a = vertexLayout::attrib;
 		using aT = vertexLayout::attribType;
 		auto layout =
-			vertexLayout::findInCache("SpriteVertexLayout");
+			vertexLayout::findInCache("Sprite");
 		if (!layout) {
-			layout = vertexLayout({{"name", "SpriteVertexLayout"}})
+			layout = vertexLayout({{"name", "Sprite"}})
 								 .begin()
 								 .add(a::aPosition, aT::Float, 3)
 								 .add(a::aTexCoord0, aT::Float, 2)
@@ -222,16 +222,14 @@ namespace gold {
 			}));
 
 		using uT = uniformType;
-		shaderProgram::createUniform(
-			"s_texColor", uT::Sampler);
+		shaderProgram::createUniform("s_texColor", uT::Sampler);
 		shaderProgram::createUniform("u_color0", uT::Vec4);
 		shaderProgram::createUniform("u_opacity", uT::Vec4);
 
-		auto spriteProgram =
-			shaderProgram::findInCache("SpriteProgram");
-		if (!spriteProgram) {
-			spriteProgram = shaderProgram({
-				{"name", "SpriteProgram"},
+		auto program = shaderProgram::findInCache("Sprite");
+		if (!program)
+			program = shaderProgram({
+				{"name", "Sprite"},
 				{"vert",
 				 shaderObject({
 					 {"data", getSpriteShaderData(VertexShaderType)},
@@ -241,9 +239,7 @@ namespace gold {
 					 {"data", getSpriteShaderData(FragmentShaderType)},
 				 })},
 			});
-		}
-		setObject("program", spriteProgram);
-
+		setObject("program", program);
 
 		return var();
 	}

@@ -35,6 +35,7 @@ namespace gold {
 		typeFunction,
 		typePtr,
 		typeString,
+		typeStringView,
 		typeBinary,
 		typeInt64,
 		typeInt32,
@@ -118,6 +119,7 @@ namespace gold {
 				object* obj;
 				list* li;
 				string* str;
+				string_view* sv;
 				genericError* err;
 				method* me;
 				func* fu;
@@ -150,6 +152,7 @@ namespace gold {
 		var(const char* string);
 		var(string string);
 		var(const binary& bin);
+		var(string_view view);
 		var(int64_t v);
 		var(int32_t v);
 		var(int16_t v);
@@ -195,6 +198,7 @@ namespace gold {
 		const char* getTypeString() const;
 
 		bool isString() const;
+		bool isView() const;
 		bool isNumber() const;
 		bool isFloating() const;
 		bool isSigned() const;
@@ -214,8 +218,6 @@ namespace gold {
 		bool isMat3x3() const;
 		bool isMat4x4() const;
 
-		void assign(types t, void* target);
-
 		void setInt64(size_t i, int64_t v);
 		void setInt32(size_t i, int32_t v);
 		void setInt16(size_t i, int16_t v);
@@ -228,6 +230,7 @@ namespace gold {
 		void setFloat(size_t i, float v);
 
 		string getString() const;
+		string_view getStringView() const;
 		int64_t getInt64(size_t i = 0) const;
 		int32_t getInt32(size_t i = 0) const;
 		int16_t getInt16(size_t i = 0) const;
@@ -241,16 +244,16 @@ namespace gold {
 		bool getBool(size_t i = 0) const;
 		list getList() const;
 		object getObject() const;
-		void returnList(list& result) const;
-		void returnObject(object& result) const;
+		void assignList(list& result) const;
+		void assignObject(object& result) const;
 		method getMethod() const;
 		func getFunction() const;
 		void* getPtr() const;
 		genericError* getError() const;
-		binary* getBinary() const;
-		void returnBinary(binary& result) const;
+		binary getBinary() const;
+		void assignBinary(binary& result) const;
 		template <typename OT = object>
-		void returnObject(OT& result) const {
+		void assignObject(OT& result) const {
 			auto container = sPtr.get();
 			if (container && container->type == typeObject)
 				result = *reinterpret_cast<OT*>(container->data);
@@ -262,8 +265,8 @@ namespace gold {
 			return OT();
 		}
 
-		operator const char*() const;
 		operator string() const;
+		operator string_view() const;
 		operator int64_t() const;
 		operator int32_t() const;
 		operator int16_t() const;
@@ -344,6 +347,7 @@ namespace gold {
 		void pushString(char* value);
 		void pushString(const char* value);
 		void pushString(string value);
+		void pushStringView(string_view value);
 		void pushInt64(int64_t value);
 		void pushInt32(int32_t value);
 		void pushInt16(int16_t value);
@@ -365,6 +369,7 @@ namespace gold {
 
 		void setString(uint64_t index, char* value);
 		void setString(uint64_t index, string value);
+		void setStringView(uint64_t index, string_view value);
 		void setInt64(uint64_t index, int64_t value);
 		void setInt32(uint64_t index, int32_t value);
 		void setInt16(uint64_t index, int16_t value);
@@ -384,8 +389,9 @@ namespace gold {
 		void setVar(uint64_t index, var value);
 		void setNull(uint64_t index);
 
-		const char* getString(uint64_t index, char* def = 0);
-		string getString(uint64_t index, string def);
+		string getString(uint64_t index, string def = "");
+		string_view getStringView(
+			uint64_t index, string_view def = string_view());
 		int64_t getInt64(uint64_t index, int64_t def = 0);
 		int32_t getInt32(uint64_t index, int32_t def = 0);
 		int16_t getInt16(uint64_t index, int16_t def = 0);
@@ -397,18 +403,18 @@ namespace gold {
 		double getDouble(uint64_t index, double def = 0);
 		float getFloat(uint64_t index, float def = 0);
 		bool getBool(uint64_t index, bool def = false);
-		void returnList(uint64_t index, list& result);
+		void assignList(uint64_t index, list& result);
 		list getList(uint64_t index, list def = list());
 		object getObject(uint64_t index, object def);
 		method getMethod(uint64_t index, method def = 0);
 		func getFunction(uint64_t index, func def = 0);
-		void returnObject(uint64_t index, object& result);
+		void assignObject(uint64_t index, object& result);
 		void* getPtr(uint64_t index, void* def = 0);
 		var getVar(uint64_t index);
 
 		template <typename OT = object>
-		void returnObject(uint64_t index, OT& result) {
-			returnObject(index, (object&)result);
+		void assignObject(uint64_t index, OT& result) {
+			assignObject(index, (object&)result);
 		}
 		template <typename OT = object>
 		OT getObject(uint64_t index, OT def = OT());
@@ -456,6 +462,7 @@ namespace gold {
 		object getParent();
 
 		void setString(string name, string value);
+		void setStringView(string name, string_view value);
 		void setInt64(string name, int64_t value);
 		void setInt32(string name, int32_t value);
 		void setInt16(string name, int16_t value);
@@ -478,6 +485,8 @@ namespace gold {
 		void erase(string name);
 
 		string getString(string name, string def = "");
+		string_view getStringView(
+			string name, string_view def = string_view());
 		int64_t getInt64(string name, int64_t def = 0);
 		int32_t getInt32(string name, int32_t def = 0);
 		int16_t getInt16(string name, int16_t def = 0);
@@ -490,18 +499,18 @@ namespace gold {
 		float getFloat(string name, float def = 0);
 		bool getBool(string name, bool def = false);
 		list getList(string name, list def = list());
-		void returnList(string name, list& result);
-		void returnObject(string name, object& result);
+		void assignList(string name, list& result);
+		void assignObject(string name, object& result);
 		object getObject(string name, object def = object());
 		method getMethod(string name);
 		func getFunc(string name);
 		void* getPtr(string name, void* def = 0);
-		binary* getBinary(string name, binary* def = nullptr);
-		void returnBinary(string name, binary& result);
+		binary getBinary(string name, binary def = binary());
+		void assignBinary(string name, binary& result);
 		var getVar(string name);
 		template <typename OT = object>
-		void returnObject(string name, OT& result) {
-			returnObject(name, (object&)result);
+		void assignObject(string name, OT& result) {
+			assignObject(name, (object&)result);
 		}
 		template <typename OT = object>
 		OT getObject(string name, OT def = OT()) {
@@ -600,7 +609,8 @@ namespace gold {
 	var mat4x4d(initializer_list<double> list);
 
 	var lookAt(var eye, var at);
-	var projection(var fov, var ratio, var near, var far, var homo);
+	var projection(
+		var fov, var ratio, var near, var far, var homo);
 
 	list explode(string v, list chars);
 

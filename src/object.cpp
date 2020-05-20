@@ -97,39 +97,28 @@ namespace gold {
 	}
 
 	string object::getJSON(bool pretty) {
-		auto str = string();
-		file::serializeJSON(*this, &str, pretty);
-		return str;
+		return file::serializeJSON(*this, pretty);
 	}
 
 	binary object::getJSONBin(bool pretty) {
-		auto str = string();
-		file::serializeJSON(*this, &str, pretty);
+		auto str = file::serializeJSON(*this, pretty);
 		return binary(str.begin(), str.end());
 	}
 
 	binary object::getBSON() {
-		auto bin = binary();
-		file::serializeBSON(*this, &bin);
-		return bin;
+		return file::serializeBSON(*this);
 	}
 
 	binary object::getCBOR() {
-		auto bin = binary();
-		file::serializeCBOR(*this, &bin);
-		return bin;
+		return file::serializeCBOR(*this);
 	}
 
 	binary object::getMsgPack() {
-		auto bin = binary();
-		file::serializeMsgPack(*this, &bin);
-		return bin;
+		return file::serializeMsgPack(*this);
 	}
 
 	binary object::getUBJSON() {
-		auto bin = binary();
-		file::serializeUBJSON(*this, &bin);
-		return bin;
+		return file::serializeUBJSON(*this);
 	}
 
 	var object::callMethod(string name) {
@@ -183,6 +172,12 @@ namespace gold {
 	}
 
 	void object::setString(string name, string value) {
+		initMemory();
+		unique_lock<mutex> gaurd(data->omutex);
+		data->items[name] = value;
+	}
+
+	void object::setStringView(string name, string_view value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		data->items[name] = value;
@@ -323,6 +318,22 @@ namespace gold {
 		}
 	}
 
+	string_view object::getStringView(
+		string name, string_view def) {
+		try {
+			initMemory();
+			unique_lock<mutex> gaurd(data->omutex);
+			auto it = data->items.find(name);
+			if (it != data->items.end())
+				return it->second.getStringView();
+			if (data->parent.data)
+				return data->parent.getStringView(name, def);
+			return def;
+		} catch (exception& e) {
+			return def;
+		}
+	}
+
 	int64_t object::getInt64(string name, int64_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
@@ -442,24 +453,24 @@ namespace gold {
 		return def;
 	}
 
-	void object::returnList(string name, list& result) {
+	void object::assignList(string name, list& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
 		if (it != data->items.end())
-			it->second.returnList(result);
+			it->second.assignList(result);
 		else if (data->parent.data)
-			data->parent.returnList(name, result);
+			data->parent.assignList(name, result);
 	}
 
-	void object::returnObject(string name, object& result) {
+	void object::assignObject(string name, object& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
 		if (it != data->items.end())
-			return it->second.returnObject(result);
+			return it->second.assignObject(result);
 		else if (data->parent)
-			return data->parent.returnObject(name, result);
+			return data->parent.assignObject(name, result);
 	}
 
 	object object::getObject(string name, object def) {
@@ -514,7 +525,7 @@ namespace gold {
 		return def;
 	}
 
-	binary* object::getBinary(string name, binary* def) {
+	binary object::getBinary(string name, binary def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
@@ -525,14 +536,14 @@ namespace gold {
 		return def;
 	}
 
-	void object::returnBinary(string name, binary& result) {
+	void object::assignBinary(string name, binary& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
 		if (it != data->items.end())
-			it->second.returnBinary(result);
+			it->second.assignBinary(result);
 		else if (data->parent.data)
-			return data->parent.returnBinary(name, result);
+			return data->parent.assignBinary(name, result);
 	}
 
 	var object::getVar(string name) {
@@ -595,7 +606,7 @@ namespace gold {
 					result.setList(key, arr);
 				} else if (vType == typeList) {
 					auto arr = list();
-					result.returnList(key, arr);
+					result.assignList(key, arr);
 					arr.pushString(buffer);
 				} else {
 					result.setString(key, buffer);

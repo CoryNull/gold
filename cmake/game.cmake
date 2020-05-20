@@ -24,7 +24,6 @@ add_library(
 		src/game/shape.cpp
 		src/game/sphereShape.cpp
 		src/game/sprite.cpp
-		src/game/texture.cpp
 		src/game/transform.cpp
 		src/game/window.cpp
 		src/game/world.cpp

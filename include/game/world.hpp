@@ -15,7 +15,8 @@ namespace gold{
 		var step(list args = {});
 		var setGravity(list args);
 		var raytrace(list args);
-		var initialize(list args = {});
-		var destroy(list args = {});
+		var initialize(list args);
+		var destroy();
+		var debugDraw();
 	};
 }

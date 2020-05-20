@@ -28,8 +28,9 @@ namespace gold {
 		var asMsgPack();
 		var asUBJSON();
 
-		operator binary*();
+		operator binary();
 		operator string();
+		operator string_view();
 
 		static file readFile(path p);
 		static file saveFile(path p, binary data);
@@ -40,12 +41,12 @@ namespace gold {
 		static var parseCBOR(binary data);
 		static var parseMsgPack(binary data);
 		static var parseUBJSON(binary data);
-		static void serializeJSON(var data, string* out, bool pretty = false);
-		static void serializeBSON(var data, binary* out);
-		static void serializeCBOR(var data, binary* out);
-		static void serializeMsgPack(var data, binary* out);
-		static void serializeUBJSON(var data, binary* out);
-		static void decodeDataURL(string v, binary* out);
-		static void decodeBase64(string v, binary* out);
+		static string serializeJSON(var data, bool pretty = false);
+		static binary serializeBSON(var data);
+		static binary serializeCBOR(var data);
+		static binary serializeMsgPack(var data);
+		static binary serializeUBJSON(var data);
+		static binary decodeDataURL(string v);
+		static binary decodeBase64(string v);
 	};
 }  // namespace gold

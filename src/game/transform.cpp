@@ -83,6 +83,23 @@ namespace gold {
 		return var();
 	}
 
+	var transform::setAxisRotation(list args) {
+		auto axis = bx::Vec3();
+		auto value = float(0);
+		for (auto it = args.begin(); it != args.end(); ++it) {
+			if (it->isVec3())
+				axis = bx::Vec3(
+					it->getFloat(0), it->getFloat(1), it->getFloat(2));
+			else if (it->isNumber())
+				value = it->getFloat(0);
+		}
+		auto qua = bx::rotateAxis(axis, value);
+		auto rot = quatf(qua.x, qua.y, qua.z, qua.w);
+		setVar("rot", rot);
+		setBool("rebuild", true);
+		return (rot);
+	}
+
 	var transform::setScale(list args) {
 		if (args.getType(0) == typeList) {
 			setScale(args);
@@ -101,11 +118,19 @@ namespace gold {
 		return var();
 	}
 
-	var transform::getPosition(list) { return getVar("pos"); }
+	var transform::getEuler() {
+		auto rot = getVar("rot");
+		auto qua = bx::Quaternion{rot.getFloat(0), rot.getFloat(1),
+															rot.getFloat(2), rot.getFloat(3)};
+		auto v3 = bx::toEuler(qua);
+		return vec3f(v3.x, v3.y, v3.z);
+	}
 
-	var transform::getRotation(list) { return getVar("rot"); }
+	var transform::getPosition() { return getVar("pos"); }
 
-	var transform::getScale(list) { return getVar("scl"); }
+	var transform::getRotation() { return getVar("rot"); }
+
+	var transform::getScale() { return getVar("scl"); }
 
 	var transform::getMatrix(list) {
 		if (getBool("rebuild", false) == false) {
@@ -128,7 +153,7 @@ namespace gold {
 
 	var transform::getWorldMatrix(list) {
 		auto parentObj = entity();
-		returnObject<entity>("object", parentObj);
+		assignObject<entity>("object", parentObj);
 		auto parentChain = list();
 		while (parentObj) {
 			parentChain.pushObject(parentObj);
@@ -138,7 +163,7 @@ namespace gold {
 		for (auto it = parentChain.rbegin();
 				 it != parentChain.rend();
 				 ++it) {
-			it->returnObject<entity>(parentObj);
+			it->assignObject<entity>(parentObj);
 			auto comps = parentObj.getList("components");
 			auto parentTrans = comps.find(transform::getPrototype());
 			if (parentTrans != comps.end()) {

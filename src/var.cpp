@@ -1,5 +1,6 @@
 #include <bx/math.h>
-#include <string.h>
+
+#include <string>
 
 #include "types.hpp"
 
@@ -122,6 +123,10 @@ namespace gold {
 
 	var::var(const binary& bin) {
 		initVar((binary&)bin, typeBinary, binary);
+	}
+
+	var::var(string_view view) {
+		initVar(view, typeStringView, string_view);
 	}
 
 	var::var(int64_t v) { initVar(v, typeInt64, int64_t); }
@@ -2080,6 +2085,19 @@ namespace gold {
 		return false;
 	}
 
+	bool var::isView() const {
+		auto con = sPtr.get();
+		if (con) {
+			if (con->type == typeStringView)
+				return true;
+			else if (con->type == typeString)
+				return true;
+			else if (con->type == typeBinary)
+				return true;
+		}
+		return false;
+	}
+
 	bool var::isNumber() const {
 		auto con = sPtr.get();
 		if (
@@ -2645,6 +2663,18 @@ namespace gold {
 	}
 
 	string var::getString() const { return (string) * this; }
+
+	string_view var::getStringView() const {
+		auto con = sPtr.get();
+		if (con->type == typeStringView)
+			return *con->sv;
+		else if (con->type == typeBinary)
+			return string_view(
+				(char*)con->bin->data(), con->bin->size());
+		else if (con->type == typeString)
+			return string_view(con->str->data(), con->str->size());
+		return string_view();
+	}
 
 	int64_t var::getInt64(size_t i) const {
 		auto con = sPtr.get();
@@ -3881,12 +3911,12 @@ namespace gold {
 		return object();
 	}
 
-	void var::returnList(list& result) const {
+	void var::assignList(list& result) const {
 		auto con = sPtr.get();
 		if (con && con->type == typeList) result = *con->li;
 	}
 
-	void var::returnObject(obj& result) const {
+	void var::assignObject(obj& result) const {
 		auto con = sPtr.get();
 		if (con && con->type == typeObject) result = *con->obj;
 	}
@@ -3901,14 +3931,20 @@ namespace gold {
 		return (genericError*)*this;
 	}
 
-	binary* var::getBinary() const {
+	binary var::getBinary() const {
 		auto con = sPtr.get();
-		if (con && con->type == typeBinary) return con->bin;
-
-		return nullptr;
+		if (con) {
+			if (con->type == typeBinary)
+				return *con->bin;
+			else if (con->type == typeString)
+				return binary(con->str->begin(), con->str->end());
+			else if (con->type == typeStringView)
+				return binary(con->sv->begin(), con->sv->end());
+		}
+		return binary();
 	}
 
-	void var::returnBinary(binary& result) const {
+	void var::assignBinary(binary& result) const {
 		auto con = sPtr.get();
 		if (con) {
 			if (con->type == typeBinary)
@@ -3918,71 +3954,189 @@ namespace gold {
 				size_t size = str.size();
 				result = binary(size);
 				memcpy(result.data(), str.data(), size);
-			}
+			} else if (con->type == typeStringView)
+				result = binary(con->sv->begin(), con->sv->end());
 		}
 	}
 
+	var::operator string_view() const { return getStringView(); }
+
 	var::operator string() const {
-		auto con = sPtr.get();
-		if (con) {
-			switch (con->type) {
+		auto c = sPtr.get();
+#define S std::to_string
+		if (c) {
+			switch (c->type) {
+				case typeStringView:
+					return string(*c->sv);
 				case typeInt64:
-					return to_string(*con->i64);
+					return S(*c->i64);
 				case typePtr:
 				case typeFunction:
 				case typeMethod:
-					return "0x" + to_string((uint64_t)con->data);
+					return "0x" + S((uint64_t)c->data);
 				case typeInt32:
-					return to_string(*con->i32);
+					return S(*c->i32);
 				case typeInt16:
-					return to_string(*con->i16);
+					return S(*c->i16);
 				case typeInt8:
-					return to_string(*con->i8);
+					return S(*c->i8);
 				case typeUInt64:
-					return to_string(*con->u64);
+					return S(*c->u64);
 				case typeUInt32:
-					return to_string(*con->u32);
+					return S(*c->u32);
 				case typeUInt16:
-					return to_string(*con->u16);
+					return S(*c->u16);
 				case typeUInt8:
-					return to_string(*con->u8);
+					return S(*c->u8);
 				case typeDouble:
-					return to_string(*con->d);
+					return S(*c->d);
 				case typeFloat:
-					return to_string(*con->f);
+					return S(*c->f);
 				case typeBool:
-					return *con->b ? "true" : "false";
+					return *c->b ? "true" : "false";
 				case typeString:
-					return *con->str;
+					return *c->str;
 				case typeNull:
 					return "null";
 				case typeList:
-					return (con->li)->getJSON();
+					return (c->li)->getJSON();
 				case typeObject:
-					return (con->obj)->getJSON();
+					return (c->obj)->getJSON();
 				case typeException:
-					return string(*con->err);
-				case typeBinary: {
-					auto bin = con->bin;
-					return string((char*)bin->data(), bin->size());
-				}
+					return string(*c->err);
+				case typeBinary:
+					return string(c->bin->begin(), c->bin->end());
+
+				case typeVec2Int64:
+					return "[" + S(c->i64[0]) + ", " + S(c->i64[1]) + "]";
+				case typeVec2Int32:
+					return "[" + S(c->i32[0]) + ", " + S(c->i32[1]) + "]";
+				case typeVec2Int16:
+					return "[" + S(c->i16[0]) + ", " + S(c->i16[1]) + "]";
+				case typeVec2Int8:
+					return "[" + S(c->i8[0]) + ", " + S(c->i8[1]) + "]";
+				case typeVec2UInt64:
+					return "[" + S(c->u64[0]) + ", " + S(c->u64[1]) + "]";
+				case typeVec2UInt32:
+					return "[" + S(c->u32[0]) + ", " + S(c->u32[1]) + "]";
+				case typeVec2UInt16:
+					return "[" + S(c->u16[0]) + ", " + S(c->u16[1]) + "]";
+				case typeVec2UInt8:
+					return "[" + S(c->u8[0]) + ", " + S(c->u8[1]) + "]";
+
+				case typeVec3Int64:
+					return "[" + S(c->i64[0]) + ", " + S(c->i64[1]) +
+								 ", " + S(c->i64[2]) + "]";
+				case typeVec3Int32:
+					return "[" + S(c->i32[0]) + ", " + S(c->i32[1]) +
+								 ", " + S(c->i32[2]) + "]";
+				case typeVec3Int16:
+					return "[" + S(c->i16[0]) + ", " + S(c->i16[1]) +
+								 ", " + S(c->i16[2]) + "]";
+				case typeVec3Int8:
+					return "[" + S(c->i8[0]) + ", " + S(c->i8[1]) + ", " +
+								 S(c->i8[2]) + "]";
+				case typeVec3UInt64:
+					return "[" + S(c->u64[0]) + ", " + S(c->u64[1]) +
+								 ", " + S(c->u64[2]) + "]";
+				case typeVec3UInt32:
+					return "[" + S(c->u32[0]) + ", " + S(c->u32[1]) +
+								 ", " + S(c->u32[2]) + "]";
+				case typeVec3UInt16:
+					return "[" + S(c->u16[0]) + ", " + S(c->u16[1]) +
+								 ", " + S(c->u16[2]) + "]";
+				case typeVec3UInt8:
+					return "[" + S(c->u8[0]) + ", " + S(c->u8[1]) + ", " +
+								 S(c->u8[2]) + "]";
+
+				case typeVec4Int64:
+					return "[" + S(c->i64[0]) + ", " + S(c->i64[1]) +
+								 ", " + S(c->i64[2]) + ", " + S(c->i64[3]) +
+								 "]";
+				case typeVec4Int32:
+					return "[" + S(c->i32[0]) + ", " + S(c->i32[1]) +
+								 ", " + S(c->i32[2]) + ", " + S(c->i32[3]) +
+								 "]";
+				case typeVec4Int16:
+					return "[" + S(c->i16[0]) + ", " + S(c->i16[1]) +
+								 ", " + S(c->i16[2]) + ", " + S(c->i16[3]) +
+								 "]";
+				case typeVec4Int8:
+					return "[" + S(c->i8[0]) + ", " + S(c->i8[1]) + ", " +
+								 S(c->i8[2]) + ", " + S(c->i8[3]) + "]";
+				case typeVec4UInt64:
+					return "[" + S(c->u64[0]) + ", " + S(c->u64[1]) +
+								 ", " + S(c->u64[2]) + ", " + S(c->u64[3]) +
+								 "]";
+				case typeVec4UInt32:
+					return "[" + S(c->u32[0]) + ", " + S(c->u32[1]) +
+								 ", " + S(c->u32[2]) + ", " + S(c->u32[3]) +
+								 "]";
+				case typeVec4UInt16:
+					return "[" + S(c->u16[0]) + ", " + S(c->u16[1]) +
+								 ", " + S(c->u16[2]) + ", " + S(c->u16[3]) +
+								 "]";
+				case typeVec4UInt8:
+					return "[" + S(c->u8[0]) + ", " + S(c->u8[1]) + ", " +
+								 S(c->u8[2]) + ", " + S(c->u8[3]) + "]";
+
+				case typeVec2Float:
+					return "[" + S(c->f[0]) + ", " + S(c->f[1]) + "]";
+				case typeVec2Double:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + "]";
+				case typeVec3Float:
+					return "[" + S(c->f[0]) + ", " + S(c->f[1]) + ", " +
+								 S(c->f[2]) + "]";
+				case typeVec3Double:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + ", " +
+								 S(c->d[2]) + "]";
+				case typeQuatFloat:
+				case typeVec4Float:
+					return "[" + S(c->f[0]) + ", " + S(c->f[1]) + ", " +
+								 S(c->f[2]) + ", " + S(c->f[3]) + "]";
+				case typeQuatDouble:
+				case typeVec4Double:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + ", " +
+								 S(c->d[2]) + ", " + S(c->d[3]) + "]";
+
+				case typeMat3x3Float:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + ", " +
+								 S(c->d[2]) + ", " + S(c->d[3]) + ", " +
+								 S(c->d[4]) + ", " + S(c->d[5]) + ", " +
+								 S(c->d[6]) + ", " + S(c->d[7]) + ", " +
+								 S(c->d[8]) + "]";
+				case typeMat3x3Double:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + ", " +
+								 S(c->d[2]) + ", " + S(c->d[3]) + ", " +
+								 S(c->d[4]) + ", " + S(c->d[5]) + ", " +
+								 S(c->d[6]) + ", " + S(c->d[7]) + ", " +
+								 S(c->d[8]) + "]";
+
+				case typeMat4x4Float:
+					return "[" + S(c->f[0]) + ", " + S(c->f[1]) + ", " +
+								 S(c->f[2]) + ", " + S(c->f[3]) + ", " +
+								 S(c->f[4]) + ", " + S(c->f[5]) + ", " +
+								 S(c->f[6]) + ", " + S(c->f[7]) + ", " +
+								 S(c->f[8]) + ", " + S(c->f[9]) + ", " +
+								 S(c->f[10]) + ", " + S(c->f[11]) + ", " +
+								 S(c->f[12]) + ", " + S(c->f[13]) + ", " +
+								 S(c->f[14]) + ", " + S(c->f[15]) + "]";
+				case typeMat4x4Double:
+					return "[" + S(c->d[0]) + ", " + S(c->d[1]) + ", " +
+								 S(c->d[2]) + ", " + S(c->d[3]) + ", " +
+								 S(c->d[4]) + ", " + S(c->d[5]) + ", " +
+								 S(c->d[6]) + ", " + S(c->d[7]) + ", " +
+								 S(c->d[8]) + ", " + S(c->d[9]) + ", " +
+								 S(c->d[10]) + ", " + S(c->d[11]) + ", " +
+								 S(c->d[12]) + ", " + S(c->d[13]) + ", " +
+								 S(c->d[14]) + ", " + S(c->d[15]) + "]";
 				default:
 					break;
 			}
 		}
+#undef S
 
 		return "";
-	}
-
-	var::operator const char*() const {
-		auto con = sPtr.get();
-		if (con) {
-			if (con->type == typeString)
-				return con->str->c_str();
-			else if (con->type == typeBinary)
-				return (char*)con->bin->data();
-		}
-		return nullptr;
 	}
 
 	var::operator int64_t() const { return getInt64(); }

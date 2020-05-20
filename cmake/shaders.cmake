@@ -23,7 +23,6 @@ function( add_bgfx_shader FILE FOLDER RETURN)
 	endif()
 
 	if( NOT "${TYPE}" STREQUAL "" )
-		message(STATUS "${BGFX_DIR}")
 		set( COMMON FILE ${FILE} ${TYPE} INCLUDES ${BGFX_DIR}/src )
 		set( OUTPUTS "" )
 		set( OUTPUTS_PRETTY "" )
@@ -117,7 +116,7 @@ function ( read_to_hex_const PATH NAME OUTOUT DEPENDS)
 	endif()
 
 	if(EXISTS ${PATH})
-		message(STATUS "inlining ${PATH} at ${NAME}")
+		#message(STATUS "inlining ${PATH} at ${NAME}")
 		file(READ ${PATH} DATA_READ HEX)
 		string(REGEX REPLACE "(.)(.)"
        "0x\\1\\2, " DATA_FIXED
@@ -221,8 +220,15 @@ inline_shader(
 	"sprite" 
 	"${CMAKE_CURRENT_BINARY_DIR}/shaderSprite.hpp" 
 	spriteBuffer)
+
 set(pbrBuffer "")
 inline_shader(
 	"pbr" 
 	"${CMAKE_CURRENT_BINARY_DIR}/shaderPBR.hpp" 
 	pbrBuffer)
+
+set(wfBuffer "")
+inline_shader(
+	"wireframe" 
+	"${CMAKE_CURRENT_BINARY_DIR}/shaderWireframe.hpp" 
+	wfBuffer)

@@ -45,6 +45,13 @@ target_compile_features(
 		cxx_nullptr
 		cxx_generic_lambdas
 		cxx_lambdas
+		cxx_lambda_init_captures
+		cxx_unrestricted_unions
+		cxx_return_type_deduction
+		cxx_local_type_template_args
+		cxx_rvalue_references
+		cxx_alias_templates
+		cxx_static_assert
 		cxx_auto_type
 		cxx_variable_templates
 		cxx_variadic_macros

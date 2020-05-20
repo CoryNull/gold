@@ -55,7 +55,7 @@ namespace gold {
 				}
 				case typeBinary: {
 					auto bin = binary();
-					item.returnBinary(bin);
+					item.assignBinary(bin);
 					bson_append_binary(
 						b,
 						key.data(),
@@ -130,7 +130,7 @@ namespace gold {
 				}
 				case typeBinary: {
 					auto bin = binary();
-					it->second.returnBinary(bin);
+					it->second.assignBinary(bin);
 					bson_append_binary(
 						b,
 						key.data(),
@@ -864,7 +864,7 @@ namespace gold {
 	}
 
 	void collection::getDatabase(database& db) {
-		returnObject<database>("database", db);
+		assignObject<database>("database", db);
 	}
 
 	var& collection::setParentModel(var& args, obj parent) {
@@ -948,11 +948,11 @@ namespace gold {
 	void model::getDatabase(database& db) {
 		auto col = collection();
 		getCollection(col);
-		col.returnObject<database>("database", db);
+		col.assignObject<database>("database", db);
 	}
 
 	void model::getCollection(collection& col) {
-		returnObject<collection>("col", col);
+		assignObject<collection>("col", col);
 	}
 
 	string model::getID() { return getString("_id"); }

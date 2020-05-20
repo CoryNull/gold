@@ -153,15 +153,14 @@ namespace gold {
 					auto chash = req->getHeader("if-none-match");
 					if (f) {
 						auto loaded = f.load();
-						if (loaded.isBinary()) {
+						if (loaded.isView()) {
 							auto hash = f.hash().getString();
 							if (hash.compare(chash) == 0) {
 								res->writeStatus("304 Not Changed");
 								res->writeHeader("Cache-Control", CacheControl);
 								res->end();
 							} else {
-								auto bin = binary();
-								loaded.returnBinary(bin);
+								auto bin = loaded.getBinary();
 								auto strView =
 									string_view((char*)bin.data(), bin.size());
 								res->writeStatus(HTTP_200_OK);
@@ -445,8 +444,7 @@ namespace gold {
 	}
 
 	var response::end(list args) {
-		auto data = binary();
-		args[0].returnBinary(data);
+		auto data = args[0].getBinary();
 		auto strV = string_view((char*)data.data(), data.size());
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -460,8 +458,7 @@ namespace gold {
 	}
 
 	var response::tryEnd(list args) {
-		auto data = binary();
-		args[0].returnBinary(data);
+		auto data = args[0].getBinary();
 		auto strV = string_view((char*)data.data(), data.size());
 		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
 		auto ssl = getBool("ssl");
