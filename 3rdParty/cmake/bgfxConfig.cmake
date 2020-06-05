@@ -58,6 +58,8 @@ include( cmake/bx.cmake )
 include( cmake/bimg.cmake )
 include( cmake/bgfx.cmake )
 
+target_compile_definitions( bgfx PRIVATE BGFX_CONFIG_USE_TINYSTL=0)
+
 if( BGFX_BUILD_TOOLS )
 	include( cmake/tools.cmake )
 endif()

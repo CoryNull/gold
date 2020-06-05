@@ -4,11 +4,13 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <bimg/bimg.h>
+#include <brtshaderc.h>
 #include <bx/math.h>
 #include <bx/os.h>
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <file.hpp>
 #include <iostream>
 
@@ -447,11 +449,72 @@ namespace gold {
 	shaderObject::shaderObject(object config) : obj(config) {
 		setParent(getPrototype());
 		auto v = getVar("data");
+		auto s = getVar("src");
 		if (v.isView()) {
+			// Load compiled binary
 			auto bin = v.getStringView();
 			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto strData = string_view((char*)mem->data, mem->size);
+			auto h = std::hash<string_view>();
+			setString("hash", to_string((uint64_t)h(strData)));
 			auto handle = bgfx::createShader(mem);
 			setUInt16("idx", handle.idx);
+		} else if (s.isString()) {
+			// Compile from source
+			auto type = shaderc::ShaderType(
+				getUInt8("type", shaderc::ShaderType::ST_COMPUTE));
+			auto path = filesystem::path(s.getString());
+			auto defines = getString("defines");
+			auto varying = getString(
+				"varying", filesystem::path(path).replace_filename(
+										 "varying.def.sc"));
+			auto inputs = getList("inputs", list());
+			auto outputs = getList("outputs", list());
+			if (inputs.size() > 0 || outputs.size() > 0) {
+				// Generate source from inputs and outputs
+				// Prepend i/o arguments for application
+				auto source = file::readFile(path);
+				string tempPath = tmpnam(nullptr);
+				auto tmpf = fopen(tempPath.c_str(), "w");
+				// Wrtie inputs
+				if (inputs.size() > 0) {
+					fputs("$input ", tmpf);
+					for (auto it = inputs.begin(); it != inputs.end();
+							 ++it) {
+						auto item = it->getString() + ", ";
+						fputs(item.c_str(), tmpf);
+					}
+					fputs("\n", tmpf);
+				}
+				// Write outputs
+				if (outputs.size() > 0) {
+					fputs("$output ", tmpf);
+					for (auto it = outputs.begin(); it != outputs.end();
+							 ++it) {
+						auto item = it->getString() + ", ";
+						fputs(item.c_str(), tmpf);
+					}
+					fputs("\n", tmpf);
+				}
+				// Write source
+				fputs(string(source).c_str(), tmpf);
+				fclose(tmpf);
+				path = tempPath;
+			}
+			// TODO: Add profile from backend
+			auto mem = shaderc::compileShader(
+				type, path.c_str(), defines.c_str(), varying.c_str(),
+				nullptr);
+			if (mem) {
+				auto strData = string_view((char*)mem->data, mem->size);
+				auto h = std::hash<string_view>();
+				setString("hash", to_string((uint64_t)h(strData)));
+				auto handle = bgfx::createShader(mem);
+				setUInt16("idx", handle.idx);
+			} else {
+				cerr << "Failed to build: " << path << endl;
+				empty();
+			}
 		}
 		if (getType("name") == typeString)
 			cache[getString("name")] = *this;

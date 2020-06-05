@@ -60,7 +60,7 @@ namespace gold {
 	object::object() : data(nullptr) {}
 
 	object::~object() {
-		if (data && data.use_count() <= 1) {
+		if (data && data.use_count() <= 0) {
 			data->items.clear();
 			data->parent = object();
 		}
@@ -96,6 +96,18 @@ namespace gold {
 		return typeNull;
 	}
 
+	string object::getCookieString() {
+		auto buffer = string();
+		uint64_t i = 0;
+		for(auto it = begin(); it != end(); ++it, ++i) {
+			auto key = it->first;
+			auto value = it->second.getString();
+			auto end = i != size()-1;
+			buffer += key + "=" + value + (end ? "" : "; ");
+		}
+		return buffer;
+	}
+
 	string object::getJSON(bool pretty) {
 		return file::serializeJSON(*this, pretty);
 	}
@@ -125,9 +137,11 @@ namespace gold {
 		initMemory();
 		auto method = this->getMethod(name);
 		var resp;
-		if (method != nullptr) {
-			auto empty = list();
-			resp = (this->*method)(empty);
+		if (method)
+			resp = (this->*method)({});
+		else {
+			auto func = this->getFunc(name);
+			if (func) resp = func({*this});
 		}
 		return resp;
 	}
@@ -136,7 +150,14 @@ namespace gold {
 		initMemory();
 		auto method = this->getMethod(name);
 		var resp;
-		if (method != nullptr) resp = (this->*method)(args);
+		if (method != nullptr)
+			resp = (this->*method)(args);
+		else {
+			auto func = this->getFunc(name);
+			auto thisArgs = list({*this});
+			thisArgs += args;
+			if (func) resp = func(thisArgs);
+		}
 		return resp;
 	}
 
@@ -626,8 +647,75 @@ namespace gold {
 			}
 			++it;
 		}
-		if (key.size() > 0 && buffer.size() > 0)
-			result.setString(key, buffer);
+		if (key.size() > 0 && buffer.size() > 0) {
+			auto vType = result.getType(key);
+			if (vType == typeString) {
+				auto copy = result.getString(key);
+				auto arr = list({copy, buffer});
+				result.setList(key, arr);
+			} else if (vType == typeList) {
+				auto arr = list();
+				result.assignList(key, arr);
+				arr.pushString(buffer);
+			} else {
+				result.setString(key, buffer);
+			}
+		}
+	}
+
+	void object::parseCookie(string value, object& result) {
+		auto it = value.begin();
+		string buffer = "";
+		string key = "";
+		while (it != value.end()) {
+			if (isalnum(*it))
+				buffer += *it;
+			else if (*it == '=') {
+				key = buffer;
+				buffer = "";
+			} else if (*it == ';') {
+				auto vType = result.getType(key);
+				if (vType == typeString) {
+					auto copy = result.getString(key);
+					auto arr = list({copy, buffer});
+					result.setList(key, arr);
+				} else if (vType == typeList) {
+					auto arr = list();
+					result.assignList(key, arr);
+					arr.pushString(buffer);
+				} else {
+					result.setString(key, buffer);
+				}
+				buffer = "";
+				key = "";
+				it++;
+			} else if (*it == '+') {
+				buffer += " ";
+			} else if (*it == '%') {
+				string h = "0x";
+				h += *(++it);
+				h += *(++it);
+				auto c = (char)stoul(h, nullptr, 16);
+				buffer += string(&c, 1);
+			} else {
+				buffer += *it;
+			}
+			++it;
+		}
+		if (key.size() > 0 && buffer.size() > 0) {
+			auto vType = result.getType(key);
+			if (vType == typeString) {
+				auto copy = result.getString(key);
+				auto arr = list({copy, buffer});
+				result.setList(key, arr);
+			} else if (vType == typeList) {
+				auto arr = list();
+				result.assignList(key, arr);
+				arr.pushString(buffer);
+			} else {
+				result.setString(key, buffer);
+			}
+		}
 	}
 
 	var object::loadJSON(string path) {

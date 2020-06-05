@@ -2666,6 +2666,7 @@ namespace gold {
 
 	string_view var::getStringView() const {
 		auto con = sPtr.get();
+		if (!con) return string_view();
 		if (con->type == typeStringView)
 			return *con->sv;
 		else if (con->type == typeBinary)

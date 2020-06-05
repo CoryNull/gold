@@ -151,23 +151,23 @@ namespace gold {
 	}
 
 	var file::asJSON() {
-		return file::parseJSON(getBinary("data"));
+		return file::parseJSON(getStringView("data"));
 	}
 
 	var file::asBSON() {
-		return file::parseBSON(getBinary("data"));
+		return file::parseBSON(getStringView("data"));
 	}
 
 	var file::asCBOR() {
-		return file::parseCBOR(getBinary("data"));
+		return file::parseCBOR(getStringView("data"));
 	}
 
 	var file::asMsgPack() {
-		return file::parseMsgPack(getBinary("data"));
+		return file::parseMsgPack(getStringView("data"));
 	}
 
 	var file::asUBJSON() {
-		return file::parseUBJSON(getBinary("data"));
+		return file::parseUBJSON(getStringView("data"));
 	}
 
 	file::operator binary() { return load().getBinary(); }
@@ -401,7 +401,7 @@ namespace gold {
 		return ret;
 	}
 
-	var file::parseJSON(binary data) {
+	var file::parseJSON(string_view data) {
 		json j = json::parse(data);
 		if (j.is_object())
 			return json2Object(j);
@@ -410,7 +410,7 @@ namespace gold {
 		return var();
 	}
 
-	var file::parseBSON(binary data) {
+	var file::parseBSON(string_view data) {
 		json j = json::from_bson(data);
 		if (j.is_object())
 			return json2Object(j);
@@ -419,7 +419,7 @@ namespace gold {
 		return var();
 	}
 
-	var file::parseCBOR(binary data) {
+	var file::parseCBOR(string_view data) {
 		json j = json::from_bson(data);
 		if (j.is_object())
 			return json2Object(j);
@@ -428,7 +428,7 @@ namespace gold {
 		return var();
 	}
 
-	var file::parseMsgPack(binary data) {
+	var file::parseMsgPack(string_view data) {
 		json j = json::from_bson(data);
 		if (j.is_object())
 			return json2Object(j);
@@ -437,7 +437,7 @@ namespace gold {
 		return var();
 	}
 
-	var file::parseUBJSON(binary data) {
+	var file::parseUBJSON(string_view data) {
 		json j = json::from_bson(data);
 		if (j.is_object())
 			return json2Object(j);

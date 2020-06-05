@@ -1,12 +1,20 @@
-
 get_filename_component(
 	SHADERS_ROOT
-	"${CMAKE_CURRENT_BINARY_DIR}/shaders"
+	"${CMAKE_CURRENT_BINARY_DIR}/bin"
 	ABSOLUTE
 )
 
+FILE(GLOB_RECURSE GLOB_SHADERS  CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/shaders/*.sc)
+
+set_source_files_properties(${SHADERS}
+PROPERTIES GENERATED TRUE)
+
+add_library(Shaders OBJECT)
+
+source_group( "Shader Files" FILES "${GLOB_SHADERS}")
+
 set(SHADERS "" PARENT_SCOPE)
-function( add_bgfx_shader FILE FOLDER RETURN)
+function( add_bgfx_shader FILE RETURN)
 	get_filename_component( FILENAME "${FILE}" NAME_WE )
 	string( SUBSTRING "${FILENAME}" 0 2 TYPE )
 	if( "${TYPE}" STREQUAL "fs" )
@@ -137,9 +145,35 @@ function ( read_to_hex_const PATH NAME OUTOUT DEPENDS)
 endfunction()
 
 function( inline_shader NAME HEADER BUFFER)
+	set(VERT_SHADER "" PARENT_SCOPE)
+	set(FRAG_SHADER "" PARENT_SCOPE)
+	set(COMP_SHADER "" PARENT_SCOPE)
+
 	set(VERT_NAME "vs_${NAME}")
 	set(FRAG_NAME "fs_${NAME}")
 	set(COMP_NAME "cs_${NAME}")
+
+	set(VERT_PATH 
+		${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/${NAME}/${VERT_NAME}.sc)
+	set(FRAG_PATH 
+		${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/${NAME}/${FRAG_NAME}.sc)
+	set(COMP_PATH 
+		${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/${NAME}/${COMP_NAME}.sc)
+
+	if(EXISTS ${VERT_PATH})
+		add_bgfx_shader( ${VERT_PATH} VERT_SHADER)
+		list(APPEND SHADERS ${VERT_SHADER})
+	endif()
+	if(EXISTS ${FRAG_PATH})
+		add_bgfx_shader( ${FRAG_PATH} FRAG_SHADER)
+		list(APPEND SHADERS ${FRAG_SHADER})
+	endif()
+	if(EXISTS ${COMP_PATH})
+		add_bgfx_shader( ${COMP_PATH} COMP_SHADER)
+		list(APPEND SHADERS ${COMP_SHADER})
+	endif()
+
+	target_sources(Shaders PUBLIC ${SHADERS})
 	
 	set( ${BUFFER} "//THIS FILE IS GENERATED;")
 	set( DEPENDS "")
@@ -199,35 +233,43 @@ function( inline_shader NAME HEADER BUFFER)
 	endif()
 endfunction()
 
-FILE(GLOB_RECURSE GLOB_SHADERS  CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/shaders/*.sc)
-foreach( SHADER ${GLOB_SHADERS} )
-	get_filename_component(PARENT_DIR ${SHADER} DIRECTORY)
-	set(SHADER_RETURN)
-	add_bgfx_shader( ${SHADER} ${PARENT_DIR} SHADER_RETURN)
+function(link_symbolic_shaders BUILD_PATH)
+	set(symbolicShaderNames "")
+	list(APPEND symbolicShaderNames 
+		common 
+		pbr
+	)
+	foreach( NAME ${symbolicShaderNames} )
+		get_filename_component(
+			SOURCE_FOLDER
+			"../gold/src/shaders/${NAME}/"
+			ABSOLUTE
+		)
+		if(NOT (EXISTS ${BUILD_PATH}/shaders))
+			file(
+				MAKE_DIRECTORY
+				${BUILD_PATH}/shaders
+			)
+		endif()
+		if(NOT (IS_SYMLINK ${BUILD_PATH}/shaders/${NAME}))
+			file(
+				CREATE_LINK 
+				${SOURCE_FOLDER}
+				${BUILD_PATH}/shaders/${NAME}
+				SYMBOLIC
+			)
+		endif()
+	endforeach()
+endfunction()
 
-	list(APPEND SHADERS ${SHADER_RETURN})
-endforeach()
 
-set_source_files_properties(${SHADERS}
-                            PROPERTIES GENERATED TRUE)
-
-add_custom_target(Shaders ALL DEPENDS ${SHADERS})
-
-source_group( "Shader Files" FILES ${GLOB_SHADERS})
-
-set(spriteBuffer "")
+set(spriteBuffer "" PARENT_SCOPE)
 inline_shader(
 	"sprite" 
 	"${CMAKE_CURRENT_BINARY_DIR}/shaderSprite.hpp" 
 	spriteBuffer)
 
-set(pbrBuffer "")
-inline_shader(
-	"pbr" 
-	"${CMAKE_CURRENT_BINARY_DIR}/shaderPBR.hpp" 
-	pbrBuffer)
-
-set(wfBuffer "")
+set(wfBuffer "" PARENT_SCOPE)
 inline_shader(
 	"wireframe" 
 	"${CMAKE_CURRENT_BINARY_DIR}/shaderWireframe.hpp" 

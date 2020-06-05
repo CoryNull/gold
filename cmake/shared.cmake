@@ -1,13 +1,14 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(gold)
+project(gold CXX)
 
 add_library(
 	goldShared
 	STATIC
 		src/list.cpp
 		src/file.cpp
+		src/image.cpp
 		src/object.cpp
 		src/types.cpp
 		src/var.cpp
@@ -34,6 +35,7 @@ target_link_libraries (
 	goldShared
 	PUBLIC 
 		bx
+		bimg
 		nlohmann_json::nlohmann_json
 		stdc++fs
 )

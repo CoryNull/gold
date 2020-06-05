@@ -1,0 +1,1 @@
+../../../3rdParty/bgfx/src/bgfx_compute.sh

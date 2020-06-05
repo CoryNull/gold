@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(gold)
+project(gold CXX)
 
 find_package (SDL2 REQUIRED)
 find_package (glm 0.9.9 REQUIRED)
@@ -15,7 +15,9 @@ add_library(
 		src/game/component.cpp
 		src/game/engine.cpp
 		src/game/entity.cpp
+		src/game/envMap.cpp
 		src/game/graphics.cpp
+		src/game/light.cpp
 		src/game/mesh.cpp
 		src/game/meshRenderer.cpp
 		src/game/meshShape.cpp
@@ -54,6 +56,7 @@ target_link_libraries (
 	PUBLIC 
 		gold::shared
 		bgfx
+		brtshaderc
 		Bullet3Common
 		BulletSoftBody 
 		BulletDynamics 

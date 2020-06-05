@@ -82,12 +82,6 @@ if( APPLE )
 	)
 endif()
 
-if( UNIX AND NOT APPLE )
-	target_compile_options( glslang PRIVATE
-		"-Wno-unused-but-set-variable"
-	)
-endif()
-
 target_compile_definitions( glslang PRIVATE
 	ENABLE_OPT=1
 	ENABLE_HLSL=1

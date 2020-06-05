@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.hpp"
 #include "component.hpp"
+#include "types.hpp"
 
 namespace gold {
 
@@ -16,6 +16,12 @@ namespace gold {
 	 public:
 		static object& getPrototype();
 
-		var draw(list args = {});
+		// args: uint16_t scene, camera, list lights, envMap,
+		// occlusionQuery
+		var draw(list args);
+		// args: uint16_t scene, light, shaderProgram
+		var drawFromLight(list args);
+		// args: uint16_t scene, envMap, list lights
+		var drawFromEnvMap(list args);
 	};
 }  // namespace gold

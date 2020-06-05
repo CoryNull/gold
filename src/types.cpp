@@ -6,6 +6,9 @@ namespace gold {
 
 	const var nullVar = var();
 
+	bx::DefaultAllocator defaultAllocator =
+		bx::DefaultAllocator();
+
 	bool isCopyable(types type) {
 		if (type == typeString) return true;
 		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64)

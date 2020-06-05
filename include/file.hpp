@@ -36,11 +36,11 @@ namespace gold {
 		static file saveFile(path p, binary data);
 		static object& recursiveReadDirectory(
 			path p, object& results);
-		static var parseJSON(binary data);
-		static var parseBSON(binary data);
-		static var parseCBOR(binary data);
-		static var parseMsgPack(binary data);
-		static var parseUBJSON(binary data);
+		static var parseJSON(string_view data);
+		static var parseBSON(string_view data);
+		static var parseCBOR(string_view data);
+		static var parseMsgPack(string_view data);
+		static var parseUBJSON(string_view data);
 		static string serializeJSON(var data, bool pretty = false);
 		static binary serializeBSON(var data);
 		static binary serializeCBOR(var data);

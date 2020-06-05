@@ -62,8 +62,8 @@ namespace gold {
 			if (!layout)
 				layout = vertexLayout({{"name", "Wireframe"}})
 									 .begin()
-									 .add(a::aPosition, aT::Float, 3)
-									 .add(a::aColor0, aT::Float, 4)
+									 .add(a::Position, aT::Float, 3)
+									 .add(a::Color0, aT::Float, 4)
 									 .end();
 
 			lines = vector<DebugLine>();

@@ -1,13 +1,16 @@
 #pragma once
 
 #include "renderable.hpp"
+#include "camera.hpp"
 
 namespace gold {
 	struct meshRenderer : public renderable {
 	 protected:
 		static object& getPrototype();
-		
-		void setMaterial(object matData);
+
+		void setMaterial(camera cam, object primitive, object mesh);
+		object configureVertex(object primitive, object mesh);
+		object configureFragment(object primitive, object mesh);
 
 	 public:
 		meshRenderer();

@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(gold)
+project(gold CXX)
 
 find_package (libmongoc-1.0 1.9.2 REQUIRED)
 

@@ -1,6 +1,6 @@
 $input v_ptColor
 
-#include <bgfx_shader.sh>
+#include "../common/bgfx_shader.sh"
 
 uniform vec4 u_thickness;
 

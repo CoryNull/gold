@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bx/allocator.h>
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -23,9 +24,10 @@ namespace gold {
 	struct list;
 	struct var;
 	using method = var (object::*)(list);
-	using func = function<var(const list&)>;
+	using func = function<var(list)>;
 	using binary = vector<uint8_t>;
 	using key = string;
+	static bx::DefaultAllocator defaultAllocator;
 
 	typedef enum types_t {
 		typeNull = 0,
@@ -527,6 +529,9 @@ namespace gold {
 		operator bool() const;
 
 		static void parseURLEncoded(string value, object& result);
+		static void parseCookie(string value, object& result);
+
+		string getCookieString();
 
 		string getJSON(bool pretty = false);
 		binary getJSONBin(bool pretty = false);

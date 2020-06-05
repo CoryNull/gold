@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "file.hpp"
+#include "html.hpp"
 
 namespace gold {
 	using namespace std;
@@ -87,7 +88,7 @@ namespace gold {
 
 	obj& server::getPrototype() {
 		static auto proto = obj({
-			{"host", "localhost"},
+			{"host", ".localhost.org"},
 			{"port", 8080},
 			{"start", method(&server::start)},
 			{"get", method(&server::get)},
@@ -130,9 +131,6 @@ namespace gold {
 			{"getParameter", method(&request::getParameter)},
 			{"getQuery", method(&request::getQuery)},
 			{"getUrl", method(&request::getUrl)},
-			{"getYield", method(&request::getYield)},
-			{"setParameters", method(&request::setParameters)},
-			{"setYield", method(&request::setYield)},
 		});
 		return proto;
 	}
@@ -144,9 +142,7 @@ namespace gold {
 		auto def = obj({});
 		auto mounts = getObject("mounts");
 		if (handle != nullptr) {
-			auto handler = [&](
-											 HttpResponse<false>* res,
-											 HttpRequest* req) {
+			auto handler = [&](auto* res, auto* req) {
 				try {
 					auto p = string(req->getUrl());
 					auto f = mounts.getObject<file>(p);
@@ -213,15 +209,13 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->get(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->get(pattern.c_str(), [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
@@ -233,15 +227,13 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->post(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->post(pattern.c_str(), [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
@@ -253,15 +245,13 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->put(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->put(pattern.c_str(), [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
@@ -273,15 +263,13 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->patch(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->patch(pattern.c_str(), [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
@@ -293,15 +281,13 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->del(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->del(pattern.c_str(), [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
@@ -314,10 +300,9 @@ namespace gold {
 			return genericError("missing callback");
 		else
 			handle->options(
-				pattern.c_str(),
-				[func](HttpResponse<false>* res, HttpRequest* req) {
+				pattern.c_str(), [=](auto* res, auto* req) {
 					try {
-						func({request(*req), response(*res)});
+						func({request(req), response(res)});
 					} catch (genericError& e) {
 						cerr << e << endl;
 					}
@@ -345,20 +330,35 @@ namespace gold {
 		if (!func)
 			return genericError("missing callback");
 		else
-			handle->get(
-				"/*",
-				[func](HttpResponse<false>* res, HttpRequest* req) {
-					try {
-						func({request(*req), response(*res)});
-					} catch (genericError& e) {
-						cerr << e << endl;
-					}
-				});
+			handle->get("/*", [=](auto* res, auto* req) {
+				try {
+					func({request(req), response(res)});
+				} catch (genericError& e) {
+					cerr << e << endl;
+				}
+			});
 		return var();
 	}
 
 	var server::initialize(list) {
-		setPtr("handle", new App());
+		auto kFN = getString("keyFileName");
+		auto cFN = getString("certFileName");
+		auto p = getString("passphrase");
+		auto dh = getString("dhParamsFileName");
+		auto ca = getString("caFileName");
+		auto sslPreferLowMemoryUsage =
+			getBool("sslPreferLowMemoryUsage", false);
+		auto settings = us_socket_context_options_t{
+			.key_file_name = (kFN.size() > 0) ? kFN.c_str() : nullptr,
+			.cert_file_name =
+				(cFN.size() > 0) ? cFN.c_str() : nullptr,
+			.passphrase = (p.size() > 0) ? p.c_str() : nullptr,
+			.dh_params_file_name =
+				(dh.size() > 0) ? dh.c_str() : nullptr,
+			.ca_file_name = (ca.size() > 0) ? ca.c_str() : nullptr,
+			.ssl_prefer_low_memory_usage = sslPreferLowMemoryUsage,
+		};
+		setPtr("handle", new App(settings));
 		auto mounts = obj({});
 		setObject("mounts", mounts);
 		return var();
@@ -380,15 +380,15 @@ namespace gold {
 
 	response::response() : obj() {}
 
-	response::response(HttpResponse<true>& res) : obj() {
+	response::response(HttpResponse<true>* res) : obj() {
 		setParent(getPrototype());
-		setPtr("handle", &res);
+		setPtr("handle", res);
 		setBool("ssl", true);
 	}
 
-	response::response(HttpResponse<false>& res) : obj() {
+	response::response(HttpResponse<false>* res) : obj() {
 		setParent(getPrototype());
-		setPtr("handle", &res);
+		setPtr("handle", res);
 		setBool("ssl", false);
 	}
 
@@ -444,7 +444,16 @@ namespace gold {
 	}
 
 	var response::end(list args) {
-		auto data = args[0].getBinary();
+		auto data = binary();
+		if (args[0].isObject(HTML::iHTML::getPrototype())) {
+			data = args[0].getObject<HTML::iHTML>();
+			writeHeader({"Content-Type", "text/html"});
+		} else if (args[0].isObject()) {
+			data = args[0].getObject().getJSONBin();
+			writeHeader({"Content-Type", "application/json"});
+		} else if (args[0].isView())
+			data = args[0].getBinary();
+
 		auto strV = string_view((char*)data.data(), data.size());
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -458,7 +467,16 @@ namespace gold {
 	}
 
 	var response::tryEnd(list args) {
-		auto data = args[0].getBinary();
+		auto data = binary();
+		if (args[0].isObject(HTML::iHTML::getPrototype())) {
+			data = args[0].getObject<HTML::iHTML>();
+			writeHeader({"Content-Type", "text/html"});
+		} else if (args[0].isObject()) {
+			data = args[0].getObject().getJSONBin();
+			writeHeader({"Content-Type", "application/json"});
+		} else if (args[0].isView())
+			data = args[0].getBinary();
+
 		auto strV = string_view((char*)data.data(), data.size());
 		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
 		auto ssl = getBool("ssl");
@@ -473,14 +491,21 @@ namespace gold {
 	}
 
 	var response::write(list args) {
-		auto data = args[0].getString();
+		auto data = binary();
+		if (args[0].isObject(HTML::iHTML::getPrototype())) {
+			data = args[0].getObject<HTML::iHTML>();
+			writeHeader({"Content-Type", "text/html"});
+		} else if (args[0].isView())
+			data = args[0].getBinary();
+		auto strV = string_view((char*)data.data(), data.size());
+
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			return res->write(data);
+			return res->write(strV);
 		}
 		auto res = (HttpResponse<false>*)getPtr("handle");
-		return res->write(data);
+		return res->write(strV);
 	}
 
 	var response::getWriteOffset(list) {
@@ -521,138 +546,157 @@ namespace gold {
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			res->onWritable(
-				[handler](int v) { return handler({v}); });
+			res->onWritable([=](int v) { return handler({v}); });
 			return var();
 		}
 		auto res = (HttpResponse<false>*)getPtr("handle");
-		res->onWritable([handler](int v) { return handler({v}); });
+		res->onWritable([=](int v) { return handler({v}); });
 		return var();
 	}
 
 	var response::onAborted(list args) {
 		auto handler = args[0].getFunction();
+		auto reqObj = args[1].getObject<request>();
 		auto ssl = getBool("ssl");
+		auto callback = [=]() {
+			handler({var(reqObj), var(*this)});
+		};
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			res->onAborted([handler]() { handler({}); });
+			res->onAborted(callback);
 			return var();
 		}
 		auto res = (HttpResponse<false>*)getPtr("handle");
-		res->onAborted([handler]() { handler({}); });
+		res->onAborted(callback);
 		return var();
 	}
 
 	var response::onData(list args) {
+		struct dataContext {
+			func handler;
+			request req;
+			response res;
+			string buffer;
+		};
 		auto handler = args[0].getFunction();
+		auto reqObj = args[1].getObject<request>();
 		auto ssl = getBool("ssl");
+		auto c = make_shared<dataContext>(
+			dataContext{handler, reqObj, *this, string()});
+		auto buffer = make_shared<string>();
+		auto callback = [=](string_view v, bool b) {
+			(c->buffer) = (c->buffer) + string(v);
+			if (b) c->handler({c->buffer, c->req, c->res});
+		};
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
-			res->onData([handler](string_view v, bool b) {
-				handler({string(v), var(b)});
-			});
+			res->onData(callback);
 			return var();
 		}
 		auto res = (HttpResponse<false>*)getPtr("handle");
-		res->onData([handler](string_view v, bool b) {
-			handler({string(v), var(b)});
-		});
+		res->onData(callback);
 		return var();
 	}
 
 	request::request() : obj() {}
 
-	request::request(uWS::HttpRequest& req) : obj() {
+	request::request(uWS::HttpRequest* req) : obj() {
 		setParent(getPrototype());
-		setPtr("handle", (void*)&req);
-		setString("path", string(req.getUrl()));
-	}
-
-	var request::getAllHeaders(list) {
-		auto req = (HttpRequest*)getPtr("handle");
-		auto o = obj({});
+		auto headers = obj({});
+		auto params = list({});
 		auto it = req->begin();
 		for (; it != req->end(); ++it) {
-			auto k = string(it.ptr->key);
-			auto v = string(it.ptr->value);
-			auto exist = o.getVar(k);
-			if (exist.isString()) {
-				auto arr = list({exist.getString(), v});
-				o.setList(k, arr);
-			} else if (exist.isList()) {
-				auto arr = exist.getList();
-				arr.pushString(v);
-			} else
-				o.setString(k, v);
+			if (it.ptr) {
+				auto k = string(it.ptr->key);
+				auto v = string(it.ptr->value);
+				auto exist = headers.getVar(k);
+				if (exist.isString()) {
+					auto arr = list({exist.getString(), v});
+					headers.setList(k, arr);
+				} else if (exist.isList()) {
+					auto arr = exist.getList();
+					arr.pushString(v);
+				} else
+					headers.setString(k, v);
+			}
 		}
-		return o;
+		size_t i = 0;
+		auto currentParm = req->getParameter(i);
+		while (currentParm.data() && currentParm.size() > 0) {
+			params.pushString(string(currentParm));
+			currentParm = req->getParameter(++i);
+		}
+		cout << headers.getJSON() << endl;
+		setObject("headers", headers);
+		setList("params", params);
+		setString("query", string(req->getQuery()));
+		setString("method", string(req->getMethod()));
+		setString("path", string(req->getUrl()));
+		setPtr("handle", req);
 	}
 
+	var request::getAllHeaders() { return getObject("headers"); }
+
 	var request::getHeader(list args) {
-		auto req = (HttpRequest*)getPtr("handle");
+		auto headers = getObject("headers");
 		auto lch = args[0].getString();
 		transform(lch.begin(), lch.end(), lch.begin(), [](auto c) {
 			return std::tolower(c);
 		});
-		return string(req->getHeader(lch));
+		return headers[lch];
 	}
 
-	var request::getMethod(list) {
-		auto req = (HttpRequest*)getPtr("handle");
-		return string(req->getMethod());
-	}
+	var request::getMethod() { return getString("method"); }
 
 	var request::getParameter(list args) {
-		auto req = (HttpRequest*)getPtr("handle");
 		auto in = args[0].getUInt32();
-		return string(req->getParameter(in));
+		auto params = getList("params");
+		return params[in];
 	}
 
-	var request::getQuery(list) {
-		auto req = (HttpRequest*)getPtr("handle");
-		return string(req->getQuery());
-	}
+	var request::getQuery() { return getString("query"); }
 
-	var request::getUrl(list) {
-		auto req = (HttpRequest*)getPtr("handle");
-		return string(req->getUrl());
-	}
+	var request::getUrl() { return getString("path"); }
 
-	var request::getYield(list) {
-		auto req = (HttpRequest*)getPtr("handle");
-		return req->getYield();
-	}
-
-	var request::setParameters(list args) {
-		auto req = (HttpRequest*)getPtr("handle");
-		int in = args[0].getInt32();
-		auto v = args[1].getString();
-		auto pam = string_view(v);
-		auto p = pair<int, std::string_view*>(in, &pam);
-		req->setParameters(p);
-		return var();
+	var request::getYield() {
+		auto handle = (uWS::HttpRequest*)getPtr("handle");
+		return handle->getYield();
 	}
 
 	var request::setYield(list args) {
-		auto req = (HttpRequest*)getPtr("handle");
-		auto y = args[0].getBool();
-		req->setYield(y);
-		return var();
+		auto handle = (uWS::HttpRequest*)getPtr("handle");
+		auto value = args[0].getBool();
+		handle->setYield(value);
+		return value;
 	}
 
 	bool request::isWWWFormURLEncoded() {
-		auto wwwFormURLEncodedType =
-			"application/x-www-form-urlencoded";
+		auto type = "application/x-www-form-urlencoded";
 		auto contentType = getHeader({"Content-Type"}).getString();
-		return contentType.find(wwwFormURLEncodedType) !=
-					 string::npos;
+		return contentType.find(type) != string::npos;
 	}
 
 	bool request::isJSON() {
-		auto wwwFormURLEncodedType = "application/json";
+		auto type0 = "application/json";
+		auto type1 = "text/json";
 		auto contentType = getHeader({"Content-Type"}).getString();
-		return contentType.find(wwwFormURLEncodedType) !=
-					 string::npos;
+		return contentType.find(type0) != string::npos ||
+					 contentType.find(type1) != string::npos;
+	}
+
+	bool request::acceptingJSON() {
+		auto type0 = "application/json";
+		auto type1 = "text/json";
+		auto contentType = getHeader({"accept"}).getString();
+		return contentType.find(type0) != string::npos ||
+					 contentType.find(type1) != string::npos;
+	}
+	bool request::acceptingHTML() {
+		auto type0 = "text/html";
+		auto type1 = "application/xhtml+xml";
+		auto contentType = getHeader({"accept"}).getString();
+		return contentType.find(type0) != string::npos ||
+					 contentType.find(type1) != string::npos;
 	}
 
 }  // namespace gold

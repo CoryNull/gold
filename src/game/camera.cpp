@@ -10,7 +10,6 @@ namespace gold {
 	object& camera::getPrototype() {
 		static auto proto = obj({
 			{"offset", vec2f(0, 0)},
-			{"view", uint16_t(0)},
 			{"fov", 60},
 			{"depth", 1.0f},
 			{"near", 0.1f},
@@ -21,12 +20,6 @@ namespace gold {
 			{"proto", entity::getPrototype()},
 		});
 		return proto;
-	}
-
-	var camera::setViewId(list args) {
-		uint16_t view = args[0].getUInt16();
-		setUInt16("view", view);
-		return var();
 	}
 
 	var camera::setViewClear(list args) {
@@ -81,7 +74,9 @@ namespace gold {
 		return var();
 	}
 
-	var camera::setViewTransform(list) {
+	var camera::setViewTransform(list args) {
+		auto viewId =
+			args.size() > 0 ? args[0].getUInt16() : uint16_t(0);
 		auto parentTrans = getTransform();
 		auto mtx = parentTrans.getWorldMatrix();
 
@@ -100,17 +95,17 @@ namespace gold {
 		auto height = size.getFloat(1);
 		auto ratio = width / height;
 		auto homo = bgfx::getCaps()->homogeneousDepth;
-		auto viewId = getUInt16("view");
 		auto proj = projection(fov, ratio, near, far, homo);
 		bgfx::setViewTransform(
 			viewId, view.getPtr(), proj.getPtr());
 		return var();
 	}
 
-	var camera::setView(list) {
+	var camera::setView(list args) {
+		auto viewId =
+			args.size() > 0 ? args[0].getUInt16() : uint16_t(0);
 		auto size = getVar("size");
 		auto offset = getVar("offset");
-		auto viewId = getUInt16("view");
 		auto width = size.getFloat(0);
 		auto height = size.getFloat(1);
 		auto x = offset.getFloat(0);
@@ -121,7 +116,7 @@ namespace gold {
 		auto depth = getFloat("depth");
 		bgfx::setViewClear(viewId, flags, rgba, depth, stencil);
 		bgfx::setViewRect(viewId, x, y, width, height);
-		setViewTransform();
+		setViewTransform({viewId});
 		return var();
 	}
 

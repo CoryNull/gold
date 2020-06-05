@@ -1,15 +1,14 @@
 #include "mesh.hpp"
 
-#include <bgfx/bgfx.h>
 #include <bx/math.h>
 #include <bx/timer.h>
 #include <string.h>
 
 #include <fstream>
 
-namespace gold {
-	using namespace bgfx;
+#include "graphics.hpp"
 
+namespace gold {
 	object& mesh::getPrototype() {
 		static auto proto = obj{
 			{"getVertexLayoutHandle",
@@ -125,11 +124,13 @@ namespace gold {
 					return genericError("No attributes object");
 				if (attributes.size() == 0)
 					return genericError("No attributes");
-				auto layout = new VertexLayout();
-				primitive.setPtr("vertexLayout", layout);
-				layout->begin();
+				auto layout = vertexLayout();
+				primitive.setObject("vertexLayout", layout);
+				layout.begin();
 
-				auto addAttribute = [&](string name, Attrib::Enum e) {
+				using attrib = vertexLayout::attrib;
+				using attribT = vertexLayout::attribType;
+				auto addAttribute = [&](string name, attrib e) {
 					auto index = var();
 					if ((index = attributes.getVar(name)).isNumber()) {
 						auto accessor = accessors[index].getObject();
@@ -140,19 +141,18 @@ namespace gold {
 						if (type == "VEC3") fc = 3;
 						if (type == "VEC4") fc = 4;
 						if (fc != 0 && count > 0)
-							layout->add(
-								e, fc, AttribType::Float, false, false);
+							layout.add(e, attribT::Float, fc, false, false);
 					}
 				};
 
-				addAttribute("POSITION", Attrib::Position);
-				addAttribute("NORMAL", Attrib::Normal);
-				addAttribute("TANGENT", Attrib::Tangent);
-				addAttribute("TEXCOORD_0", Attrib::TexCoord0);
+				addAttribute("POSITION", attrib::Position);
+				addAttribute("NORMAL", attrib::Normal);
+				addAttribute("TANGENT", attrib::Tangent);
+				addAttribute("TEXCOORD_0", attrib::TexCoord0);
 
-				layout->end();
+				layout.end();
 
-				return var(layout, typePtr);
+				return layout;
 			}
 		}
 		return var();
@@ -172,8 +172,8 @@ namespace gold {
 			if (it != primitives.end()) {
 				if (!(primitive = it->getObject()))
 					return genericError("No primitive object");
-				if (primitive.getType("vbh") == typeUInt16)
-					return primitive.getUInt16("vbh");
+				if (primitive.getType("vbh") == typeObject)
+					return primitive.getObject("vbh");
 				auto attributes = primitive.getObject("attributes");
 				if (!attributes)
 					return genericError("No attributes object");
@@ -256,14 +256,15 @@ namespace gold {
 				}
 				primitive.setBinary("packed", bin);
 
-				auto layout =
-					(VertexLayout*)getVertexLayoutHandle(name, pri)
-						.getPtr();
-				auto vData =
-					bgfx::copy(bin.data(), layout->getSize(count));
-				auto vbh = createVertexBuffer(vData, *layout);
-				primitive.setUInt16("vbh", vbh.idx);
-				return vbh.idx;
+				auto layout = getVertexLayoutHandle(name, pri)
+												.getObject<vertexLayout>();
+				auto vbh = vertexBuffer({
+					{"type", standardBufferType},
+					{"data", bin},
+					{"layout", layout},
+				});
+				primitive.setObject("vbh", vbh);
+				return vbh;
 			}
 		}
 		return var();
@@ -287,8 +288,8 @@ namespace gold {
 					return genericError("No index buffer");
 				auto indicies =
 					accessors.getObject(primitive.getUInt64("indices"));
-				if (indicies.getType("ibh") == typeUInt16)
-					return indicies.getUInt16("ibh");
+				if (indicies.getType("ibh") == typeObject)
+					return indicies.getObject("ibh");
 				auto parsed = indicies.getList("parsed");
 				auto count = indicies.getUInt64("count");
 				auto bin = binary();
@@ -303,11 +304,12 @@ namespace gold {
 				}
 				indicies.setBinary("packed", bin);
 
-				auto iDate =  // TODO: INT32
-					bgfx::copy(bin.data(), sizeof(uint16_t) * count);
-				auto ibh = createIndexBuffer(iDate);
-				indicies.setUInt16("ibh", ibh.idx);
-				return ibh.idx;
+				auto ibh = indexBuffer({
+					{"type", standardBufferType},
+					{"data", bin},
+				});
+				indicies.setObject("ibh", ibh);
+				return ibh;
 			}
 		}
 		return var();

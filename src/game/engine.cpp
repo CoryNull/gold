@@ -8,7 +8,9 @@
 #include "camera.hpp"
 #include "component.hpp"
 #include "entity.hpp"
+#include "envMap.hpp"
 #include "graphics.hpp"
+#include "light.hpp"
 #include "promise.hpp"
 #include "window.hpp"
 #include "world.hpp"
@@ -132,6 +134,54 @@ namespace gold {
 		promises.resize(0);
 	}
 
+	void engine::sortComponents() {
+		auto comps = getList("components");
+		comps.sort([](var a, var b) {
+			auto objA = a.getObject();
+			auto objB = b.getObject();
+			auto aP = objA.getUInt64("priority");
+			auto bP = objB.getUInt64("priority");
+			return aP < bP;
+		});
+	}
+
+	void engine::initComps() {
+		auto comps = getList("components");
+		auto it = comps.begin();
+		for (; it != comps.end(); ++it) {
+			auto comp = it->getObject<component>();
+			if (!comp.getBool("_inited")) {
+				comp.callMethod("initialize");
+				comp.setBool("_inited", true);
+			}
+		}
+	}
+
+	void engine::callMethod(string m, list args) {
+		auto comps = getList("components");
+		for (auto it = comps.begin(); it != comps.end(); ++it) {
+			auto comp = it->getObject<component>();
+			auto priority = comp.getUInt64("priority");
+			comp.callMethod(m, args);
+		}
+	}
+
+	list engine::findAll(object proto) {
+		auto ret = list({});
+		auto comps = getList("components");
+		for (auto it = comps.begin(); it != comps.end(); ++it)
+			if (it->isObject(proto)) ret.pushVar(*it);
+		return ret;
+	}
+
+	void engine::drawScene() {
+		auto renderables = findAll(renderable::getPrototype());
+		auto lights = findAll(light::getPrototype());
+		auto envMaps = findAll(envMap::getPrototype());
+		auto cameras = getList("cameras");
+		
+	}
+
 	var engine::start() {
 		auto win = getObject<window>("window");
 		auto gfx = getObject<gfxBackend>("graphics");
@@ -155,32 +205,11 @@ namespace gold {
 				auto c = it->getObject<camera>();
 				c.setView();
 			}
-			comps.sort([](var a, var b) {
-				auto objA = a.getObject();
-				auto objB = b.getObject();
-				auto aP = objA.getUInt64("priority");
-				auto bP = objB.getUInt64("priority");
-				return aP < bP;
-			});
-			auto it = comps.begin();
-			for (; it != comps.end(); ++it) {
-				auto comp = it->getObject<component>();
-				if (!comp.getBool("_inited")) {
-					comp.callMethod("initialize");
-					comp.setBool("_inited", true);
-				}
-			}
-			it = comps.begin();
-			for (; it != comps.end(); ++it) {
-				auto comp = it->getObject<component>();
-				auto priority = comp.getUInt64("priority");
-				if (priority < priorityEnum::drawPriority) {
-					comp.callMethod("update");
-				} else {
-					comp.callMethod("update");
-					comp.callMethod("draw");
-				}
-			}
+			sortComponents();
+			initComps();
+			sortComponents();
+			callMethod("update");
+			callMethod("draw");
 			phys.debugDraw();
 			gfx.renderFrame();
 		}

@@ -2,7 +2,9 @@
 
 #include <mongoc.h>
 
+#include <chrono>
 #include <cstdint>
+#include <file.hpp>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -19,396 +21,28 @@ namespace gold {
 		} u;
 	} timeStamp;
 
-	list listFromBSON(bson_t* b);
-	obj objectFromBSON(bson_t* b);
-
-	void objectConvertBSON(obj& o, bson_t* b);
-	void listConvertBSON(list& l, bson_t* b) {
-		for (uint64_t i = 0; i < l.size(); ++i) {
-			auto item = l[i];
-			auto key = to_string(i);
-			switch (item.getType()) {
-				case typeNull:
-					bson_append_null(b, key.data(), key.size());
-					break;
-				case typeList: {
-					bson_t a;
-					bson_init(&a);
-					auto l = item.getList();
-					listConvertBSON(l, &a);
-					bson_append_array(b, key.data(), key.size(), &a);
-					break;
-				}
-				case typeObject: {
-					bson_t a;
-					bson_init(&a);
-					auto o = item.getObject();
-					objectConvertBSON(o, &a);
-					bson_append_document(b, key.data(), key.size(), &a);
-					break;
-				}
-				case typeString: {
-					auto str = item.getString();
-					bson_append_utf8(
-						b, key.data(), key.size(), str.data(), str.size());
-					break;
-				}
-				case typeBinary: {
-					auto bin = binary();
-					item.assignBinary(bin);
-					bson_append_binary(
-						b,
-						key.data(),
-						key.size(),
-						bson_subtype_t::BSON_SUBTYPE_BINARY,
-						bin.data(),
-						bin.size());
-
-					break;
-				}
-				case typeUInt64:
-				case typeInt64: {
-					bson_append_int64(
-						b, key.data(), key.size(), item.getInt64());
-					break;
-				}
-				case typeUInt32:
-				case typeUInt16:
-				case typeUInt8:
-				case typeInt32:
-				case typeInt16:
-				case typeInt8: {
-					bson_append_int32(
-						b, key.data(), key.size(), item.getInt32());
-					break;
-				}
-				case typeBool: {
-					bson_append_bool(
-						b, key.data(), key.size(), item.getBool());
-					break;
-				}
-				case typeDouble:
-				case typeFloat: {
-					bson_append_double(
-						b, key.data(), key.size(), item.getDouble());
-					break;
-				}
-				default:
-					break;
-			}
-		}
-	}
-
-	void objectConvertBSON(obj& o, bson_t* b) {
-		for (auto it = o.begin(); it != o.end(); ++it) {
-			auto key = it->first;
-			switch (it->second.getType()) {
-				case typeNull:
-					bson_append_null(b, key.data(), key.size());
-					break;
-				case typeList: {
-					bson_t a;
-					bson_init(&a);
-					auto l = it->second.getList();
-					listConvertBSON(l, &a);
-					bson_append_array(b, key.data(), key.size(), &a);
-					break;
-				}
-				case typeObject: {
-					bson_t a;
-					bson_init(&a);
-					auto o = it->second.getObject();
-					objectConvertBSON(o, &a);
-					bson_append_document(b, key.data(), key.size(), &a);
-					break;
-				}
-				case typeString: {
-					auto str = it->second.getString();
-					bson_append_utf8(
-						b, key.data(), key.size(), str.data(), str.size());
-					break;
-				}
-				case typeBinary: {
-					auto bin = binary();
-					it->second.assignBinary(bin);
-					bson_append_binary(
-						b,
-						key.data(),
-						key.size(),
-						bson_subtype_t::BSON_SUBTYPE_BINARY,
-						bin.data(),
-						bin.size());
-					break;
-				}
-				case typeUInt64:
-				case typeInt64: {
-					bson_append_int64(
-						b, key.data(), key.size(), it->second.getInt64());
-					break;
-				}
-				case typeUInt32:
-				case typeUInt16:
-				case typeUInt8:
-				case typeInt32:
-				case typeInt16:
-				case typeInt8: {
-					bson_append_int32(
-						b, key.data(), key.size(), it->second.getInt32());
-					break;
-				}
-				case typeBool: {
-					bson_append_bool(
-						b, key.data(), key.size(), it->second.getBool());
-					break;
-				}
-				case typeDouble:
-				case typeFloat: {
-					bson_append_double(
-						b, key.data(), key.size(), it->second.getDouble());
-					break;
-				}
-				default:
-					break;
-			}
-		}
-	}
-
 	bson_t* newBSONFromObject(obj& obj) {
-		bson_t* b = bson_new();
-		objectConvertBSON(obj, b);
-		auto str = bson_as_relaxed_extended_json(b, NULL);
-		cout << str << endl;
-		return b;
+		auto data = obj.getBSON();
+		auto reader =
+			bson_reader_new_from_data(data.data(), data.size());
+		bool eof;
+		auto doc = bson_reader_read(reader, &eof);
+		if (doc) return bson_copy(doc);
+		return nullptr;
 	}
 
 	list listFromBSON(bson_t* b) {
-		auto a = list();
-		bson_iter_t iter;
-		if (bson_iter_init(&iter, b)) {
-			while (bson_iter_next(&iter)) {
-				auto key = (uint64_t)stol(bson_iter_key(&iter));
-				switch (bson_iter_type(&iter)) {
-					case BSON_TYPE_DOUBLE:
-						a.setDouble(key, bson_iter_as_double(&iter));
-						break;
-					case BSON_TYPE_UTF8: {
-						uint32_t s = 0;
-						auto data = bson_iter_utf8(&iter, &s);
-						a.setString(key, string(data, s));
-						break;
-					}
-					case BSON_TYPE_DOCUMENT: {
-						const uint8_t* loc = nullptr;
-						uint32_t s = 0;
-						bson_iter_document(&iter, &s, &loc);
-						auto bs = bson_new_from_data(loc, s);
-						a.setObject(key, objectFromBSON(bs));
-						bson_destroy(bs);
-						break;
-					}
-					case BSON_TYPE_ARRAY: {
-						const uint8_t* loc = nullptr;
-						uint32_t s = 0;
-						bson_iter_array(&iter, &s, &loc);
-						auto bs = bson_new_from_data(loc, s);
-						a.setList(key, listFromBSON(bs));
-						bson_destroy(bs);
-						break;
-					}
-					case BSON_TYPE_BINARY: {
-						bson_subtype_t st;
-						uint32_t s = 0;
-						const uint8_t* data = nullptr;
-						bson_iter_binary(&iter, &st, &s, &data);
-						a.setString(key, string((char*)data, s));
-						break;
-					}
-					case BSON_TYPE_OID: {
-						auto oid = bson_iter_oid(&iter);
-						a.setString(key, string((char*)oid->bytes, 12));
-						break;
-					}
-					case BSON_TYPE_BOOL:
-						a.setBool(key, bson_iter_bool(&iter));
-						break;
-					case BSON_TYPE_DATE_TIME:
-						a.setInt64(key, bson_iter_date_time(&iter));
-						break;
-					case BSON_TYPE_REGEX: {
-						const char* opts = nullptr;
-						auto reg = bson_iter_regex(&iter, &opts);
-						a.setList(key, list({reg, opts}));
-						break;
-					}
-					case BSON_TYPE_CODE: {
-						uint32_t size = 0;
-						auto code = bson_iter_code(&iter, &size);
-						a.setString(key, code);
-						break;
-					}
-					case BSON_TYPE_CODEWSCOPE: {
-						uint32_t cSize = 0;
-						uint32_t sSize = 0;
-						const uint8_t* scope;
-						auto code = bson_iter_codewscope(
-							&iter, &cSize, &sSize, &scope);
-						a.setList(
-							key,
-							list({string(code, cSize),
-										string((char*)scope, sSize)}));
-						break;
-					}
-					case BSON_TYPE_INT32:
-						a.setInt32(key, bson_iter_int32(&iter));
-						break;
-					case BSON_TYPE_TIMESTAMP: {
-						timeStamp ts;
-						bson_iter_timestamp(
-							&iter, &ts.u.pair.stamp, &ts.u.pair.inc);
-						a.setUInt64(key, ts.u.data);
-						break;
-					}
-					case BSON_TYPE_INT64:
-						a.setInt64(key, bson_iter_int64(&iter));
-						break;
-					case BSON_TYPE_DECIMAL128: {
-						bson_decimal128_t d;
-						if (bson_iter_decimal128(&iter, &d)) {
-							char str[BSON_DECIMAL128_STRING];
-							bson_decimal128_to_string(&d, str);
-							a.setString(
-								key,
-								string((char*)str, BSON_DECIMAL128_STRING));
-						}
-						break;
-					}
-					case BSON_TYPE_MAXKEY:
-					case BSON_TYPE_MINKEY:
-					case BSON_TYPE_SYMBOL:
-					case BSON_TYPE_DBPOINTER:
-					case BSON_TYPE_UNDEFINED:
-					case BSON_TYPE_NULL:
-					default:
-						a.setNull(key);
-						break;
-				}
-			}
-		}
-		return a;
+		auto view = string_view((char*)bson_get_data(b), b->len);
+		auto res = file::parseBSON(view);
+		if (res.isList()) return res.getList();
+		return list();
 	}
 
 	obj objectFromBSON(bson_t* b) {
-		auto o = obj();
-		bson_iter_t iter;
-		if (bson_iter_init(&iter, b)) {
-			while (bson_iter_next(&iter)) {
-				auto key = bson_iter_key(&iter);
-				switch (bson_iter_type(&iter)) {
-					case BSON_TYPE_DOUBLE:
-						o.setDouble(key, bson_iter_as_double(&iter));
-						break;
-					case BSON_TYPE_UTF8: {
-						uint32_t s = 0;
-						auto data = bson_iter_utf8(&iter, &s);
-						o.setString(key, string(data, s));
-						break;
-					}
-					case BSON_TYPE_DOCUMENT: {
-						const uint8_t* loc = nullptr;
-						uint32_t s = 0;
-						bson_iter_document(&iter, &s, &loc);
-						auto bs = bson_new_from_data(loc, s);
-						o.setObject(key, objectFromBSON(bs));
-						bson_destroy(bs);
-						break;
-					}
-					case BSON_TYPE_ARRAY: {
-						const uint8_t* loc = nullptr;
-						uint32_t s = 0;
-						bson_iter_array(&iter, &s, &loc);
-						auto bs = bson_new_from_data(loc, s);
-						o.setList(key, listFromBSON(bs));
-						bson_destroy(bs);
-						break;
-					}
-					case BSON_TYPE_BINARY: {
-						bson_subtype_t st;
-						uint32_t s = 0;
-						const uint8_t* data = nullptr;
-						bson_iter_binary(&iter, &st, &s, &data);
-						o.setString(key, string((char*)data, s));
-						break;
-					}
-					case BSON_TYPE_OID: {
-						auto oid = bson_iter_oid(&iter);
-						o.setString(key, string((char*)oid->bytes, 12));
-						break;
-					}
-					case BSON_TYPE_BOOL:
-						o.setBool(key, bson_iter_bool(&iter));
-						break;
-					case BSON_TYPE_DATE_TIME:
-						o.setInt64(key, bson_iter_date_time(&iter));
-						break;
-					case BSON_TYPE_REGEX: {
-						const char* opts = nullptr;
-						auto reg = bson_iter_regex(&iter, &opts);
-						o.setList(key, list({reg, opts}));
-						break;
-					}
-					case BSON_TYPE_CODE: {
-						uint32_t size = 0;
-						auto code = bson_iter_code(&iter, &size);
-						o.setString(key, code);
-						break;
-					}
-					case BSON_TYPE_CODEWSCOPE: {
-						uint32_t cSize = 0;
-						uint32_t sSize = 0;
-						const uint8_t* scope;
-						auto code = bson_iter_codewscope(
-							&iter, &cSize, &sSize, &scope);
-						o.setList(
-							key,
-							list({string(code, cSize),
-										string((char*)scope, sSize)}));
-						break;
-					}
-					case BSON_TYPE_INT32:
-						o.setInt32(key, bson_iter_int32(&iter));
-						break;
-					case BSON_TYPE_TIMESTAMP: {
-						timeStamp ts;
-						bson_iter_timestamp(
-							&iter, &ts.u.pair.stamp, &ts.u.pair.inc);
-						o.setUInt64(key, ts.u.data);
-						break;
-					}
-					case BSON_TYPE_INT64:
-						o.setInt64(key, bson_iter_int64(&iter));
-						break;
-					case BSON_TYPE_DECIMAL128: {
-						bson_decimal128_t d;
-						if (bson_iter_decimal128(&iter, &d)) {
-							char str[BSON_DECIMAL128_STRING];
-							bson_decimal128_to_string(&d, str);
-							o.setString(key, string(str));
-						}
-						break;
-					}
-					case BSON_TYPE_MAXKEY:
-					case BSON_TYPE_MINKEY:
-					case BSON_TYPE_SYMBOL:
-					case BSON_TYPE_DBPOINTER:
-					case BSON_TYPE_UNDEFINED:
-					case BSON_TYPE_NULL:
-					default:
-						o.setNull(key);
-						break;
-				}
-			}
-		}
-		return o;
+		auto view = string_view((char*)bson_get_data(b), b->len);
+		auto res = file::parseBSON(view);
+		if (res.isObject()) return res.getObject();
+		return obj();
 	}
 
 	var varFromBSON(bson_t* b) {
@@ -906,11 +540,11 @@ namespace gold {
 		auto col = collection();
 		getCollection(col);
 		auto id = getString("_id");
-		setInt64("updated", getMonoTime());
+		setUInt64("updated", getMonoTime());
 		if (id.empty()) {
 			id = newID();
 			setString("_id", id);
-			setInt64("created", getMonoTime());
+			setUInt64("created", getMonoTime());
 			auto res = col.insert({*this});
 			if (res.isError())
 				return res;
@@ -966,6 +600,11 @@ namespace gold {
 		return ss.str();
 	}
 
-	int64_t getMonoTime() { return bson_get_monotonic_time(); }
+	uint64_t getMonoTime() {
+		return duration_cast<std::chrono::milliseconds>(
+						 std::chrono::high_resolution_clock::now()
+							 .time_since_epoch())
+			.count();
+	}
 
 }  // namespace gold

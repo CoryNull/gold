@@ -14,10 +14,8 @@ namespace gold {
 
 	namespace HTML {
 		struct iHTML : public gold::object {
-		 protected:
-			static gold::object& getPrototype();
-
 		 public:
+			static gold::object& getPrototype();
 			iHTML();
 			iHTML(const char* tag, list args);
 
@@ -28,10 +26,12 @@ namespace gold {
 			gold::var removeElement(list args);
 
 			operator string();
+			operator binary();
 
 			iHTML& operator+=(list args);
 			iHTML& operator-=(list args);
 		};
+		using atts = object;
 
 		NewElementType(hTemplate);
 		NewElementType(hObject);

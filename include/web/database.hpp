@@ -63,5 +63,5 @@ namespace gold {
 		static string newID();
 	};
 
-	int64_t getMonoTime();
+	uint64_t getMonoTime();
 }  // namespace gold

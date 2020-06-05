@@ -3,9 +3,9 @@
 /* <Includes> */
 #include <set>
 
-#include "types.hpp"
-#include "renderable.hpp"
 #include "component.hpp"
+#include "renderable.hpp"
+#include "types.hpp"
 /* </Includes> */
 
 namespace gold {
@@ -18,6 +18,12 @@ namespace gold {
 
 		void cleanUp();
 
+		void sortComponents();
+		void initComps();
+		void callMethod(string m, list args = {});
+		list findAll(object proto);
+		void drawScene();
+
 	 public:
 		string getSettingsDir();
 		string getSettingsPath();
@@ -25,15 +31,20 @@ namespace gold {
 		engine();
 		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
-
 		var start();
 		var initialize();
 		var loadSettings();
 		var saveSettings();
-		var addElement(list args);
 		var getPrimaryCamera();
 
+		//args: (component, entity), ...
+		var addElement(list args);
+		//args: (component, entity), ...
+		var removeElement(list args);
+
+		//args: (component, entity), ...
 		engine& operator+=(list element);
+		//args: (component, entity), ...
 		engine& operator-=(list element);
 	};
 }  // namespace gold

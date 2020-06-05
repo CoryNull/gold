@@ -107,6 +107,11 @@ namespace gold {
 			return buffer;
 		}
 
+		iHTML::operator binary() {
+			auto data = (string)*this;
+			return binary(data.begin(), data.end());
+		}
+
 		iHTML& iHTML::operator+=(list args) {
 			auto items = getList("items");
 			auto attr = getObject("attr");

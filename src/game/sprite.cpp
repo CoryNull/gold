@@ -105,8 +105,8 @@ namespace gold {
 		if (!layout) {
 			layout = vertexLayout({{"name", "Sprite"}})
 								 .begin()
-								 .add(a::aPosition, aT::Float, 3)
-								 .add(a::aTexCoord0, aT::Float, 2)
+								 .add(a::Position, aT::Float, 3)
+								 .add(a::TexCoord0, aT::Float, 2)
 								 .end();
 		}
 
