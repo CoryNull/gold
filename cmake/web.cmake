@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(gold CXX)
 
-find_package (libmongoc-1.0 1.9.2 REQUIRED)
-
 add_library(
 	goldWeb
 	STATIC
@@ -27,6 +25,8 @@ target_include_directories(
 	PUBLIC
 		"include"
 		"include/web"
+		3rdParty/mongo-c-driver/src/libmongoc/src/mongoc
+		${CMAKE_CURRENT_BINARY_DIR}/3rdParty/mongo-c-driver/src/libmongoc/src/mongoc
 		${MONGOC_INCLUDE_DIRS}
 		3rdParty/uWebSockets/src
 )
@@ -35,7 +35,8 @@ target_link_libraries (
 	goldWeb
 	PUBLIC 
 		gold::shared
-		${MONGOC_LIBRARIES}
+		mongoc_static
+		bson_static
 		uWebSockets
 )
 

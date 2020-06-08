@@ -14,7 +14,6 @@ namespace gold {
 	using namespace std;
 	using namespace uWS;
 	namespace fs = std::filesystem;
-	const auto CacheControl = "max-age=120";
 
 	static auto mimeMap = map<string, string>({
 		{".bin", "application/octet-stream"},
@@ -88,8 +87,9 @@ namespace gold {
 
 	obj& server::getPrototype() {
 		static auto proto = obj({
-			{"host", ".localhost.org"},
+			{"host", "127.0.0.1"},
 			{"port", 8080},
+			{"cacheControl", "max-age=120"},
 			{"start", method(&server::start)},
 			{"get", method(&server::get)},
 			{"post", method(&server::post)},
@@ -147,13 +147,14 @@ namespace gold {
 					auto p = string(req->getUrl());
 					auto f = mounts.getObject<file>(p);
 					auto chash = req->getHeader("if-none-match");
+					auto control = getString("cacheControl");
 					if (f) {
 						auto loaded = f.load();
 						if (loaded.isView()) {
 							auto hash = f.hash().getString();
 							if (hash.compare(chash) == 0) {
 								res->writeStatus("304 Not Changed");
-								res->writeHeader("Cache-Control", CacheControl);
+								res->writeHeader("Cache-Control", control);
 								res->end();
 							} else {
 								auto bin = loaded.getBinary();
@@ -163,7 +164,7 @@ namespace gold {
 								auto ext = fs::path(p).extension().string();
 								auto ct = mimeMap[ext];
 								res->writeHeader("Content-Type", ct);
-								res->writeHeader("Cache-Control", CacheControl);
+								res->writeHeader("Cache-Control", control);
 								res->writeHeader("ETag", hash);
 								res->end(strView);
 							}
@@ -626,7 +627,6 @@ namespace gold {
 			params.pushString(string(currentParm));
 			currentParm = req->getParameter(++i);
 		}
-		cout << headers.getJSON() << endl;
 		setObject("headers", headers);
 		setList("params", params);
 		setString("query", string(req->getQuery()));

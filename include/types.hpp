@@ -4,7 +4,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <experimental/source_location>
 #include <functional>
 #include <initializer_list>
 #include <memory>
@@ -18,7 +17,6 @@
 namespace gold {
 	using namespace std;
 	using json = nlohmann::json;
-	using sourceLocation = std::experimental::source_location;
 	/* <Types> */
 	struct object;
 	struct list;
@@ -27,7 +25,8 @@ namespace gold {
 	using func = function<var(list)>;
 	using binary = vector<uint8_t>;
 	using key = string;
-	static bx::DefaultAllocator defaultAllocator;
+	static bx::DefaultAllocator defaultAllocator =
+		bx::DefaultAllocator();
 
 	typedef enum types_t {
 		typeNull = 0,
@@ -97,16 +96,20 @@ namespace gold {
 
 	class genericError : public exception {
 	 public:
-		const string msg;
-		const sourceLocation loc;
+		string msg;
+		string loc;
 
 		genericError(
 			const exception& copy,
-			const sourceLocation& l = sourceLocation::current());
+			const char* _file = __builtin_FILE(),
+			const char* _func = __builtin_FUNCTION(),
+			const int _line = __builtin_LINE());
 		genericError(const genericError& copy);
 		genericError(
 			string_view message,
-			const sourceLocation& l = sourceLocation::current());
+			const char* _file = __builtin_FILE(),
+			const char* _func = __builtin_FUNCTION(),
+			const int _line = __builtin_LINE());
 		operator string() const;
 		friend ostream& operator<<(
 			ostream& os, const genericError& dt);

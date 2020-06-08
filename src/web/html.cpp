@@ -3,12 +3,12 @@
 #define DefineElementType(name)                 \
 	name::name() : iHTML(#name, {}) {}            \
 	name::name(const name& copy) : iHTML(copy) {} \
-	name::name(list args) : iHTML(#name, args){};
+	name::name(list args) : iHTML(#name, args) {}
 
 #define DefineElementTypeTag(name, tag)         \
 	name::name() : iHTML(tag, {}) {}              \
 	name::name(const name& copy) : iHTML(copy) {} \
-	name::name(list args) : iHTML(tag, args){};
+	name::name(list args) : iHTML(tag, args) {}
 
 namespace gold {
 	namespace HTML {
@@ -22,8 +22,7 @@ namespace gold {
 			return proto;
 		}
 
-		iHTML::iHTML() : obj() {
-		}
+		iHTML::iHTML() : obj() {}
 
 		iHTML::iHTML(const char* tag, list args) : obj() {
 			setParent(getPrototype());
@@ -108,7 +107,7 @@ namespace gold {
 		}
 
 		iHTML::operator binary() {
-			auto data = (string)*this;
+			auto data = (string) * this;
 			return binary(data.begin(), data.end());
 		}
 
@@ -202,16 +201,16 @@ namespace gold {
 		DefineElementType(data);
 
 		DefineElementType(b);
-		;
+
 		DefineElementType(abbr);
 		DefineElementType(dfn);
 		DefineElementType(q);
-		;
+
 		DefineElementType(i);
 		DefineElementType(u);
-		;
+
 		DefineElementType(s);
-		;
+
 		DefineElementType(small);
 		DefineElementType(strong);
 		DefineElementType(em);

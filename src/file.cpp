@@ -33,6 +33,11 @@ namespace gold {
 		setBinary("data", data);
 	}
 
+	file::file(string_view data) {
+		setParent(getPrototype());
+		setStringView("data", data);
+	}
+
 	var file::save(list args) {
 		auto path = getString("path");
 		auto data = getStringView("data");
@@ -178,15 +183,17 @@ namespace gold {
 		return load().getStringView();
 	}
 
-	file file::readFile(path p) {
+	var file::readFile(path p) {
 		auto f = file(p);
-		f.load();
+		auto err = f.load();
+		if (err.isError()) return err;
 		return f;
 	}
 
-	file file::saveFile(path p, binary data) {
+	var file::saveFile(path p, string_view data) {
 		auto f = file(data);
-		f.save({p.string()});
+		auto err = f.save({p.string()});
+		if (err.isError()) return err;
 		return f;
 	}
 
@@ -833,12 +840,20 @@ namespace gold {
 		return json::to_ubjson(basicToJSON(data));
 	}
 
-	binary file::decodeDataURL(string v) {
+	binary file::decodeDataURL(string_view v, string& mimeType) {
 		binary out;
 		auto s = v.size();
 		if (s == 0) return out;
 		if (v.substr(0, 5).compare("data:") != 0) return out;
 		auto commaIndex = v.find(',');
+		auto semiIndex = v.find(';');
+		if (
+			semiIndex == string::npos && commaIndex != string::npos) {
+			mimeType = v.substr(5, commaIndex);
+		} else if (
+			semiIndex != string::npos && semiIndex < commaIndex) {
+			mimeType = v.substr(5, semiIndex - 5);
+		}
 		if (commaIndex == string::npos) return out;
 		auto args = v.substr(5, commaIndex - 5);
 		auto data = v.substr(commaIndex + 1);
@@ -910,7 +925,7 @@ namespace gold {
 		}
 	}
 
-	binary file::decodeBase64(string v) {
+	binary file::decodeBase64(string_view v) {
 		auto out = binary();
 		out.reserve(v.size() / 4 * 3);
 		size_t i = 0;

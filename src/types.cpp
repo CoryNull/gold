@@ -6,9 +6,6 @@ namespace gold {
 
 	const var nullVar = var();
 
-	bx::DefaultAllocator defaultAllocator =
-		bx::DefaultAllocator();
-
 	bool isCopyable(types type) {
 		if (type == typeString) return true;
 		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64)
@@ -141,15 +138,25 @@ namespace gold {
 	}
 
 	genericError::genericError(
-		const exception& copy, const sourceLocation& l)
-		: exception(copy), msg(), loc(l) {}
+		const exception& copy,
+		const char* _file,
+		const char* _func,
+		const int _line)
+		: exception(copy), msg() {
+		loc = string(_file) + string(_func) + to_string(_line);
+	}
 
 	genericError::genericError(const genericError& copy)
 		: exception(copy), msg(copy.msg), loc(copy.loc) {}
 
 	genericError::genericError(
-		string_view message, const sourceLocation& l)
-		: exception(), msg(message), loc(l) {}
+		string_view message,
+		const char* _file,
+		const char* _func,
+		const int _line)
+		: exception(), msg(message) {
+		loc = string(_file) + string(_func) + to_string(_line);
+	}
 
 	genericError::operator string() const {
 		auto ss = stringstream();
@@ -158,8 +165,7 @@ namespace gold {
 	}
 
 	ostream& operator<<(ostream& os, const genericError& dt) {
-		return os << dt.loc.file_name() << ":" << dt.loc.line()
-							<< ":" << dt.loc.column() << ":" << dt.msg;
+		return os << dt.loc << dt.msg;
 	}
 
 }  // namespace gold

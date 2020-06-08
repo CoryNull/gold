@@ -22,3 +22,6 @@
 [submodule "3rdParty/brtshaderc"]
 	path = 3rdParty/brtshaderc
 	url = https://github.com/fredakilla/brtshaderc.git
+[submodule "3rdParty/mongo-c-driver"]
+	path = 3rdParty/mongo-c-driver
+	url = https://github.com/mongodb/mongo-c-driver.git

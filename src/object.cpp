@@ -99,10 +99,10 @@ namespace gold {
 	string object::getCookieString() {
 		auto buffer = string();
 		uint64_t i = 0;
-		for(auto it = begin(); it != end(); ++it, ++i) {
+		for (auto it = begin(); it != end(); ++it, ++i) {
 			auto key = it->first;
 			auto value = it->second.getString();
-			auto end = i != size()-1;
+			auto end = i != size() - 1;
 			buffer += key + "=" + value + (end ? "" : "; ");
 		}
 		return buffer;
@@ -512,7 +512,7 @@ namespace gold {
 		auto it = data->items.begin();
 		while (it != end) {
 			auto key = it->first;
-			if (key == name) break;
+			if (key.compare(name) == 0) break;
 			it++;
 		}
 		if (it != end) return it->second.getMethod();
@@ -527,7 +527,7 @@ namespace gold {
 		auto it = data->items.begin();
 		while (it != end) {
 			auto key = it->first;
-			if (key == name) break;
+			if (key.compare(name) == 0) break;
 			it++;
 		}
 		if (it != end) return it->second.getFunction();
@@ -719,43 +719,53 @@ namespace gold {
 	}
 
 	var object::loadJSON(string path) {
-		return file::readFile(path).asJSON();
+		return file::readFile(path).getObject<file>().asJSON();
 	}
 
 	var object::saveJSON(string path, object value) {
-		return file::saveFile(path, value.getJSONBin(true));
+		auto d = value.getJSONBin(true);
+		auto v = string_view((char*)d.data(), d.size());
+		return file::saveFile(path, v);
 	}
 
 	var object::loadBSON(string path) {
-		return file::readFile(path).asBSON();
+		return file::readFile(path).getObject<file>().asBSON();
 	}
 
 	var object::saveBSON(string path, object value) {
-		return file::saveFile(path, value.getBSON());
+		auto d = value.getJSONBin(true);
+		auto v = string_view((char*)d.data(), d.size());
+		return file::saveFile(path, v);
 	}
 
 	var object::loadCBOR(string path) {
-		return file::readFile(path).asCBOR();
+		return file::readFile(path).getObject<file>().asCBOR();
 	}
 
 	var object::saveCBOR(string path, object value) {
-		return file::saveFile(path, value.getCBOR());
+		auto d = value.getJSONBin(true);
+		auto v = string_view((char*)d.data(), d.size());
+		return file::saveFile(path, v);
 	}
 
 	var object::loadMsgPack(string path) {
-		return file::readFile(path).asMsgPack();
+		return file::readFile(path).getObject<file>().asMsgPack();
 	}
 
 	var object::saveMsgPack(string path, object value) {
-		return file::saveFile(path, value.getMsgPack());
+		auto d = value.getJSONBin(true);
+		auto v = string_view((char*)d.data(), d.size());
+		return file::saveFile(path, v);
 	}
 
 	var object::loadUBJSON(string path) {
-		return file::readFile(path).asUBJSON();
+		return file::readFile(path).getObject<file>().asUBJSON();
 	}
 
 	var object::saveUBJSON(string path, object value) {
-		return file::saveFile(path, value.getUBJSON());
+		auto d = value.getJSONBin(true);
+		auto v = string_view((char*)d.data(), d.size());
+		return file::saveFile(path, v);
 	}
 
 }  // namespace gold

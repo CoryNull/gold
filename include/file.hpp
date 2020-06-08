@@ -15,6 +15,7 @@ namespace gold {
 		file();
 		file(path p);
 		file(binary data);
+		file(string_view data);
 
 		var save(list args = {});
 		var load(list args = {});
@@ -32,8 +33,8 @@ namespace gold {
 		operator string();
 		operator string_view();
 
-		static file readFile(path p);
-		static file saveFile(path p, binary data);
+		static var readFile(path p);
+		static var saveFile(path p, string_view data);
 		static object& recursiveReadDirectory(
 			path p, object& results);
 		static var parseJSON(string_view data);
@@ -46,7 +47,7 @@ namespace gold {
 		static binary serializeCBOR(var data);
 		static binary serializeMsgPack(var data);
 		static binary serializeUBJSON(var data);
-		static binary decodeDataURL(string v);
-		static binary decodeBase64(string v);
+		static binary decodeDataURL(string_view v, string& mimeType);
+		static binary decodeBase64(string_view v);
 	};
 }  // namespace gold

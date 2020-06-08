@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.10)
 project(gold CXX)
 
 find_package (SDL2 REQUIRED)
-find_package (glm 0.9.9 REQUIRED)
 
 add_library(
 	goldGame
@@ -46,7 +45,7 @@ target_include_directories(
 	PUBLIC
 		"include"
 		"include/game"
-		${GLM_INCLUDE_DIRS}
+		${SDL2_INCLUDE_DIRS}
 		${CMAKE_CURRENT_BINARY_DIR}
 		3rdParty/bullet3/src
 )

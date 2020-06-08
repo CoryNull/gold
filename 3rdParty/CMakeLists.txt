@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-zero-variadic-macro-arguments")
 
 add_subdirectory(json)
 add_subdirectory(bullet3)
+add_subdirectory(mongo-c-driver)
 
 include(cmake/brtshaderc.cmake)
 include(cmake/uSockets.cmake)
