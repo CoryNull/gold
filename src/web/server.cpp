@@ -559,7 +559,7 @@ namespace gold {
 		auto handler = args[0].getFunction();
 		auto reqObj = args[1].getObject<request>();
 		auto ssl = getBool("ssl");
-		auto callback = [=]() {
+		auto callback = [=, *this]() {
 			handler({var(reqObj), var(*this)});
 		};
 		if (ssl) {

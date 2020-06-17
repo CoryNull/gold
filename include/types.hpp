@@ -308,6 +308,9 @@ namespace gold {
 		void initMemory();
 
 	 public:
+	 	static uint32_t getColor(list args);
+		static var getVec2f(list args);
+
 		typedef initializer_list<avec::value_type> initList;
 
 		list();

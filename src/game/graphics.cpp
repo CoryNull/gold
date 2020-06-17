@@ -473,8 +473,14 @@ namespace gold {
 			if (inputs.size() > 0 || outputs.size() > 0) {
 				// Generate source from inputs and outputs
 				// Prepend i/o arguments for application
-				auto source = file::readFile(path);
-				string tempPath = tmpnam(nullptr);
+				auto source = file::readFile(path).getObject<file>();
+				string tempDir = filesystem::temp_directory_path();
+				auto now =
+					to_string(duration_cast<std::chrono::milliseconds>(
+											std::chrono::high_resolution_clock::now()
+												.time_since_epoch())
+											.count());
+				string tempPath = tempDir + "/shaders/" + now + ".sc";
 				auto tmpf = fopen(tempPath.c_str(), "w");
 				// Wrtie inputs
 				if (inputs.size() > 0) {
@@ -1162,7 +1168,7 @@ namespace gold {
 			auto path = getString("path");
 			if (path != "") {
 				// Load from file, set to object
-				auto textRet = file::readFile(path);
+				auto textRet = file::readFile(path).getObject<file>();
 				auto fileData = textRet.getBinary("data");
 				setBinary("data", fileData);
 				auto bin = getStringView("data");

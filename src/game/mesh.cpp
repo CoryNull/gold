@@ -45,7 +45,9 @@ namespace gold {
 				auto bufferObj = it->getObject();
 				if (bufferObj.getType("uri") == typeString) {
 					auto uri = bufferObj.getString("uri");
-					auto bin = file::decodeDataURL(uri);
+					auto view = string_view(uri.data(), uri.size());
+					auto type = string();
+					auto bin = file::decodeDataURL(view, type);
 					bufferObj.setBinary("data", bin);
 					erase("uri");
 				}

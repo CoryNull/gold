@@ -5,7 +5,7 @@
 namespace gold {
 	struct envMap : public component {
 	 public:
-		static object getPrototype();
+		static object& getPrototype();
 		envMap();
 		envMap(object config);
 

@@ -5,7 +5,7 @@
 namespace gold {
 	struct light : public component {
 	 public:
-		static object getPrototype();
+		static object& getPrototype();
 		light();
 		light(object config);
 

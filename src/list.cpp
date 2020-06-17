@@ -8,6 +8,82 @@ namespace gold {
 			data = shared_ptr<arrData>(new arrData{avec(), mutex()});
 	}
 
+	uint32_t list::getColor(list args) {
+		union {
+			struct {
+				char r;
+				char g;
+				char b;
+				char a;
+			} f;
+			uint32_t color;
+		};
+
+		if (args.isAllFloating() && args.size() >= 3) {
+			f.r = args[0].getFloat() * 255;
+			f.g = args[1].getFloat() * 255;
+			f.b = args[2].getFloat() * 255;
+			f.a = args[3].getFloat() * 255;
+		} else if (args.isAllNumber() && args.size() >= 3) {
+			f.r = args[0].getUInt8();
+			f.g = args[1].getUInt8();
+			f.b = args[2].getUInt8();
+			f.a = args[3].getUInt8();
+		} else if (args[0].isNumber()) {
+			auto val = args[0];
+			if (val.isFloating()) {
+				if (val.isVec3()) {
+					f.r = val.getFloat(0) * 255;
+					f.g = val.getFloat(1) * 255;
+					f.b = val.getFloat(2) * 255;
+				} else if (val.isVec4()) {
+					f.r = val.getFloat(0) * 255;
+					f.g = val.getFloat(1) * 255;
+					f.b = val.getFloat(2) * 255;
+					f.a = val.getFloat(3) * 255;
+				}
+			} else {
+				if (val.isVec3()) {
+					f.r = val.getUInt8(0);
+					f.g = val.getUInt8(1);
+					f.b = val.getUInt8(2);
+				} else if (val.isVec4()) {
+					f.r = val.getUInt8(0);
+					f.g = val.getUInt8(1);
+					f.b = val.getUInt8(2);
+					f.a = val.getUInt8(3);
+				} else if (val.getType() == typeUInt32) {
+					color = val.getUInt32();
+				}
+			}
+		}
+		return color;
+	}
+
+	var list::getVec2f(list args) {
+		var val;
+		if (args.isAllFloating()) {
+			val = vec2f(args[0].getFloat(), args[1].getFloat());
+		} else if (args.isAllNumber()) {
+			val = vec2f(args[0].getInt64(), args[1].getInt64());
+		}
+		auto first = args[0];
+		if (first.isFloating()) {
+			if (first.isVec2()) {
+				val = first;
+			} else if (first.isVec3() || first.isVec4()) {
+				val = vec2f(first.getFloat(0), first.getFloat(1));
+			}
+		} else if (first.isNumber()) {
+			if (first.isVec2()) {
+				val = first;
+			} else if (first.isVec3() || first.isVec4()) {
+				val = vec2f(first.getInt64(0), first.getInt64(1));
+			}
+		}
+		return val;
+	}
+
 	list::list() : data(nullptr) {}
 
 	list::list(const list& copy) : data(copy.data) {}
