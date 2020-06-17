@@ -25,3 +25,12 @@
 [submodule "3rdParty/brtshaderc"]
 	path = 3rdParty/brtshaderc
 	url = git@github.com:CoryNull/brtshaderc.git
+[submodule "examples/myWebProject/3rdParty/bootstrap"]
+	path = examples/myWebProject/3rdParty/bootstrap
+	url = https://github.com/twbs/bootstrap.git
+[submodule "examples/myWebProject/3rdParty/Croppie"]
+	path = examples/myWebProject/3rdParty/Croppie
+	url = https://github.com/Foliotek/Croppie.git
+[submodule "examples/myWebProject/3rdParty/bootstrap-table"]
+	path = examples/myWebProject/3rdParty/bootstrap-table
+	url = https://github.com/wenzhixin/bootstrap-table.git
