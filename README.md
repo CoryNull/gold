@@ -1,6 +1,6 @@
-[gold](https://github.com/CoryNull/gold) - Generic Object Linked Development 
+# [gold](https://github.com/CoryNull/gold) - Generic Object Linked Development 
 ### A high level app framework
-============================================================================
+==========================================================================
 [![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/CoryNull/gold/LICENSE)
 
 What is this?
