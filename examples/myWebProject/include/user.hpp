@@ -28,7 +28,8 @@ namespace gg {
 		static var generateHash(string value, string salt);
 		static void setRoutes(database, server);
 		static var create(object data);
-		static var login(string email, string password, string agent);
+		static var login(
+			string email, string password, string agent);
 
 		// Utilities
 		static string transformBirthday(string value);
@@ -59,7 +60,6 @@ namespace gg {
 		static bool invalidZone(string z, string& error);
 		static bool invalidZip(string z, string& error);
 		static bool invalidIcon(string id, string& error);
-		static bool invalidUserType(string t, string& error);
 
 		static var findOne(list args);
 		static var findMany(list args);

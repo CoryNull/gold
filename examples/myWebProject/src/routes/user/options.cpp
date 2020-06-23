@@ -49,24 +49,6 @@ namespace gg {
 					form({
 						obj{{"method", "post"}},
 						row({
-							bs::col({label({"Who are you?"})}),
-							bs::col({formRadio(
-								"userType", "uTPatron", "Patron", "patron",
-								obj{
-									{"checked", uType == "" || uType == "patron"},
-								})}),
-							bs::col({formRadio(
-								"userType", "uTManager", "Manager", "manager",
-								obj{
-									{"checked", uType == "manager"},
-								})}),
-							bs::col({formRadio(
-								"userType", "uTAll", "All", "all",
-								obj{
-									{"checked", uType == "all"},
-								})}),
-						}),
-						row({
 							bs::col({formInputRow(
 								"text", "firstName", "First", false,
 								errs.getString("firstName"),

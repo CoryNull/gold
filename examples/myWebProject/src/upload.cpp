@@ -238,7 +238,7 @@ namespace gg {
 				auto chash = req.getHeader({"if-none-match"});
 
 				if (hash.size() > 0 && hash.compare(chash) == 0) {
-					res.writeStatus({"304 Not Changed"});
+					res.writeStatus({304});
 					res.writeHeader({"Cache-Control", cacheControl});
 					res.end();
 				} else {

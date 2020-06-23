@@ -36,7 +36,8 @@ namespace gg {
 		auto redirect = options.getString("redirect");
 		auto url = string(redirect);
 		auto seshId = getString("_id");
-		if (!getBool("useCookies")) {
+		auto useCookies = getBool("useCookies");
+		if (!useCookies) {
 			auto q = "?s=" + seshId;
 			url += q;
 		} else {
@@ -53,7 +54,7 @@ namespace gg {
 		}
 		if (redirect.size() != 0) {
 			res.writeHeader({"Location", url});
-			res.writeStatus({"303 See Other"});
+			res.writeStatus({303});
 		}
 		return var();
 	}

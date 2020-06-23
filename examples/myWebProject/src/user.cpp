@@ -138,7 +138,7 @@ namespace gg {
 								{"redirect", "/home"},
 							}});
 							return res.end(
-								{getTemplate(req, user::userLogin())});
+								{getTemplate(req, user::userHome(sesh))});
 						} else {
 							return res.end({getTemplate(
 								req, user::userLogin("Invalid credentials."))});
@@ -149,17 +149,17 @@ namespace gg {
 					string::npos) {
 					string error;
 					if (user::invalidEmail(userEmail, error)) {
-						res.writeStatus({"401 Unauthorized"});
+						res.writeStatus({401});
 						return res.end({obj{{"error", error}}});
 					} else if (user::invalidPassword(
 											 userPassword, error)) {
-						res.writeStatus({"401 Unauthorized"});
+						res.writeStatus({401});
 						return res.end({obj{{"error", error}}});
 					} else {
 						auto loggedIn =
 							user::login(userEmail, userPassword, agent);
 						if (loggedIn.isError()) {
-							res.writeStatus({"401 Unauthorized"});
+							res.writeStatus({401});
 							return res.end({obj{{"error", loggedIn}}});
 						} else if (loggedIn.isList()) {
 							auto ret = loggedIn.getList();
@@ -167,7 +167,7 @@ namespace gg {
 							sesh.writeSession({obj{{"res", res}}});
 							return res.end({obj{{"session", sesh}}});
 						} else {
-							res.writeStatus({"401 Unauthorized"});
+							res.writeStatus({401});
 							return res.end({obj{{"error", "invalid login"}}});
 						}
 					}
@@ -206,7 +206,7 @@ namespace gg {
 					auto params = obj();
 					obj::parseURLEncoded(data, params);
 					auto u = user::create(params);
-					if (u.isObject(user::getPrototype())) {
+					if (u.isObject()) {
 						// Created
 						auto userO = u.getObject<user>();
 						auto sesh = session(userO);
@@ -222,12 +222,9 @@ namespace gg {
 								{"res", res},
 								{"redirect", "/home"},
 							}});
-							return res.end({getTemplate(
-								req, user::userRegister(params, u))});
+							return res.end(
+								{getTemplate(req, user::userHome(sesh))});
 						}
-					} else if (u.isObject()) {
-						return res.end({getTemplate(
-							req, user::userRegister(params, u))});
 					} else if (u.isError()) {
 						return res.end({getTemplate(req, errorPage({u}))});
 					}
@@ -440,7 +437,6 @@ namespace gg {
 		auto zone = data.getString("zone");
 		auto zip = data.getString("zip");
 		auto icon = data.getString("icon");
-		auto ut = data.getString("userType");
 
 		string e;
 		auto err = obj({});
@@ -466,7 +462,6 @@ namespace gg {
 		if (invalidZone(zone, e)) err.setString("zone", e);
 		if (invalidZip(zip, e)) err.setString("zip", e);
 		if (invalidIcon(icon, e)) err.setString("icon", e);
-		if (invalidUserType(ut, e)) err.setString("userType", e);
 
 		if (err.size() > 0) return err;
 
@@ -730,15 +725,6 @@ namespace gg {
 			return true;
 		}
 		return false;
-	}
-
-	bool user::invalidUserType(string t, string& error) {
-		error = "";
-		if (t == "patron") return false;
-		if (t == "manager") return false;
-		if (t == "all") return false;
-		error = "Expected userType; patron, manager, or all.";
-		return true;
 	}
 
 	gold::var user::findOne(list args) {

@@ -12,7 +12,6 @@ namespace gg {
 
 	std::map<string, string> user::nameMap =
 		std::map<string, string>({
-			{"userType", "User Type"},
 			{"firstName", "First"},
 			{"midName", "Middle"},
 			{"lastName", "Last"},
@@ -66,24 +65,6 @@ namespace gg {
 					errs.size() > 0 ? div({errorTable}) : div{},
 					form({
 						obj{{"method", "post"}},
-						row({
-							bs::col({label({"Who are you?"})}),
-							bs::col({formRadio(
-								"userType", "uTPatron", "Patron", "patron",
-								{
-									{"checked", uType == "" || uType == "patron"},
-								})}),
-							bs::col({formRadio(
-								"userType", "uTManager", "Manager", "manager",
-								{
-									{"checked", uType == "manager"},
-								})}),
-							bs::col({formRadio(
-								"userType", "uTAll", "All", "all",
-								{
-									{"checked", uType == "all"},
-								})}),
-						}),
 						row({
 							bs::col({formInputRow(
 								"text", "firstName", "First", true,

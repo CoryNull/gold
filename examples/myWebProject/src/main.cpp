@@ -39,7 +39,7 @@ int main() {
 		auto res = args[1].getObject<response>();
 		gold::list content =
 			errorPage({genericError("404 Page not found")});
-		res.writeStatus({"404 NOT FOUND"});
+		res.writeStatus({404});
 		res.end({getTemplate(req, content)});
 		return gold::var();
 	})});
