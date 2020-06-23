@@ -1,4 +1,5 @@
-[gold/ConwaysGameOfLife](https://github.com/CoryNull/gold/examples/conwaysGameOfLife) - Conway's game of life example
+[gold/ConwaysGameOfLife](https://github.com/CoryNull/gold/examples/conwaysGameOfLife)
+###Conway's game of life example
 ============================================================================
 [![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/CoryNull/gold/LICENSE)
 

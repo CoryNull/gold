@@ -1,4 +1,5 @@
-[gold](https://github.com/CoryNull/gold) - Generic Object Linked Development - A high level app framework
+[gold](https://github.com/CoryNull/gold) - Generic Object Linked Development 
+###A high level app framework
 ============================================================================
 [![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/CoryNull/gold/LICENSE)
 
@@ -27,9 +28,9 @@ What's in the box?
 * 3rdParty dependencies are sub modules to other GitHub projects
 * Hard parts of C++ have been abstracted to JS/Python difficulty
 * Works with GCC and Clang (MSVC is untested).
+* Uses little memory actually, good enough for x64 IOT or Mobile.
 
 Where it falls short?
-* Memory overhead (maybe not ideal for very low spec hardware (Arduino/IOT))
 * Lacks some in-depth error handling (see genericError)
 * Threading is subsystem limited and experimental (off by default)
 * Has heavy 3rdParty dependencies that have it's own dependencies
