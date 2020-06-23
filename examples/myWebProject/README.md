@@ -1,5 +1,5 @@
 [gold/myWebProject](https://github.com/CoryNull/gold/examples/myWebProject)
-###Simple Full-Stack Web Example
+### Simple Full-Stack Web Example
 ============================================================================
 [![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/CoryNull/gold/LICENSE)
 
