@@ -48,10 +48,11 @@ namespace gold {
 			auto o = configJSON.getObject();
 			config = o ? object(o) : config;
 			cout << "Loading settings: " << configPath << endl;
-			setObject("config", config);
-			return var(config);
+		} else {
+			config = obj({});
 		}
-		return var(config);
+		setObject("config", config);
+		return config;
 	}
 
 	var engine::saveSettings() {
@@ -94,14 +95,14 @@ namespace gold {
 			cout << "[SDL2]" << SDL_GetError() << endl;
 			return genericError(SDL_GetError());
 		}
-		setList("entites", list({}));
+		setList("entities", list({}));
 
 		auto configVar = loadSettings();
 		auto config = configVar.getObject();
 		auto gameName = getString("gameName");
 
-		auto windowConfig = config.getObject("window");
-		auto backendConfig = config.getObject("graphics");
+		auto windowConfig = config.getObject("window", obj({}));
+		auto backendConfig = config.getObject("graphics", obj({}));
 		auto win = create<window>("window", windowConfig);
 		win.setTitle({gameName});
 		win.create();
@@ -147,12 +148,13 @@ namespace gold {
 
 	void engine::initComps() {
 		auto comps = getList("components");
-		auto it = comps.begin();
-		for (; it != comps.end(); ++it) {
-			auto comp = it->getObject<component>();
-			if (!comp.getBool("_inited")) {
-				comp.callMethod("initialize");
-				comp.setBool("_inited", true);
+		for (auto it = comps.begin(); it != comps.end(); ++it) {
+			if (it != comps.end() && it->isObject()) {
+				auto comp = it->getObject<component>();
+				if (!comp.getBool("_inited")) {
+					comp.callMethod("initialize");
+					comp.setBool("_inited", true);
+				}
 			}
 		}
 	}
@@ -161,7 +163,6 @@ namespace gold {
 		auto comps = getList("components");
 		for (auto it = comps.begin(); it != comps.end(); ++it) {
 			auto comp = it->getObject<component>();
-			auto priority = comp.getUInt64("priority");
 			comp.callMethod(m, args);
 		}
 	}
@@ -179,7 +180,6 @@ namespace gold {
 		auto lights = findAll(light::getPrototype());
 		auto envMaps = findAll(envMap::getPrototype());
 		auto cameras = getList("cameras");
-		
 	}
 
 	var engine::start() {
@@ -221,7 +221,7 @@ namespace gold {
 
 	engine::engine(string company, string gameName) : obj() {
 		setParent(getPrototype());
-		setList("entites", list({}));
+		setList("entities", list({}));
 		setList("cameras", list({}));
 		setList("components", list({}));
 		setString("company", company);
@@ -234,12 +234,14 @@ namespace gold {
 	}
 
 	engine& engine::operator+=(list items) {
-		auto a = getList("entites");
+		auto a = getList("entities");
 		auto c = getList("cameras");
 		auto components = getList("components");
 		if (!a) return *this;
-		function<void(entity&)> forEntity = [&](entity& ent) {
-			a.pushObject(ent);
+		function<void(entity&)> forEntity = [&,
+																				 *this](entity& ent) {
+			if (!ent) return;
+			if (a.find(ent) == a.end()) a.pushObject(ent);
 			ent.setObject("engine", *this);
 			auto children = ent.getList("children");
 			for (auto cit = children.begin(); cit != children.end();
@@ -251,9 +253,8 @@ namespace gold {
 			for (auto cit = comps.begin(); cit != comps.end();
 					 ++cit) {
 				auto comp = cit->getObject<component>();
-				if (comp) {
+				if (comp && components.find(comp) == components.end())
 					components.pushObject(comp);
-				}
 			}
 		};
 		for (auto it = items.begin(); it != items.end(); ++it) {
@@ -268,7 +269,7 @@ namespace gold {
 	}
 
 	engine& engine::operator-=(list items) {
-		auto a = getList("entites");
+		auto a = getList("entities");
 		auto c = getList("cameras");
 		auto components = getList("components");
 		if (!a) return *this;
@@ -317,7 +318,7 @@ namespace gold {
 
 		saveSettings();
 
-		auto a = getList("entites");
+		auto a = getList("entities");
 		auto c = getList("cameras");
 		auto components = getList("components");
 

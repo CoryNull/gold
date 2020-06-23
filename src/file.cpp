@@ -156,23 +156,33 @@ namespace gold {
 	}
 
 	var file::asJSON() {
-		return file::parseJSON(getStringView("data"));
+		auto d = getStringView("data");
+		if (d.size() > 0) return file::parseJSON(d);
+		return var();
 	}
 
 	var file::asBSON() {
-		return file::parseBSON(getStringView("data"));
+		auto d = getStringView("data");
+		if (d.size() > 0) return file::parseBSON(d);
+		return var();
 	}
 
 	var file::asCBOR() {
-		return file::parseCBOR(getStringView("data"));
+		auto d = getStringView("data");
+		if (d.size() > 0) return file::parseCBOR(d);
+		return var();
 	}
 
 	var file::asMsgPack() {
-		return file::parseMsgPack(getStringView("data"));
+		auto d = getStringView("data");
+		if (d.size() > 0) return file::parseMsgPack(d);
+		return var();
 	}
 
 	var file::asUBJSON() {
-		return file::parseUBJSON(getStringView("data"));
+		auto d = getStringView("data");
+		if (d.size() > 0) return file::parseUBJSON(d);
+		return var();
 	}
 
 	file::operator binary() { return load().getBinary(); }

@@ -144,6 +144,8 @@ namespace gold {
 		static object& getPrototype();
 		static map<string, gpuTexture> cache;
 
+		bgfx::TextureHandle parseData(binary& data);
+
 	 public:
 		using textureFormat = bgfx::TextureFormat::Enum;
 		using accessType = bgfx::Access::Enum;

@@ -532,6 +532,7 @@ namespace gold {
 		var operator()(string name, list);
 		var operator()(string name);
 		bool operator==(object&);
+		object& operator=(const object&);
 		operator bool() const;
 
 		static void parseURLEncoded(string value, object& result);

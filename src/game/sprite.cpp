@@ -16,9 +16,6 @@ namespace gold {
 
 	binary getSpriteShaderData(shaderType stype);
 
-	float colorValue[4] = {1.0f, 1.0f, 1.0f, 0.0f};
-	float opacityValue[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
 	struct PosColorVertex {
 		float x, y, z;
 		float u, v;
@@ -31,6 +28,8 @@ namespace gold {
 			{"size", vec2f(1.0, 1.0)},
 			{"area", vec4f(0.0, 0.0, 1.0, 1.0)},
 			{"draw", method(&sprite::draw)},
+			{"color", vec4f(1, 1, 1, 0)},
+			{"opacity", vec4f(1, 1, 1, 1)},
 			{"initialize", method(&sprite::initialize)},
 			{"destroy", method(&sprite::destroy)},
 			{"proto", renderable::getPrototype()},
@@ -100,8 +99,7 @@ namespace gold {
 
 		using a = vertexLayout::attrib;
 		using aT = vertexLayout::attribType;
-		auto layout =
-			vertexLayout::findInCache("Sprite");
+		auto layout = vertexLayout::findInCache("Sprite");
 		if (!layout) {
 			layout = vertexLayout({{"name", "Sprite"}})
 								 .begin()
@@ -120,18 +118,8 @@ namespace gold {
 	}
 
 	var sprite::setSize(list args) {
-		if (args[0].isVec2()) {
-			setVar("size", args[0]);
-		} else if (args.size() == 2) {
-			if (args.isAllFloating())
-				setVar(
-					"size",
-					vec2f(args[0].getFloat(), args[1].getFloat()));
-			else if (args.isAllNumber())
-				setVar(
-					"size",
-					vec2i32(args[0].getInt32(), args[1].getInt32()));
-		}
+		auto size = list::getVec2f(args);
+		setVar("size", size);
 		setBool("rebuild", true);
 		return var();
 	}
@@ -162,18 +150,8 @@ namespace gold {
 	}
 
 	var sprite::setOffset(list args) {
-		if (args[0].isVec2()) {
-			setVar("offset", args[0]);
-		} else if (args.size() == 2) {
-			if (args.isAllFloating())
-				setVar(
-					"offset",
-					vec2f(args[0].getFloat(), args[1].getFloat()));
-			else if (args.isAllNumber())
-				setVar(
-					"offset",
-					vec2i32(args[0].getInt32(), args[1].getInt32()));
-		}
+		auto offset = list::getVec2f(args);
+		setVar("offset", offset);
 		setBool("rebuild", true);
 		return var();
 	}
@@ -191,10 +169,13 @@ namespace gold {
 		auto parentTrans = parentObject.getTransform();
 		auto mtx = parentTrans.getWorldMatrix();
 
+		auto color = getVar("color");
+		auto opacity = getVar("opacity");
+
 		program.setTransform(mtx);
 		shaderProgram::bindTexture("s_texColor", 0, tex);
-		shaderProgram::setUniform("u_opacity", opacityValue);
-		shaderProgram::setUniform("u_color0", colorValue);
+		shaderProgram::setUniform("u_opacity", opacity.getPtr());
+		shaderProgram::setUniform("u_color0", color.getPtr());
 		vbh.set(0);
 		ibh.set();
 		program.defaultState();

@@ -5,11 +5,10 @@
 namespace gold {
 	struct sprite : public renderable {
 	 protected:
-		static object& getPrototype();
-		
 		void updateVertexBuffer();
 
 	 public:
+		static object& getPrototype();
 		sprite();
 		sprite(object config);
 

@@ -12,6 +12,7 @@
 #include <cctype>
 #include <cstdio>
 #include <file.hpp>
+#include <image.hpp>
 #include <iostream>
 
 #if BX_PLATFORM_LINUX || BX_PLATFORM_BSD
@@ -1090,6 +1091,49 @@ namespace gold {
 		return flags;
 	}
 
+	bgfx::TextureHandle gpuTexture::parseData(binary& data) {
+		auto flagsStr = getString("flags");
+		toLower(flagsStr);
+		uint64_t flags = sampleStringToFlags(flagsStr);
+		auto handle = bgfx::TextureHandle{bgfx::kInvalidHandle};
+		auto img = image({
+			{"data", data},
+		});
+		copy(img);
+		auto pData = getStringView("data");
+		auto mem = bgfx::makeRef(pData.data(), pData.size());
+
+		auto skip = getUInt8("skip");
+		auto info = bgfx::TextureInfo();
+		auto format =
+			(bgfx::TextureFormat::Enum)getUInt32("format");
+		if (getUInt32("depth") > 0) {
+			// 3D
+			auto width = getUInt16("width");
+			auto height = getUInt16("height");
+			auto depth = getUInt16("depth");
+			auto hasMips = getUInt8("numMips") > 0;
+			handle = bgfx::createTexture3D(
+				width, height, depth, hasMips, format, flags, mem);
+		} else if (getBool("cubeMap")) {
+			auto size = getUInt16("width");
+			auto numLayers = getUInt16("numLayers");
+			// CubeMap
+			auto hasMips = getUInt8("numMips") > 0;
+			handle = bgfx::createTextureCube(
+				size, hasMips, numLayers, format, flags, mem);
+		} else {
+			// 2D
+			auto width = getUInt16("width");
+			auto height = getUInt16("height");
+			auto numLayers = getUInt16("numLayers");
+			auto hasMips = getUInt8("numMips") > 0;
+			handle = bgfx::createTexture2D(
+				width, height, hasMips, numLayers, format, flags, mem);
+		}
+		return handle;
+	}
+
 	gpuTexture::gpuTexture() : obj() {}
 	gpuTexture::gpuTexture(object config) : obj(config) {
 		setParent(getPrototype());
@@ -1150,42 +1194,16 @@ namespace gold {
 			handle = bgfx::createTexture2D(
 				width, height, mips, layers, format, flags, mem);
 		} else if (data.isView()) {
-			bin = data.getStringView();
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
-			auto skip = getUInt8("skip");
-			auto info = bgfx::TextureInfo();
-			handle = bgfx::createTexture(mem, flags, skip, &info);
-			setUInt32("width", info.width);
-			setUInt32("height", info.height);
-			setUInt32("depth", info.depth);
-			setUInt8("numMips", info.numMips);
-			setUInt16("numLayers", info.numLayers);
-			setUInt8("bitsPerPixel", info.bitsPerPixel);
-			setUInt32("storageSize", info.storageSize);
-			setUInt32("format", info.format);
-			setBool("cubeMap", info.cubeMap);
+			auto bin = data.getBinary();
+			handle = parseData(bin);
 		} else if (config.getType("path") == typeString) {
 			auto path = getString("path");
-			if (path != "") {
+			if (path.size() > 0) {
 				// Load from file, set to object
 				auto textRet = file::readFile(path).getObject<file>();
 				auto fileData = textRet.getBinary("data");
-				setBinary("data", fileData);
-				auto bin = getStringView("data");
 
-				auto mem = bgfx::makeRef(bin.data(), bin.size());
-				auto skip = getUInt8("skip");
-				auto info = bgfx::TextureInfo();
-				handle = bgfx::createTexture(mem, flags, skip, &info);
-				setUInt32("width", info.width);
-				setUInt32("height", info.height);
-				setUInt32("depth", info.depth);
-				setUInt8("numMips", info.numMips);
-				setUInt16("numLayers", info.numLayers);
-				setUInt8("bitsPerPixel", info.bitsPerPixel);
-				setUInt32("storageSize", info.storageSize);
-				setUInt32("format", info.format);
-				setBool("cubeMap", info.cubeMap);
+				handle = parseData(fileData);
 			}
 		}
 		if (bgfx::isValid(handle)) {

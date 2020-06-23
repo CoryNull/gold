@@ -40,7 +40,6 @@ What it's lacking?
 * Documentation
 * Comments
 * Bug/error testing
-* Examples
 * Tests
 * A website
 
@@ -54,7 +53,6 @@ What's planned?
 * Game editor
 * GUI handling
 * Audio handling
-* 2D/3D Physics
 * Controller handling
 * Async event handling
 * Asset packing

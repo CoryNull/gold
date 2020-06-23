@@ -4164,7 +4164,7 @@ namespace gold {
 
 	var::operator void*() const {
 		auto con = sPtr.get();
-		if (con && con->type != typeNull) return (void*)con->data;
+		if (con) return (void*)con->data;
 		return nullptr;
 	}
 

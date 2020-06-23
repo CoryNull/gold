@@ -173,9 +173,7 @@ namespace gold {
 	}
 
 	void object::empty() {
-		auto end = data->items.end();
-		for (auto it = data->items.begin(); it != end; ++it)
-			data->items.erase(it);
+		if (data) data->items.clear();
 	}
 
 	void object::setParent(object other) {
@@ -605,6 +603,15 @@ namespace gold {
 	bool object::operator==(object& other) {
 		if (data->id == other.data->id) return true;
 		return false;
+	}
+
+	object& object::operator=(const object& o) {
+		if (data && data.use_count() <= 0) {
+			data->items.clear();
+			data->parent = object();
+		}
+		data = o.data;
+		return *this;
 	}
 
 	object::operator bool() const { return bool(this->data); }

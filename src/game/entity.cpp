@@ -1,8 +1,8 @@
 #include "entity.hpp"
 
 #include "component.hpp"
-#include "transform.hpp"
 #include "engine.hpp"
+#include "transform.hpp"
 
 namespace gold {
 	object& entity::getPrototype() {
@@ -26,12 +26,14 @@ namespace gold {
 	var entity::add(list args) {
 		auto comps = getList("components");
 		auto children = getList("children");
+		auto eng = getObject<engine>("engine");
 		if (!comps) return var();
 		if (!children) return var();
 		for (auto it = args.begin(); it != args.end(); ++it) {
 			if (it->isObject(getPrototype())) {
 				auto child = it->getObject<entity>();
 				child.setObject("parent", *this);
+				if (eng) child.setObject("engine", eng);
 				children.pushObject(child);
 			} else if (it->isObject(component::getPrototype())) {
 				auto comp = it->getObject<component>();
@@ -39,6 +41,8 @@ namespace gold {
 				comps.pushObject(comp);
 			}
 		}
+		// Adds components to the engine.
+		if (eng) eng += {*this};
 		return var();
 	}
 

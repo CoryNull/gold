@@ -7,6 +7,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <iterator>
 #include <string_view>
 
 namespace gold {
@@ -108,12 +109,13 @@ namespace gold {
 					auto bin = binary(d.begin(), d.end());
 					auto format = bimg::TextureFormat::R8;
 					bool transparent = false;
-					if (info.num_channels == 2) {
+					auto nC = info.num_channels;
+					if (nC == 2) {
 						format = bimg::TextureFormat::RG8;
-					} else if (info.num_channels == 3) {
+					} else if (nC == 3) {
 						if (info.bits_per_channel == 8)
 							format = bimg::TextureFormat::RGB8;
-					} else if (info.num_channels == 4) {
+					} else if (nC == 4 || nC == 0) {
 						if (info.bits_per_channel == 8)
 							format = bimg::TextureFormat::RGBA8;
 						else if (info.bits_per_channel == 16)
@@ -146,8 +148,15 @@ namespace gold {
 					if (con.m_data) {
 						data = binary((size_t)con.m_size);
 						memcpy(data.data(), con.m_data, con.m_size);
-					} else
-						data = binary(view.begin(), view.end());
+					} else {
+						auto start = view.begin();
+						advance(start, (size_t)con.m_offset);
+						data = binary(
+							(size_t)view.size() - (size_t)con.m_offset);
+						memcpy(
+							data.data(), view.data() + (size_t)con.m_offset,
+							view.size() - (size_t)con.m_offset);
+					}
 					setBinary("data", data);
 					setUInt32("format", con.m_format);
 					setUInt8("orientation", con.m_orientation);
