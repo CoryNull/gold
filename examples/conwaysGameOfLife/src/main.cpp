@@ -113,9 +113,9 @@ int main() {
 	});
 
 	auto simObj = entity({{"name", "sim"}});
-	auto simCom = object({
+	auto simCom = obj{
 		{"proto", simulator},
-	});
+	};
 	auto children = list({});
 	auto sprites = list({});
 	auto frame = list({});

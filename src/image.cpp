@@ -66,7 +66,7 @@ namespace gold {
 
 					memset(&gif, 0, sizeof(stbi__gif));
 					uint8_t* data =
-						stbi__gif_load_next(&ctx, &gif, &c, 4);
+						stbi__gif_load_next(&ctx, &gif, &c, 4, nullptr);
 					auto frames = list({});
 					while (data) {
 						auto dSize = gif.w * gif.h * 4;
@@ -79,7 +79,8 @@ namespace gold {
 							{"height", gif.h},
 						});
 						frames.pushObject(fObj);
-						data = stbi__gif_load_next(&ctx, &gif, &c, 4);
+						data =
+							stbi__gif_load_next(&ctx, &gif, &c, 4, nullptr);
 					}
 					setList("frames", frames);
 					setUInt32("width", ctx.img_x);
