@@ -308,7 +308,7 @@ namespace gold {
 		void initMemory();
 
 	 public:
-	 	static uint32_t getColor(list args);
+		static uint32_t getColor(list args);
 		static var getVec2f(list args);
 
 		typedef initializer_list<avec::value_type> initList;
@@ -322,11 +322,12 @@ namespace gold {
 		uint64_t size();
 		void pop();
 		types getType(uint64_t index);
-		json getJSON();
-		vector<uint8_t> getBSON();
-		vector<uint8_t> getCBOR();
-		vector<uint8_t> getMsgPack();
-		vector<uint8_t> getUBJSON();
+		string getJSON(bool pretty = false);
+		binary getJSONBin(bool pretty = false);
+		binary getBSON();
+		binary getCBOR();
+		binary getMsgPack();
+		binary getUBJSON();
 
 		bool isAllFloating() const;
 		bool isAllNumber() const;
@@ -447,6 +448,8 @@ namespace gold {
 
 		void initMemory();
 		void findParent();
+		template <typename T>
+		void setExpression(string name, T value);
 
 	 public:
 		typedef initializer_list<omap::value_type> initList;

@@ -501,6 +501,9 @@ namespace gold {
 		} else if (args[0].isObject()) {
 			data = args[0].getObject().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
+		} else if (args[0].isList()) {
+			data = args[0].getList().getJSONBin();
+			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
 			data = args[0].getBinary();
 
@@ -551,6 +554,9 @@ namespace gold {
 			writeHeader({"Content-Type", "text/html"});
 		} else if (args[0].isObject()) {
 			data = args[0].getObject().getJSONBin();
+			writeHeader({"Content-Type", "application/json"});
+		} else if (args[0].isList()) {
+			data = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
 			data = args[0].getBinary();
