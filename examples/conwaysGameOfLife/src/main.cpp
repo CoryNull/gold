@@ -53,8 +53,8 @@ int main() {
 
 		auto getLife = [=](int16_t x, int16_t y) -> bool {
 			if (
-				(x < itemsX - 1 && x >= 0) &&
-				(y < itemsY - 1 && y >= 0)) {
+				(x < itemsX && x >= 0) &&
+				(y < itemsY && y >= 0)) {
 				auto xVector = last[y].getList();
 				auto v = xVector[x].getBool();
 				return v;
@@ -64,8 +64,8 @@ int main() {
 
 		auto getSprite = [=](int16_t x, int16_t y) -> sprite {
 			if (
-				(x < itemsX - 1 && x >= 0) &&
-				(y < itemsY - 1 && y >= 0)) {
+				(x < itemsX && x >= 0) &&
+				(y < itemsY && y >= 0)) {
 				auto xVector = sprites[y].getList();
 				return xVector[x].getObject<sprite>();
 			}

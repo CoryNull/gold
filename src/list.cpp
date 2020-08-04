@@ -1,4 +1,5 @@
 
+#include "file.hpp"
 #include "types.hpp"
 
 namespace gold {
@@ -121,88 +122,25 @@ namespace gold {
 		return data->items[index].getType();
 	}
 
-	json list::getJSON() {
-		initMemory();
-		unique_lock<mutex> gaurd(data->amutex);
-		json j = json::array();
-		for (auto i = data->items.begin(); i != data->items.end();
-				 ++i) {
-			switch (i->getType()) {
-				case typeException:
-					j.push_back(string(*i->getError()));
-					break;
-				case typeNull:
-					j.push_back(nullptr);
-					break;
-				case typeList: {
-					auto arr = i->getList();
-					auto a = arr.getJSON();
-					j.push_back(a);
-					break;
-				}
-				case typeObject: {
-					auto obj = i->getObject();
-					auto o = obj.getJSON();
-					j.push_back(o);
-					break;
-				}
-				case typeString:
-					j.push_back(i->getString());
-					break;
-				case typeInt64:
-					j.push_back(i->getInt64());
-					break;
-				case typeInt32:
-					j.push_back(i->getInt32());
-					break;
-				case typeInt16:
-					j.push_back(i->getInt16());
-					break;
-				case typeInt8:
-					j.push_back(i->getInt8());
-					break;
-				case typeUInt64:
-					j.push_back(i->getUInt64());
-					break;
-				case typeUInt32:
-					j.push_back(i->getUInt32());
-					break;
-				case typeUInt16:
-					j.push_back(i->getUInt16());
-					break;
-				case typeUInt8:
-					j.push_back(i->getUInt8());
-					break;
-				case typeDouble:
-					j.push_back(i->getDouble());
-					break;
-				case typeFloat:
-					j.push_back(i->getFloat());
-					break;
-				case typeBool:
-					j.push_back(i->getBool());
-					break;
-				default:
-					break;
-			}
-		}
-		return j;
+	string list::getJSON(bool pretty) {
+		return file::serializeJSON(*this, pretty);
 	}
 
-	vector<uint8_t> list::getBSON() {
-		return json::to_bson(getJSON());
+	binary list::getJSONBin(bool pretty) {
+		auto str = file::serializeJSON(*this, pretty);
+		return binary(str.begin(), str.end());
 	}
 
-	vector<uint8_t> list::getCBOR() {
-		return json::to_cbor(getJSON());
+	binary list::getBSON() { return file::serializeBSON(*this); }
+
+	binary list::getCBOR() { return file::serializeCBOR(*this); }
+
+	binary list::getMsgPack() {
+		return file::serializeMsgPack(*this);
 	}
 
-	vector<uint8_t> list::getMsgPack() {
-		return json::to_msgpack(getJSON());
-	}
-
-	vector<uint8_t> list::getUBJSON() {
-		return json::to_ubjson(getJSON());
+	binary list::getUBJSON() {
+		return file::serializeUBJSON(*this);
 	}
 
 	bool list::isAllFloating() const {

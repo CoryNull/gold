@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <string>
 
 #include "file.hpp"
 #include "types.hpp"
@@ -190,130 +191,155 @@ namespace gold {
 		return data->parent;
 	}
 
+	template <typename T>
+	void object::setExpression(string name, T value) {
+		// This allows you to set values of objects and lists
+		// from inside objects, recursively.
+		auto varVal = var(value);
+		auto sqIndex = name.find('[');
+		auto aName = name.substr(0, sqIndex);
+		if (sqIndex != string::npos) {
+			auto end = name.find(']', sqIndex);
+			if (sqIndex + 1 == end) {
+				auto li = getList(aName);
+				li.pushVar(varVal);
+				varVal = li;
+			} else if (end != string::npos) {
+				auto subKey =
+					name.substr(sqIndex + 1, end - sqIndex - 1) +
+					name.substr(end + 1);
+				auto con = getObject(aName, obj({}));
+				con.setExpression(subKey, varVal);
+				varVal = con;
+			}
+		}
+		data->items[aName] = varVal;
+	}
+
 	void object::setString(string name, string value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setStringView(string name, string_view value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setInt64(string name, int64_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setInt32(string name, int32_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setInt16(string name, int16_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setInt8(string name, int8_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setUInt64(string name, uint64_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setUInt32(string name, uint32_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setUInt16(string name, uint16_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setUInt8(string name, uint8_t value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setDouble(string name, double value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setFloat(string name, float value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setBool(string name, bool value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setList(string name, list value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setObject(string name, object value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = var(value);
+		setExpression(name, value);
 	}
 
 	void object::setMethod(string name, method& value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = var(value);
+		setExpression(name, value);
 	}
 
 	void object::setFunc(string name, func& value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = var(value);
+		setExpression(name, value);
 	}
 
 	void object::setPtr(string name, void* value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = var(value, typePtr);
+		setExpression(name, var(value, typePtr));
 	}
 
 	void object::setBinary(string name, binary value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setVar(string name, var value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = value;
+		setExpression(name, value);
 	}
 
 	void object::setNull(string name) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		data->items[name] = var();
+		setExpression(name, var());
 	}
 
 	void object::erase(string name) {
@@ -494,7 +520,7 @@ namespace gold {
 
 	object object::getObject(string name, object def) {
 		initMemory();
-		unique_lock<mutex> gaurd(data->omutex);
+		// unique_lock<mutex> gaurd(data->omutex);
 		auto it = data->items.find(name);
 		if (it != data->items.end())
 			return it->second.getObject();
@@ -620,13 +646,9 @@ namespace gold {
 		auto it = value.begin();
 		string buffer = "";
 		string key = "";
-		while (it != value.end()) {
-			if (isalnum(*it))
-				buffer += *it;
-			else if (*it == '=') {
-				key = buffer;
-				buffer = "";
-			} else if (*it == '&') {
+
+		auto pushVar = [&]() {
+			if (key.size() > 0 && buffer.size() > 0) {
 				auto vType = result.getType(key);
 				if (vType == typeString) {
 					auto copy = result.getString(key);
@@ -641,6 +663,16 @@ namespace gold {
 				}
 				buffer = "";
 				key = "";
+			}
+		};
+		while (it != value.end()) {
+			if (isalnum(*it))
+				buffer += *it;
+			else if (*it == '=') {
+				key = buffer;
+				buffer = "";
+			} else if (*it == '&') {
+				pushVar();
 			} else if (*it == '+') {
 				buffer += " ";
 			} else if (*it == '%') {
@@ -654,20 +686,7 @@ namespace gold {
 			}
 			++it;
 		}
-		if (key.size() > 0 && buffer.size() > 0) {
-			auto vType = result.getType(key);
-			if (vType == typeString) {
-				auto copy = result.getString(key);
-				auto arr = list({copy, buffer});
-				result.setList(key, arr);
-			} else if (vType == typeList) {
-				auto arr = list();
-				result.assignList(key, arr);
-				arr.pushString(buffer);
-			} else {
-				result.setString(key, buffer);
-			}
-		}
+		pushVar();
 	}
 
 	void object::parseCookie(string value, object& result) {
