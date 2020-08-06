@@ -3,10 +3,13 @@ cmake_minimum_required(VERSION 3.10)
 
 project(gold CXX)
 
+find_package(Ruby 2.7)
+
 add_library(
 	goldShared
 	STATIC
 		src/list.cpp
+		src/module.cpp
 		src/file.cpp
 		src/image.cpp
 		src/object.cpp
@@ -28,12 +31,14 @@ target_include_directories(
 	goldShared
 	PUBLIC
 		"include"
+		${RUBY_INCLUDE_DIRS}
 		3rdParty/uWebSockets/src
 )
 
 target_link_libraries (
 	goldShared
 	PUBLIC 
+		${RUBY_LIBRARY}
 		bx
 		bimg
 		nlohmann_json::nlohmann_json
