@@ -94,26 +94,7 @@ namespace gold {
 		typeMat4x4Double,
 	} types;
 
-	class genericError : public exception {
-	 public:
-		string msg;
-		string loc;
-
-		genericError(
-			const exception& copy,
-			const char* _file = __builtin_FILE(),
-			const char* _func = __builtin_FUNCTION(),
-			const int _line = __builtin_LINE());
-		genericError(const genericError& copy);
-		genericError(
-			string_view message,
-			const char* _file = __builtin_FILE(),
-			const char* _func = __builtin_FUNCTION(),
-			const int _line = __builtin_LINE());
-		operator string() const;
-		friend ostream& operator<<(
-			ostream& os, const genericError& dt);
-	};
+	class genericError;
 
 	struct var {
 	 protected:
@@ -191,6 +172,10 @@ namespace gold {
 		var& operator=(const var& rhs);
 		bool operator==(const var& rhs) const;
 		bool operator!=(const var& rhs) const;
+		bool operator<=(const var& rhs) const;
+		bool operator>=(const var& rhs) const;
+		bool operator<(const var& rhs) const;
+		bool operator>(const var& rhs) const;
 
 		var operator-() const;
 		var operator+(const var& b) const;
@@ -312,6 +297,7 @@ namespace gold {
 		static var getVec2f(list args);
 
 		typedef initializer_list<avec::value_type> initList;
+		typedef avec::iterator iterator;
 
 		list();
 		list(const list& copy);
@@ -331,6 +317,8 @@ namespace gold {
 
 		bool isAllFloating() const;
 		bool isAllNumber() const;
+		bool isAllObject() const;
+		bool isAllObject(object& proto) const;
 		void assign(types t, void* target, size_t count) const;
 
 		avec::iterator begin();
@@ -471,6 +459,7 @@ namespace gold {
 		void empty();
 		void setParent(object other);
 		object getParent();
+		bool inherits(const object other) const;
 
 		void setString(string name, string value);
 		void setStringView(string name, string_view value);
@@ -580,6 +569,18 @@ namespace gold {
 	}
 
 	/* </Object> */
+
+	class genericError : public exception, public object {
+	 public:
+		genericError(const genericError& copy);
+		genericError(
+			string_view message,
+			const char* _file = __builtin_FILE(),
+			const char* _func = __builtin_FUNCTION(),
+			const int _line = __builtin_LINE());
+		operator string() const;
+		friend ostream& operator<<(ostream& os, genericError& dt);
+	};
 
 	bool isCopyable(types type);
 	const char* getTypeString(types type);

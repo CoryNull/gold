@@ -107,7 +107,7 @@ namespace gold {
 			}
 			return gold::var();
 		} catch (exception e) {
-			return genericError(e);
+			return genericError(e.what());
 		}
 	}
 
@@ -290,9 +290,9 @@ namespace gold {
 							vec4f(value[0], value[1], value[2], value[3]);
 						break;
 					case 9:
-						toSet = mat3x3f({value[0], value[1], value[2],
-														 value[3], value[4], value[5],
-														 value[6], value[7], value[8]});
+						toSet = mat3x3f(
+							{value[0], value[1], value[2], value[3], value[4],
+							 value[5], value[6], value[7], value[8]});
 						break;
 					case 16:
 						toSet = mat4x4f(

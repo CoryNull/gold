@@ -522,7 +522,7 @@ namespace gold {
 		memcpy(bin.data(), block.more(), size);
 		return bin;
 	}
-	var image::writeDDS(list args) {
+	var image::writeDDS(list) {
 		auto block = bx::MemoryBlock(&defaultAllocator);
 		auto writer = bx::MemoryWriter(&block);
 		auto con = getContainer();
@@ -538,7 +538,7 @@ namespace gold {
 		memcpy(bin.data(), block.more(), size);
 		return bin;
 	}
-	var image::writeKTX(list args) {
+	var image::writeKTX(list) {
 		auto block = bx::MemoryBlock(&defaultAllocator);
 		auto writer = bx::MemoryWriter(&block);
 		auto con = getContainer();
@@ -559,5 +559,6 @@ namespace gold {
 		auto con = (bimg::ImageContainer*)getPtr("con");
 		if (con) bimg::imageFree(con);
 		empty();
+		return var();
 	}
 }  // namespace gold

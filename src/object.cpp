@@ -191,6 +191,15 @@ namespace gold {
 		return data->parent;
 	}
 
+	bool object::inherits(const object other) const {
+		auto cP = data->parent;
+		while (cP) {
+			if (cP == other) return true;
+			cP = cP.getParent();
+		}
+		return false;
+	}
+
 	template <typename T>
 	void object::setExpression(string name, T value) {
 		// This allows you to set values of objects and lists

@@ -167,6 +167,30 @@ namespace gold {
 		return isAllNumber;
 	}
 
+	bool list::isAllObject() const {
+		if (!data) return false;
+		bool isAllObj = true;
+		for (size_t i = 0; i < data->items.size(); ++i) {
+			if (!data->items[i].isObject()) {
+				isAllObj = false;
+				break;
+			}
+		}
+		return isAllObj;
+	}
+
+	bool list::isAllObject(object& proto) const {
+		if (!data) return false;
+		bool isAllObj = true;
+		for (size_t i = 0; i < data->items.size(); ++i) {
+			if (!data->items[i].isObject(proto)) {
+				isAllObj = false;
+				break;
+			}
+		}
+		return isAllObj;
+	}
+
 	void list::assign(types t, void* target, size_t count) const {
 		if (data) {
 			auto size = min(data->items.size(), count);

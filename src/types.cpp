@@ -137,25 +137,19 @@ namespace gold {
 		return "Undefined";
 	}
 
-	genericError::genericError(
-		const exception& copy,
-		const char* _file,
-		const char* _func,
-		const int _line)
-		: exception(copy), msg() {
-		loc = string(_file) + string(_func) + to_string(_line);
-	}
-
 	genericError::genericError(const genericError& copy)
-		: exception(copy), msg(copy.msg), loc(copy.loc) {}
+		: exception(copy), object(copy) {}
 
 	genericError::genericError(
 		string_view message,
 		const char* _file,
 		const char* _func,
 		const int _line)
-		: exception(), msg(message) {
-		loc = string(_file) + string(_func) + to_string(_line);
+		: exception(), object() {
+		setStringView("msg", message);
+		setString("file", _file);
+		setString("func", _func);
+		setInt32("line", _line);
 	}
 
 	genericError::operator string() const {
@@ -164,8 +158,11 @@ namespace gold {
 		return ss.str();
 	}
 
-	ostream& operator<<(ostream& os, const genericError& dt) {
-		return os << dt.loc << dt.msg;
+	ostream& operator<<(ostream& os, genericError& dt) {
+		return os << dt.getString("file") << ":"
+							<< dt.getInt32("line") << " ("
+							<< dt.getString("func")
+							<< "):" << dt.getString("msg");
 	}
 
 }  // namespace gold
