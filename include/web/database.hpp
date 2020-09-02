@@ -56,11 +56,16 @@ namespace gold {
 
 		var save(list args = {});
 		var remove(list args = {});
+		var addOwners(list args);
+		var removeOwners(list args);
+		var isOwner(list args);
 
 		void getDatabase(database& db);
 		void getCollection(collection& col);
 		string getID();
 		static string newID();
+		static bool validID(string_view id);
+
 	};
 
 	uint64_t getMonoTime();

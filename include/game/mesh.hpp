@@ -20,16 +20,19 @@ namespace gold {
 		mesh(path meshFilePath);
 		mesh(file meshFile);
 
-		var getNode(string name);
-		var getPrimitiveCount(string nName);
-		var getVertexLayoutHandle(string nName, uint64_t primitive = 0);
-		var getVertexBufferHandle(string nName, uint64_t primitive = 0);
-		var getIndexBufferHandle(string nName, uint64_t primitive = 0);
-		var getTrianglesFromMesh(string nName);
-		var getMaterial(string nName);
-		var getMaterial(uint64_t id);
-		var getMaterialFromPrimitive(string nName, uint64_t primitive);
+		var getNode(list);            // string name
+		var getPrimitiveCount(list);  // string nName
+		var getVertexLayoutHandle(
+			list);  // string nName, uint64_t primitive = 0
+		var getVertexBufferHandle(
+			list);  // string nName, uint64_t primitive = 0
+		var getIndexBufferHandle(
+			list);  // string nName, uint64_t primitive = 0
+		var getTrianglesFromMesh(list);  // string nName
+		var getMaterial(list);           // string/uint64 nName
+		var getMaterialFromPrimitive(
+			list);  // string nName, uint64_t primitive
 
-		var destroy();
+		var destroy(list args = {});
 	};
 }  // namespace gold

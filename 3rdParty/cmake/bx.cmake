@@ -30,7 +30,9 @@ endif()
 # Create the bx target
 add_library( bx STATIC ${BX_SOURCES} )
 
-set_target_properties( bx PROPERTIES COMPILE_FLAGS "-Wno-gnu-zero-variadic-macro-arguments")
+if(!MSVC)
+	set_target_properties( bx PROPERTIES COMPILE_FLAGS "-Wno-gnu-zero-variadic-macro-arguments")
+endif(!MSVC)
 
 # Link against psapi on Windows
 if( WIN32 )

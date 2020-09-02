@@ -1,19 +1,27 @@
 #include "types.hpp"
 
 #include <sstream>
+#include <bx/platform.h>
 
 namespace gold {
 
 	const var nullVar = var();
+	const auto voidPSize = sizeof(void*);
 
 	bool isCopyable(types type) {
 		if (type == typeString) return true;
-		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64)
+#ifdef BX_ARCH_64BIT
+		if (type == typeUInt64)
 			return true;
-		if (sizeof(int64_t) > sizeof(void*) && type == typeInt64)
+		if (type == typeInt64)
 			return true;
-		if (sizeof(double) > sizeof(void*) && type == typeDouble)
+		if (type == typeDouble)
 			return true;
+#else
+		if (type == typeUInt32) return true;
+		if (type == typeInt32) return true;
+		if (type == typeFloat) return true;
+#endif
 		return false;
 	}
 
@@ -137,35 +145,32 @@ namespace gold {
 		return "Undefined";
 	}
 
-	genericError::genericError(
-		const exception& copy,
-		const char* _file,
-		const char* _func,
-		const int _line)
-		: exception(copy), msg() {
-		loc = string(_file) + string(_func) + to_string(_line);
-	}
-
 	genericError::genericError(const genericError& copy)
-		: exception(copy), msg(copy.msg), loc(copy.loc) {}
+		: exception(copy), object(copy) {}
 
 	genericError::genericError(
 		string_view message,
 		const char* _file,
 		const char* _func,
 		const int _line)
-		: exception(), msg(message) {
-		loc = string(_file) + string(_func) + to_string(_line);
+		: exception(), object() {
+		setStringView("msg", message);
+		setString("file", _file);
+		setString("func", _func);
+		setInt32("line", _line);
 	}
 
 	genericError::operator string() const {
 		auto ss = stringstream();
-		ss << (*this);
+		ss.operator<<(*this);
 		return ss.str();
 	}
 
-	ostream& operator<<(ostream& os, const genericError& dt) {
-		return os << dt.loc << dt.msg;
+	ostream& operator<<(ostream& os, genericError& dt) {
+		return os << dt.getString("file") << ":"
+							<< dt.getInt32("line") << " ("
+							<< dt.getString("func")
+							<< "):" << dt.getString("msg");
 	}
 
 }  // namespace gold

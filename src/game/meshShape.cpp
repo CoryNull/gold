@@ -37,7 +37,7 @@ namespace gold {
 		if (m && node != "") {
 			auto triMesh = new btTriangleMesh();
 			setPtr("btTriMesh", triMesh);
-			auto triList = m.getTrianglesFromMesh(node).getList();
+			auto triList = m.getTrianglesFromMesh({node}).getList();
 			if (triList) {
 				for (auto it = triList.begin(); it != triList.end();) {
 					btVector3 tri[3];

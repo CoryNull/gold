@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(gold CXX)
 
-find_package (SDL2 REQUIRED)
-
 add_library(
 	goldGame
 	STATIC
@@ -35,7 +33,7 @@ add_library(
 )
 
 if(MSVC)
-  target_compile_options(goldGame PRIVATE /W4 /WX)
+  target_compile_options(goldGame PRIVATE /W4)
 else()
   target_compile_options(goldGame PRIVATE -Wall -Wextra -pedantic)
 endif()
@@ -45,17 +43,15 @@ target_include_directories(
 	PUBLIC
 		"include"
 		"include/game"
-		${SDL2_INCLUDE_DIRS}
 		${CMAKE_CURRENT_BINARY_DIR}
 		3rdParty/bullet3/src
 )
-
 target_link_libraries (
 	goldGame 
 	PUBLIC 
 		gold::shared
-		bgfx
 		brtshaderc
+		bgfx
 		Bullet3Common
 		BulletSoftBody 
 		BulletDynamics 
@@ -63,9 +59,10 @@ target_link_libraries (
 		BulletInverseDynamicsUtils 
 		BulletInverseDynamics 
 		LinearMath
-		${SDL2_LIBRARIES}
+		SDL2-static
 		${OPENGL_LIBRARIES}
 )
+target_link_directories(goldGame PUBLIC ${LIBRARY_OUTPUT_DIRECTORY})
 
 target_compile_features(
 	goldGame

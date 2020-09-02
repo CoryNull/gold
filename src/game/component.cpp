@@ -16,9 +16,9 @@ namespace gold {
 
 	var component::draw(list) { return var(); }
 
-	var component::update() { return var(); }
+	var component::update(list) { return var(); }
 
-	var component::initialize() { return var(); }
+	var component::initialize(list) { return var(); }
 
 	component::component() : obj() { setParent(getPrototype()); }
 

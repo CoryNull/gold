@@ -1,5 +1,6 @@
 
-find_package(ZLIB REQUIRED)
+project(uWebSockets CXX)
+
 find_package(OpenSSL REQUIRED)
 
 add_library(
@@ -30,6 +31,12 @@ add_library(
 		uWebSockets/src/WebSocketProtocol.h
 )
 
+if(MSVC)
+  target_compile_options(uWebSockets PRIVATE /W4 /WX:NO)
+else()
+  target_compile_options(uWebSockets PRIVATE -Wall -Wextra -pedantic)
+endif()
+
 target_include_directories(
 	uWebSockets
 	PUBLIC
@@ -39,7 +46,16 @@ target_include_directories(
 target_link_libraries (uWebSockets 
 	PUBLIC
 		uSockets
-		ZLIB::ZLIB
 		${OPENSSL_LIBRARIES}
-		stdc++fs
 )
+
+if(MSVC)
+else()
+	target_link_libraries (
+		uWebSockets
+		PUBLIC 
+			stdc++fs
+	)
+endif(MSVC)
+
+set_target_properties(uWebSockets PROPERTIES LINKER_LANGUAGE CXX)

@@ -31,11 +31,11 @@ namespace gold {
 		engine();
 		engine(string company, string gameName);
 		static set<string> allowedConfigNames();
-		var start();
-		var initialize();
-		var loadSettings();
-		var saveSettings();
-		var getPrimaryCamera();
+		var start(list args = {});
+		var initialize(list args = {});
+		var loadSettings(list args = {});
+		var saveSettings(list args = {});
+		var getPrimaryCamera(list args = {});
 
 		//args: (component, entity), ...
 		var addElement(list args);

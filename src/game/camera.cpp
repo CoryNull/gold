@@ -106,10 +106,10 @@ namespace gold {
 			args.size() > 0 ? args[0].getUInt16() : uint16_t(0);
 		auto size = getVar("size");
 		auto offset = getVar("offset");
-		auto width = size.getFloat(0);
-		auto height = size.getFloat(1);
-		auto x = offset.getFloat(0);
-		auto y = offset.getFloat(1);
+		auto width = size.getUInt16(0);
+		auto height = size.getUInt16(1);
+		auto x = offset.getUInt16(0);
+		auto y = offset.getUInt16(1);
 		auto flags = getUInt16("flags");
 		auto rgba = getUInt32("rgba");
 		auto stencil = getUInt8("stencil");

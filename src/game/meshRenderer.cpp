@@ -163,9 +163,9 @@ namespace gold {
 					auto program =
 						prim.getObject<shaderProgram>("program");
 					if (program) {
-						auto vbh = meshD.getVertexBufferHandle(name, i)
+						auto vbh = meshD.getVertexBufferHandle({name, i})
 												 .getObject<vertexBuffer>();
-						auto ibh = meshD.getIndexBufferHandle(name, i)
+						auto ibh = meshD.getIndexBufferHandle({name, i})
 												 .getObject<indexBuffer>();
 						vbh.set(0);
 						ibh.set();

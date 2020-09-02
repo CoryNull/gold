@@ -24,7 +24,7 @@ namespace gold {
 		auto numLayers = getUInt16("layers");
 		auto cubeMap = getBool("cubeMap");
 		auto mips = getUInt16("numMips") != 0;
-		auto data = getStringView("data");
+		auto bin = getStringView("data");
 
 		con = bimg::imageAlloc(
 			&defaultAllocator,
@@ -35,7 +35,7 @@ namespace gold {
 			numLayers,
 			cubeMap,
 			mips,
-			data.data());
+			bin.data());
 		if (con) {
 			setPtr("con", con);
 			return con;
@@ -56,7 +56,7 @@ namespace gold {
 		// Parse from data
 		if (view.size() > 0 && w == 0 && h == 0) {
 			stbi__context ctx;
-			stbi__start_mem(&ctx, (stbi_uc*)view.data(), view.size());
+			stbi__start_mem(&ctx, (stbi_uc*)view.data(), int(view.size()));
 			{
 				// GIF TEST
 				auto gifParsed = stbi__gif_test(&ctx);
@@ -65,13 +65,13 @@ namespace gold {
 					stbi__gif gif;
 
 					memset(&gif, 0, sizeof(stbi__gif));
-					uint8_t* data =
+					uint8_t* bin =
 						stbi__gif_load_next(&ctx, &gif, &c, 4, nullptr);
 					auto frames = list({});
-					while (data) {
+					while (bin) {
 						auto dSize = gif.w * gif.h * 4;
 						auto frame = binary(dSize);
-						memcpy(frame.data(), data, dSize);
+						memcpy(frame.data(), bin, dSize);
 						auto fObj = obj({
 							{"delay", gif.delay},
 							{"data", frame},
@@ -79,7 +79,7 @@ namespace gold {
 							{"height", gif.h},
 						});
 						frames.pushObject(fObj);
-						data =
+						bin =
 							stbi__gif_load_next(&ctx, &gif, &c, 4, nullptr);
 					}
 					setList("frames", frames);
@@ -100,67 +100,70 @@ namespace gold {
 			}
 			{
 				// STBI TEST
-				int w, h, c;
+				int sw, sh, sc;
 				stbi__result_info info;
-				auto parsed = stbi__info_main(&ctx, &w, &h, &c);
+				auto parsed = stbi__info_main(&ctx, &sw, &sh, &sc);
 				if (parsed) {
 					auto stbParsed =
-						stbi__load_main(&ctx, &w, &h, &c, c, &info, 8);
-					auto d = string_view((char*)stbParsed, w * h * c);
-					auto bin = binary(d.begin(), d.end());
-					auto format = bimg::TextureFormat::R8;
-					bool transparent = false;
-					auto nC = info.num_channels;
-					if (nC == 2) {
-						format = bimg::TextureFormat::RG8;
-					} else if (nC == 3) {
-						if (info.bits_per_channel == 8)
-							format = bimg::TextureFormat::RGB8;
-					} else if (nC == 4 || nC == 0) {
-						if (info.bits_per_channel == 8)
-							format = bimg::TextureFormat::RGBA8;
-						else if (info.bits_per_channel == 16)
-							format = bimg::TextureFormat::RGBA16;
-						transparent = true;
+						stbi__load_main(&ctx, &sw, &sh, &sc, sc, &info, 8);
+					if (stbParsed != nullptr) {
+						auto pBin =
+							string_view((char*)stbParsed, sw * sh * sc);
+						auto bin = binary(pBin.begin(), pBin.end());
+						auto format = bimg::TextureFormat::R8;
+						bool transparent = false;
+						auto nC = info.num_channels;
+						if (nC == 2) {
+							format = bimg::TextureFormat::RG8;
+						} else if (nC == 3) {
+							if (info.bits_per_channel == 8)
+								format = bimg::TextureFormat::RGB8;
+						} else if (nC == 4 || nC == 0) {
+							if (info.bits_per_channel == 8)
+								format = bimg::TextureFormat::RGBA8;
+							else if (info.bits_per_channel == 16)
+								format = bimg::TextureFormat::RGBA16;
+							transparent = true;
+						}
+						setBinary("data", bin);
+						setUInt32("format", format);
+						setUInt8("orientation", 0);
+						setUInt32("width", sw);
+						setUInt32("height", sh);
+						setUInt32("depth", 0);
+						setUInt16("numLayers", 1);
+						setUInt8("numMips", 0);
+						setBool("hasAlpha", transparent);
+						setBool("cubeMap", false);
+						setBool("ktx", false);
+						setBool("ktxLE", false);
+						setBool("srgb", false);
+						return;
 					}
-					setBinary("data", bin);
-					setUInt32("format", format);
-					setUInt8("orientation", 0);
-					setUInt32("width", w);
-					setUInt32("height", h);
-					setUInt32("depth", 0);
-					setUInt16("numLayers", 1);
-					setUInt8("numMips", 0);
-					setBool("hasAlpha", transparent);
-					setBool("cubeMap", false);
-					setBool("ktx", false);
-					setBool("ktxLE", false);
-					setBool("srgb", false);
-					return;
 				}
 			}
 			{
 				// BIMG TEST
 				auto err = (bx::Error*)(nullptr);
-				auto bimgParsed =
-					bimg::imageParse(con, view.data(), view.size(), err);
+				auto bimgParsed = bimg::imageParse(
+					con, view.data(), uint32_t(view.size()), err);
 				if (bimgParsed) {
-					binary data;
+					binary bin;
 					if (con.m_data) {
-						data = binary((size_t)con.m_size);
-						memcpy(data.data(), con.m_data, con.m_size);
+						bin = binary((size_t)con.m_size);
+						memcpy(bin.data(), con.m_data, con.m_size);
 					} else {
 						auto start = view.begin();
 						advance(start, (size_t)con.m_offset);
-						data = binary(
+						bin = binary(
 							(size_t)view.size() - (size_t)con.m_offset);
 						memcpy(
-							data.data(), view.data() + (size_t)con.m_offset,
+							bin.data(), view.data() + (size_t)con.m_offset,
 							view.size() - (size_t)con.m_offset);
 					}
-					setBinary("data", data);
+					setBinary("data", bin);
 					setUInt32("format", con.m_format);
-					setUInt8("orientation", con.m_orientation);
+					setUInt8("orientation", uint8_t(con.m_orientation));
 					setUInt32("width", con.m_width);
 					setUInt32("height", con.m_height);
 					setUInt32("depth", con.m_depth);
@@ -183,7 +186,9 @@ namespace gold {
 			auto format =
 				(bimg::TextureFormat::Enum)getUInt32("format");
 			auto allocCon = bimg::imageAlloc(
-				&defaultAllocator, format, w, h, d, numLayers, cubeMap,
+				&defaultAllocator, format, uint16_t(w), uint16_t(h),
+				uint16_t(d), uint16_t(numLayers),
+				cubeMap,
 				hasMips, view.data());
 			setPtr("con", allocCon);
 			setStringView(
@@ -429,7 +434,7 @@ namespace gold {
 	var image::getRawData(list args) {
 		auto con = getContainer();
 		auto side = args[0].getUInt16();
-		auto lod = args[1].getUInt16();
+		auto lod = args[1].getUInt8();
 		auto mip = bimg::ImageMip();
 		auto got = bimg::imageGetRawData(
 			*con, side, lod, con->m_data, con->m_size, mip);
@@ -522,7 +527,7 @@ namespace gold {
 		memcpy(bin.data(), block.more(), size);
 		return bin;
 	}
-	var image::writeDDS(list args) {
+	var image::writeDDS(list) {
 		auto block = bx::MemoryBlock(&defaultAllocator);
 		auto writer = bx::MemoryWriter(&block);
 		auto con = getContainer();
@@ -538,7 +543,7 @@ namespace gold {
 		memcpy(bin.data(), block.more(), size);
 		return bin;
 	}
-	var image::writeKTX(list args) {
+	var image::writeKTX(list) {
 		auto block = bx::MemoryBlock(&defaultAllocator);
 		auto writer = bx::MemoryWriter(&block);
 		auto con = getContainer();
@@ -559,5 +564,6 @@ namespace gold {
 		auto con = (bimg::ImageContainer*)getPtr("con");
 		if (con) bimg::imageFree(con);
 		empty();
+		return var();
 	}
 }  // namespace gold

@@ -36,6 +36,8 @@ namespace gold {
 					items.pushVar(*it);
 				else if (it->isObject())
 					attr = it->getObject();
+				else if (it->isList())
+					items += it->getList();
 			}
 			setList("items", items);
 			setObject("attr", attr);
@@ -89,6 +91,12 @@ namespace gold {
 			for (auto it = attr.begin(); it != attr.end(); ++it) {
 				if (it->second.isBool()) {
 					if (it->second.getBool()) buffer += it->first + " ";
+				} else if (it->second.isFloating()) {
+					buffer += it->first + "=\"" +
+										to_string(it->second.getDouble()) + "\" ";
+				} else if (it->second.isNumber()) {
+					buffer += it->first + "=\"" +
+										to_string(it->second.getInt64()) + "\" ";
 				} else
 					buffer +=
 						it->first + "=\"" + it->second.getString() + "\" ";
@@ -138,6 +146,7 @@ namespace gold {
 
 		DefineElementTypeTag(hTemplate, "template");
 		DefineElementTypeTag(hObject, "object");
+		DefineElementTypeTag(hSmall, "small");
 
 		DefineElementType(html);
 		DefineElementType(head);
@@ -211,7 +220,7 @@ namespace gold {
 
 		DefineElementType(s);
 
-		DefineElementType(small);
+		
 		DefineElementType(strong);
 		DefineElementType(em);
 		DefineElementType(mark);

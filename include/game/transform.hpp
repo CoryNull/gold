@@ -25,10 +25,10 @@ namespace gold {
 		var setRotation(list args);
 		var setAxisRotation(list args);
 		var setScale(list args);
-		var getPosition();
-		var getRotation();
-		var getEuler();
-		var getScale();
+		var getPosition(list args = {});
+		var getRotation(list args = {});
+		var getEuler(list args = {});
+		var getScale(list args = {});
 		var reset(list args = {});
 	};
 }  // namespace gold

@@ -85,7 +85,8 @@ namespace gold {
 		}
 	}
 
-	var mesh::getNode(string name) {
+	var mesh::getNode(list args) {
+		auto name = args.getString(0);
 		auto nodes = getList("nodes");
 		auto node = object();
 		for (auto it = nodes.begin(); it != nodes.end(); ++it) {
@@ -95,11 +96,12 @@ namespace gold {
 		return node;
 	}
 
-	var mesh::getPrimitiveCount(string name) {
+	var mesh::getPrimitiveCount(list args) {
+		auto name = args.getString(0);
 		obj node, meshObj;
 		list meshes, primitives;
 		if (
-			(node = getNode(name).getObject()) &&
+			(node = getNode({name}).getObject()) &&
 			(meshes = getList("meshes")) &&
 			(meshObj = meshes.getObject(node.getUInt64("mesh"))) &&
 			(primitives = meshObj.getList("primitives")))
@@ -107,11 +109,13 @@ namespace gold {
 		return 0;
 	}
 
-	var mesh::getVertexLayoutHandle(string name, uint64_t pri) {
+	var mesh::getVertexLayoutHandle(list args) {
+		auto name = args.getString(0);
+		auto pri = args.getUInt64(1);
 		auto nodes = getList("nodes");
 		auto meshes = getList("meshes");
 		auto accessors = getList("accessors");
-		auto node = getNode(name).getObject();
+		auto node = getNode({name}).getObject();
 		if (node) {
 			auto meshObj = meshes.getObject(node.getUInt64("mesh"));
 			auto primitives = meshObj.getList("primitives");
@@ -160,12 +164,14 @@ namespace gold {
 		return var();
 	}
 
-	var mesh::getVertexBufferHandle(string name, uint64_t pri) {
+	var mesh::getVertexBufferHandle(list args) {
+		auto name = args.getString(0);
+		auto pri = args.getUInt64(1);
 		auto nodes = getList("nodes");
 		auto meshes = getList("meshes");
 		auto accessors = getList("accessors");
 		auto node = object();
-		if ((node = getNode(name).getObject())) {
+		if ((node = getNode({name}).getObject())) {
 			auto meshObj = meshes.getObject(node.getUInt64("mesh"));
 			auto primitives = meshObj.getList("primitives");
 			auto it = primitives.begin();
@@ -258,7 +264,7 @@ namespace gold {
 				}
 				primitive.setBinary("packed", bin);
 
-				auto layout = getVertexLayoutHandle(name, pri)
+				auto layout = getVertexLayoutHandle({name, pri})
 												.getObject<vertexLayout>();
 				auto vbh = vertexBuffer({
 					{"type", standardBufferType},
@@ -272,12 +278,14 @@ namespace gold {
 		return var();
 	}
 
-	var mesh::getIndexBufferHandle(string name, uint64_t pri) {
+	var mesh::getIndexBufferHandle(list args) {
+		auto name = args.getString(0);
+		auto pri = args.getUInt64(1);
 		auto nodes = getList("nodes");
 		auto meshes = getList("meshes");
 		auto accessors = getList("accessors");
 		auto node = object();
-		if ((node = getNode(name).getObject())) {
+		if ((node = getNode({name}).getObject())) {
 			auto meshObj = meshes.getObject(node.getUInt64("mesh"));
 			auto primitives = meshObj.getList("primitives");
 			auto it = primitives.begin();
@@ -317,12 +325,13 @@ namespace gold {
 		return var();
 	}
 
-	var mesh::getTrianglesFromMesh(string name) {
+	var mesh::getTrianglesFromMesh(list args) {
+		auto name = args.getString(0);
 		auto nodes = getList("nodes");
 		auto meshes = getList("meshes");
 		auto accessors = getList("accessors");
 		auto node = object();
-		if ((node = getNode(name).getObject())) {
+		if ((node = getNode({name}).getObject())) {
 			auto triangles = list();
 			auto meshObj = meshes.getObject(node.getUInt64("mesh"));
 			auto primitives = meshObj.getList("primitives");
@@ -352,36 +361,39 @@ namespace gold {
 		return var();
 	}
 
-	var mesh::getMaterial(string name) {
-		auto materials = getList("materials");
-		if (materials)
-			for (auto it = materials.begin(); it != materials.end();
-					 ++it) {
-				auto mat = it->getObject();
-				if (mat && name.compare(mat.getString("name")) == 0)
-					return *it;
-			}
+	var mesh::getMaterial(list args) {
+		auto fArg = args.getVar(0);
+		if (fArg.isString()) {
+			auto name = fArg.getString();
+			auto materials = getList("materials");
+			if (materials)
+				for (auto it = materials.begin(); it != materials.end();
+						 ++it) {
+					auto mat = it->getObject();
+					if (mat && name.compare(mat.getString("name")) == 0)
+						return *it;
+				}
+		} else if (fArg.isNumber()) {
+			auto id = fArg.getUInt64();
+			auto materials = getList("materials");
+			if (materials) return materials.getVar(id);
+		}
 		return var();
 	}
 
-	var mesh::getMaterial(uint64_t id) {
-		auto materials = getList("materials");
-		if (materials) return materials.getVar(id);
-		return var();
-	}
-
-	var mesh::getMaterialFromPrimitive(
-		string nName, uint64_t id) {
+	var mesh::getMaterialFromPrimitive(list args) {
+		auto name = args.getString(0);
+		auto pri = args.getUInt64(1);
 		auto materials = getList("materials");
 		auto nodes = getList("nodes");
 		auto meshes = getList("meshes");
 		auto accessors = getList("accessors");
 		auto node = object();
-		if ((node = getNode(nName).getObject())) {
+		if ((node = getNode({name}).getObject())) {
 			auto meshObj = meshes.getObject(node.getUInt64("mesh"));
 			auto primitives = meshObj.getList("primitives");
 			auto it = primitives.begin();
-			advance(it, id);
+			advance(it, pri);
 			if (it != primitives.end()) {
 				auto primitive = it->getObject();
 				if (!primitive)
@@ -396,7 +408,7 @@ namespace gold {
 		return var();
 	}
 
-	var mesh::destroy() { return var(); }
+	var mesh::destroy(list) { return var(); }
 
 	void mesh::parseGLTFBuffer(
 		string type,

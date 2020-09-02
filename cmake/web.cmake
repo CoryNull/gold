@@ -15,7 +15,7 @@ add_library(
 )
 
 if(MSVC)
-  target_compile_options(goldWeb PRIVATE /W4 /WX)
+  target_compile_options(goldWeb PRIVATE /W4)
 else()
   target_compile_options(goldWeb PRIVATE -pedantic)
 endif()

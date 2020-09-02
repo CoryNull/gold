@@ -11,26 +11,29 @@
 include( CMakeParseArguments )
 
 add_library(brtshaderc 
-	SHARED
+	STATIC
 	brtshaderc/tools/brtshaderc/brtshaderc.cpp
-	${BGFX_DIR}/tools/shaderc/shaderc.h 
-	${BGFX_DIR}/tools/shaderc/shaderc_glsl.cpp 
-	${BGFX_DIR}/tools/shaderc/shaderc_hlsl.cpp 
-	${BGFX_DIR}/tools/shaderc/shaderc_pssl.cpp 
-	${BGFX_DIR}/tools/shaderc/shaderc_spirv.cpp 
-	${BGFX_DIR}/tools/shaderc/shaderc_metal.cpp
-)
+	brtshaderc/tools/brtshaderc/shaderc_spirv.cpp
+	bgfx/tools/shaderc/shaderc.h 
+	bgfx/tools/shaderc/shaderc_glsl.cpp 
+	bgfx/tools/shaderc/shaderc_hlsl.cpp 
+	bgfx/tools/shaderc/shaderc_pssl.cpp 
+	bgfx/tools/shaderc/shaderc_metal.cpp)
 
 target_include_directories(
 	brtshaderc
+	PRIVATE
+		"bgfx/include"
 	PUBLIC
-		brtshaderc/tools/brtshaderc/
-		/${BGFX_DIR}/include/
-		/${BGFX_DIR}/3rdparty/webgpu/include/
+		"brtshaderc/tools/brtshaderc/"
+		"bgfx/tools/shaderc/"
+		"bgfx/3rdparty/webgpu/include/"
+		"bgfx/3rdparty/dxsdk/include/"
 )
 
 target_link_libraries (brtshaderc 
 	PUBLIC
+		bgfx
 		bx
 		fcpp
 		glsl-optimizer

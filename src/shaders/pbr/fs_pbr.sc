@@ -22,7 +22,7 @@
 // [8] "KHR_materials_thinfilm"
 //     https://github.com/ux3d/glTF/tree/extensions/KHR_materials_thinfilm/extensions/2.0/Khronos/KHR_materials_thinfilm
 
-#include "../common/bgfx_shader.sh"
+#include <bgfx_shader.sh>
 #include "uniform.sh"
 #include "tonemapping.sh"
 #include "textures.sh"

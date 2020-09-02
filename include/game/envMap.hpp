@@ -9,6 +9,6 @@ namespace gold {
 		envMap();
 		envMap(object config);
 
-		var getSize();
+		var getSize(list args = {});
 	};
 }  // namespace gold

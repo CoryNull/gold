@@ -1,5 +1,5 @@
 
-#include "../common/bgfx_shader.sh"
+#include <bgfx_shader.sh>
 #include "uniforms.sh"
 #include "animation.sh"
 
