@@ -1,5 +1,6 @@
 #pragma once
 
+#define UWS_NO_ZLIB 1
 #include <App.h>
 #include <HttpResponse.h>
 
@@ -36,14 +37,14 @@ namespace gold {
 	struct request : public object {
 	 public:
 		static object& getPrototype();
-		var getAllHeaders();
+		var getAllHeaders(list args = {});
 
 		var getHeader(list args);
-		var getMethod();
+		var getMethod(list args = {});
 		var getParameter(list args);
-		var getQuery();
-		var getUrl();
-		var getYield();
+		var getQuery(list args = {});
+		var getUrl(list args = {});
+		var getYield(list args = {});
 		var setYield(list args);
 
 		bool isWWWFormURLEncoded();

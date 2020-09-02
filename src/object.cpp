@@ -8,11 +8,18 @@
 #include <memory>
 #include <string>
 
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/pwdbased.h>
+#include <cryptopp/sha.h>
+
 #include "file.hpp"
 #include "types.hpp"
 
 namespace gold {
 	using namespace std;
+	using namespace CryptoPP;
+	static mutex cryptoMutex;
 	using value_t = nlohmann::detail::value_t;
 	struct objData {
 		object::omap items;
@@ -91,10 +98,8 @@ namespace gold {
 	types object::getType(string name) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getType();
-		if (data->parent.data) return data->parent.getType(name);
-		return typeNull;
+		auto val = getExpression(name);
+		return val.getType();
 	}
 
 	string object::getCookieString() {
@@ -210,8 +215,9 @@ namespace gold {
 		if (sqIndex != string::npos) {
 			auto end = name.find(']', sqIndex);
 			if (sqIndex + 1 == end) {
-				auto li = getList(aName);
-				li.pushVar(varVal);
+				auto liVal = getExpression(aName);
+				auto li = liVal.getList();
+				if (liVal != varVal) li.pushVar(varVal);
 				varVal = li;
 			} else if (end != string::npos) {
 				auto subKey =
@@ -223,6 +229,42 @@ namespace gold {
 			}
 		}
 		data->items[aName] = varVal;
+	}
+
+	var object::getExpression(string name) {
+		auto varVal = var();
+		auto sqIndex = name.find('[');
+		auto aName = name.substr(0, sqIndex);
+		if (sqIndex != string::npos) {
+			auto end = name.find(']', sqIndex);
+			if (sqIndex + 1 == end) {
+				auto con = list();
+				auto it = data->items.find(aName);
+				if (it != data->items.end())
+					con = it->second.getList();
+				else if (!con && data->parent.data)
+					con = data->parent.getExpression(aName).getList();
+				if (con) varVal = con;
+			} else if (end != string::npos) {
+				auto subKey =
+					name.substr(sqIndex + 1, end - sqIndex - 1) +
+					name.substr(end + 1);
+				auto con = obj();
+				auto it = data->items.find(aName);
+				if (it != data->items.end())
+					con = it->second.getObject();
+				else if (!con && data->parent.data)
+					con = data->parent.getExpression(aName).getObject();
+				varVal = con.getExpression(subKey);
+			}
+		} else {
+			auto it = data->items.find(name);
+			if (it != data->items.end())
+				varVal = it->second;
+			else if (data->parent.data)
+				varVal = data->parent.getExpression(name);
+		}
+		return varVal;
 	}
 
 	void object::setString(string name, string value) {
@@ -361,14 +403,43 @@ namespace gold {
 		try {
 			initMemory();
 			unique_lock<mutex> gaurd(data->omutex);
-			auto it = data->items.find(name);
-			if (it != data->items.end())
-				return it->second.getString();
-			if (data->parent.data)
-				return data->parent.getString(name, def);
+			auto val = getExpression(name);
+			if (val.isString()) return val.getString();
 			return def;
+		} catch (exception&) {
+			return def;
+		}
+	}
+
+	gold::var object::generateHash(string value, string salt) {
+		try {
+			unique_lock<mutex> gaurd(cryptoMutex);
+			using byte = unsigned char;
+			byte derived[SHA256::DIGESTSIZE];
+
+			static PKCS5_PBKDF2_HMAC<SHA256> pbkdf;
+			pbkdf.DeriveKey(
+				(byte*)derived,
+				sizeof(derived),
+				0,
+				(byte*)value.data(),
+				value.size(),
+				(byte*)salt.data(),
+				salt.size(),
+				1024,
+				0.0f);
+
+			std::string result;
+			auto sink = new StringSink(result);
+			auto encoder = new HexEncoder(sink);
+
+			encoder->Put(derived, sizeof(derived));
+			encoder->MessageEnd();
+
+			delete encoder;
+			return result;
 		} catch (exception& e) {
-			return def;
+			return genericError(e.what());
 		}
 	}
 
@@ -377,13 +448,10 @@ namespace gold {
 		try {
 			initMemory();
 			unique_lock<mutex> gaurd(data->omutex);
-			auto it = data->items.find(name);
-			if (it != data->items.end())
-				return it->second.getStringView();
-			if (data->parent.data)
-				return data->parent.getStringView(name, def);
+			auto val = getExpression(name);
+			if (val.isView()) return val.getStringView();
 			return def;
-		} catch (exception& e) {
+		} catch (exception&) {
 			return def;
 		}
 	}
@@ -391,240 +459,173 @@ namespace gold {
 	int64_t object::getInt64(string name, int64_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getInt64();
-		if (data->parent.data)
-			return data->parent.getInt64(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getInt64();
 		return def;
 	}
 
 	int32_t object::getInt32(string name, int32_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getInt32();
-		if (data->parent.data)
-			return data->parent.getInt32(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getInt32();
 		return def;
 	}
 
 	int16_t object::getInt16(string name, int16_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getInt16();
-		if (data->parent.data)
-			return data->parent.getInt16(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getInt16();
 		return def;
 	}
 
 	int8_t object::getInt8(string name, int8_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getInt8();
-		if (data->parent.data)
-			return data->parent.getInt8(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getInt8();
 		return def;
 	}
 
 	uint64_t object::getUInt64(string name, uint64_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getUInt64();
-		if (data->parent.data)
-			return data->parent.getUInt64(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getUInt64();
 		return def;
 	}
 
 	uint32_t object::getUInt32(string name, uint32_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getUInt32();
-		if (data->parent.data)
-			return data->parent.getUInt32(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getUInt32();
 		return def;
 	}
 
 	uint16_t object::getUInt16(string name, uint16_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getUInt16();
-		if (data->parent.data)
-			return data->parent.getUInt16(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getUInt16();
 		return def;
 	}
 
 	uint8_t object::getUInt8(string name, uint8_t def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getUInt8();
-		if (data->parent.data)
-			return data->parent.getUInt8(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getUInt8();
 		return def;
 	}
 
 	double object::getDouble(string name, double def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getDouble();
-		if (data->parent.data)
-			return data->parent.getDouble(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getDouble();
 		return def;
 	}
 
 	float object::getFloat(string name, float def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getFloat();
-		if (data->parent.data)
-			return data->parent.getFloat(name, def);
+		auto val = getExpression(name);
+		if (val.isNumber()) return val.getFloat();
 		return def;
 	}
 
 	bool object::getBool(string name, bool def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getBool();
-		if (data->parent.data)
-			return data->parent.getBool(name, def);
+		auto val = getExpression(name);
+		if (val.isBool()) return val.getBool();
 		return def;
 	}
 
 	list object::getList(string name, list def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getList();
-		if (data->parent.data) return data->parent.getList(name);
+		auto val = getExpression(name);
+		if (val.isList()) return val.getList();
 		return def;
 	}
 
 	void object::assignList(string name, list& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			it->second.assignList(result);
-		else if (data->parent.data)
-			data->parent.assignList(name, result);
+		auto val = getExpression(name);
+		if (val.isList()) result = val.getList();
 	}
 
 	void object::assignObject(string name, object& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			return it->second.assignObject(result);
-		else if (data->parent)
-			return data->parent.assignObject(name, result);
+		auto val = getExpression(name);
+		if (val.isObject()) result = val.getObject();
 	}
 
 	object object::getObject(string name, object def) {
 		initMemory();
 		// unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			return it->second.getObject();
-		else if (data->parent)
-			return data->parent.getObject(name);
+		auto val = getExpression(name);
+		if (val.isObject()) return val.getObject();
 		return def;
 	}
 
 	method object::getMethod(string name) {
 		initMemory();
-		unique_lock<mutex> gaurd(data->omutex);
-		auto end = data->items.end();
-		auto it = data->items.begin();
-		while (it != end) {
-			auto key = it->first;
-			if (key.compare(name) == 0) break;
-			it++;
-		}
-		if (it != end) return it->second.getMethod();
-		if (data->parent.data) return data->parent.getMethod(name);
+		auto val = getExpression(name);
+		if (val.isMethod()) return val.getMethod();
 		return nullptr;
 	}
 
 	func object::getFunc(string name) {
 		initMemory();
-		unique_lock<mutex> gaurd(data->omutex);
-		auto end = data->items.end();
-		auto it = data->items.begin();
-		while (it != end) {
-			auto key = it->first;
-			if (key.compare(name) == 0) break;
-			it++;
-		}
-		if (it != end) return it->second.getFunction();
-		if (data->parent.data) return data->parent.getFunc(name);
+		auto val = getExpression(name);
+		if (val.isFunction()) return val.getFunction();
 		return nullptr;
 	}
 
 	void* object::getPtr(string name, void* def) {
 		initMemory();
-		if (!data) return def;
-		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second.getPtr();
-		if (data->parent.data)
-			return data->parent.getPtr(name, def);
+		auto val = getExpression(name);
+		if (val) return val.getPtr();
 		return def;
 	}
 
 	binary object::getBinary(string name, binary def) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			return it->second.getBinary();
-		else if (data->parent.data)
-			return data->parent.getBinary(name, def);
+		auto val = getExpression(name);
+		if (val.isBinary()) return val.getBinary();
 		return def;
 	}
 
 	void object::assignBinary(string name, binary& result) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			it->second.assignBinary(result);
-		else if (data->parent.data)
-			return data->parent.assignBinary(name, result);
+		auto val = getExpression(name);
+		if (val.isBinary()) result = val.getBinary();
 	}
 
 	var object::getVar(string name) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second;
-		if (data->parent.data) return data->parent.getVar(name);
-		return var();
+		return getExpression(name);
 	}
 
 	var object::operator[](string name) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second;
-		if (data->parent.data) return data->parent.operator[](name);
-		return var();
+		return getExpression(name);
 	}
 
 	var object::operator->*(string name) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
-		auto it = data->items.find(name);
-		if (it != data->items.end()) return it->second;
-		if (data->parent.data) return data->parent.operator[](name);
-		return var();
+		return getExpression(name);
 	}
 
 	var object::operator()(string name, list args) {
@@ -664,9 +665,10 @@ namespace gold {
 					auto arr = list({copy, buffer});
 					result.setList(key, arr);
 				} else if (vType == typeList) {
-					auto arr = list();
-					result.assignList(key, arr);
+					auto arr = result.getList(key, {});
 					arr.pushString(buffer);
+					if (result.getType(key) == typeNull)
+						result.setList(key, arr);
 				} else {
 					result.setString(key, buffer);
 				}

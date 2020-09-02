@@ -10,7 +10,7 @@ namespace gold {
 	struct file : public object {
 	 protected:
 		static object& getPrototype();
-
+		static path forwardPath(path);
 	 public:
 		file();
 		file(path p);
@@ -22,12 +22,12 @@ namespace gold {
 		var trash(list args = {});
 		var getWriteTime(list args = {});
 		var hash(list args = {});
-		var extension();
-		var asJSON();
-		var asBSON();
-		var asCBOR();
-		var asMsgPack();
-		var asUBJSON();
+		var extension(list args = {});
+		var asJSON(list args = {});
+		var asBSON(list args = {});
+		var asCBOR(list args = {});
+		var asMsgPack(list args = {});
+		var asUBJSON(list args = {});
 
 		operator binary();
 		operator string();
@@ -49,5 +49,6 @@ namespace gold {
 		static binary serializeUBJSON(var data);
 		static binary decodeDataURL(string_view v, string& mimeType);
 		static binary decodeBase64(string_view v);
+		static string encodeBase64(binary b);
 	};
 }  // namespace gold

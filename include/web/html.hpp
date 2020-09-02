@@ -104,7 +104,7 @@ namespace gold {
 		NewElementType(i);
 		NewElementType(u);
 		NewElementType(s);
-		NewElementType(small);
+		NewElementType(hSmall);
 		NewElementType(strong);
 		NewElementType(em);
 		NewElementType(mark);

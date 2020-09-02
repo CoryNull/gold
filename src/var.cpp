@@ -2038,7 +2038,9 @@ namespace gold {
 					if (b.isVec3()) {
 						// TODO: BX doesn't have a double function
 						auto x = bx::Vec3(
-							b.getDouble(0), b.getDouble(1), b.getDouble(2));
+							float(b.getDouble(0)),
+							float(b.getDouble(1)),
+							float(b.getDouble(2)));
 						auto res = bx::mul(
 							x,
 							bx::Quaternion{
@@ -2451,7 +2453,8 @@ namespace gold {
 				case typeFloat:
 					return var(bx::mod(b.getFloat(), getFloat()));
 				case typeDouble:
-					return var(bx::mod(b.getDouble(), getDouble()));
+					return var(
+						bx::mod(float(b.getDouble()), float(getDouble())));
 				case typePtr:
 					return var((void*)(b.getInt64() % getInt64()));
 				case typeInt64:
@@ -2632,13 +2635,11 @@ namespace gold {
 							bx::mod(getFloat(3), b.getFloat(3)),
 						});
 				case typeQuatDouble:
-					return var(
-						typeQuatDouble,
-						{
-							bx::mod(getDouble(0), b.getDouble(0)),
-							bx::mod(getDouble(1), b.getDouble(1)),
-							bx::mod(getDouble(2), b.getDouble(2)),
-							bx::mod(getDouble(3), b.getDouble(3)),
+					return var(typeQuatDouble, {
+							bx::mod(getFloat(0), b.getFloat(0)),
+							bx::mod(getFloat(1), b.getFloat(1)),
+							bx::mod(getFloat(2), b.getFloat(2)),
+							bx::mod(getFloat(3), b.getFloat(3)),
 						});
 
 				case typeMat3x3Float:
@@ -2659,15 +2660,24 @@ namespace gold {
 					return var(
 						typeMat3x3Float,
 						{
-							bx::mod(getDouble(0), b.getDouble(0)),
-							bx::mod(getDouble(1), b.getDouble(1)),
-							bx::mod(getDouble(2), b.getDouble(2)),
-							bx::mod(getDouble(3), b.getDouble(3)),
-							bx::mod(getDouble(4), b.getDouble(4)),
-							bx::mod(getDouble(5), b.getDouble(5)),
-							bx::mod(getDouble(6), b.getDouble(6)),
-							bx::mod(getDouble(7), b.getDouble(7)),
-							bx::mod(getDouble(8), b.getDouble(8)),
+							bx::mod(
+								float(getDouble(0)), float(b.getDouble(0))),
+							bx::mod(
+								float(getDouble(1)), float(b.getDouble(1))),
+							bx::mod(
+								float(getDouble(2)), float(b.getDouble(2))),
+							bx::mod(
+								float(getDouble(3)), float(b.getDouble(3))),
+							bx::mod(
+								float(getDouble(4)), float(b.getDouble(4))),
+							bx::mod(
+								float(getDouble(5)), float(b.getDouble(5))),
+							bx::mod(
+								float(getDouble(6)), float(b.getDouble(6))),
+							bx::mod(
+								float(getDouble(7)), float(b.getDouble(7))),
+							bx::mod(
+								float(getDouble(8)), float(b.getDouble(8))),
 						});
 				case typeMat4x4Float:
 					return var(
@@ -2694,22 +2704,22 @@ namespace gold {
 					return var(
 						typeMat4x4Double,
 						{
-							bx::mod(getDouble(0), b.getDouble(0)),
-							bx::mod(getDouble(1), b.getDouble(1)),
-							bx::mod(getDouble(2), b.getDouble(2)),
-							bx::mod(getDouble(3), b.getDouble(3)),
-							bx::mod(getDouble(4), b.getDouble(4)),
-							bx::mod(getDouble(5), b.getDouble(5)),
-							bx::mod(getDouble(6), b.getDouble(6)),
-							bx::mod(getDouble(7), b.getDouble(7)),
-							bx::mod(getDouble(8), b.getDouble(8)),
-							bx::mod(getDouble(9), b.getDouble(9)),
-							bx::mod(getDouble(10), b.getDouble(10)),
-							bx::mod(getDouble(11), b.getDouble(11)),
-							bx::mod(getDouble(12), b.getDouble(12)),
-							bx::mod(getDouble(13), b.getDouble(13)),
-							bx::mod(getDouble(14), b.getDouble(14)),
-							bx::mod(getDouble(15), b.getDouble(15)),
+							bx::mod((getFloat(0)), (b.getFloat(0))),
+							bx::mod((getFloat(1)), (b.getFloat(1))),
+							bx::mod((getFloat(2)), (b.getFloat(2))),
+							bx::mod((getFloat(3)), (b.getFloat(3))),
+							bx::mod((getFloat(4)), (b.getFloat(4))),
+							bx::mod((getFloat(5)), (b.getFloat(5))),
+							bx::mod((getFloat(6)), (b.getFloat(6))),
+							bx::mod((getFloat(7)), (b.getFloat(7))),
+							bx::mod((getFloat(8)), (b.getFloat(8))),
+							bx::mod((getFloat(9)), (b.getFloat(9))),
+							bx::mod((getFloat(10)), (b.getFloat(10))),
+							bx::mod((getFloat(11)), (b.getFloat(11))),
+							bx::mod((getFloat(12)), (b.getFloat(12))),
+							bx::mod((getFloat(13)), (b.getFloat(13))),
+							bx::mod((getFloat(14)), (b.getFloat(14))),
+							bx::mod((getFloat(15)), (b.getFloat(15))),
 						});
 
 				default:
@@ -3135,13 +3145,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Int64:
-				con->i64[min(i, 1ul)] = v;
+				con->i64[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Int64:
-				con->i64[min(i, 2ul)] = v;
+				con->i64[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4Int64:
-				con->i64[min(i, 3ul)] = v;
+				con->i64[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3152,13 +3162,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Int32:
-				con->i32[min(i, 1ul)] = v;
+				con->i32[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Int32:
-				con->i32[min(i, 2ul)] = v;
+				con->i32[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4Int32:
-				con->i32[min(i, 3ul)] = v;
+				con->i32[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3169,13 +3179,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Int16:
-				con->i16[min(i, 1ul)] = v;
+				con->i16[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Int16:
-				con->i16[min(i, 2ul)] = v;
+				con->i16[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4Int16:
-				con->i16[min(i, 3ul)] = v;
+				con->i16[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3186,13 +3196,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Int8:
-				con->i8[min(i, 1ul)] = v;
+				con->i8[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Int8:
-				con->i8[min(i, 2ul)] = v;
+				con->i8[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4Int8:
-				con->i8[min(i, 3ul)] = v;
+				con->i8[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3203,13 +3213,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2UInt64:
-				con->u64[min(i, 1ul)] = v;
+				con->u64[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3UInt64:
-				con->u64[min(i, 2ul)] = v;
+				con->u64[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4UInt64:
-				con->u64[min(i, 3ul)] = v;
+				con->u64[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3220,13 +3230,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2UInt32:
-				con->u32[min(i, 1ul)] = v;
+				con->u32[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3UInt32:
-				con->u32[min(i, 2ul)] = v;
+				con->u32[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4UInt32:
-				con->u32[min(i, 3ul)] = v;
+				con->u32[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3237,13 +3247,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2UInt16:
-				con->u16[min(i, 1ul)] = v;
+				con->u16[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3UInt16:
-				con->u16[min(i, 2ul)] = v;
+				con->u16[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4UInt16:
-				con->u16[min(i, 3ul)] = v;
+				con->u16[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3254,13 +3264,13 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2UInt16:
-				con->u8[min(i, 1ul)] = v;
+				con->u8[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3UInt16:
-				con->u8[min(i, 2ul)] = v;
+				con->u8[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeVec4UInt16:
-				con->u8[min(i, 3ul)] = v;
+				con->u8[min((unsigned long)i, 3ul)] = v;
 				break;
 			default:
 				break;
@@ -3271,20 +3281,20 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Double:
-				con->d[min(i, 1ul)] = v;
+				con->d[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Double:
-				con->d[min(i, 2ul)] = v;
+				con->d[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeQuatDouble:
 			case typeVec4Double:
-				con->d[min(i, 3ul)] = v;
+				con->d[min((unsigned long)i, 3ul)] = v;
 				break;
 			case typeMat3x3Double:
-				con->d[min(i, 8ul)] = v;
+				con->d[min((unsigned long)i, 8ul)] = v;
 				break;
 			case typeMat4x4Double:
-				con->d[min(i, 15ul)] = v;
+				con->d[min((unsigned long)i, 15ul)] = v;
 				break;
 			default:
 				break;
@@ -3295,20 +3305,20 @@ namespace gold {
 		auto con = sPtr.get();
 		switch (con->type) {
 			case typeVec2Float:
-				con->f[min(i, 1ul)] = v;
+				con->f[min((unsigned long)i, 1ul)] = v;
 				break;
 			case typeVec3Float:
-				con->f[min(i, 2ul)] = v;
+				con->f[min((unsigned long)i, 2ul)] = v;
 				break;
 			case typeQuatFloat:
 			case typeVec4Float:
-				con->f[min(i, 3ul)] = v;
+				con->f[min((unsigned long)i, 3ul)] = v;
 				break;
 			case typeMat3x3Float:
-				con->f[min(i, 8ul)] = v;
+				con->f[min((unsigned long)i, 8ul)] = v;
 				break;
 			case typeMat4x4Float:
-				con->f[min(i, 15ul)] = v;
+				con->f[min((unsigned long)i, 15ul)] = v;
 				break;
 			default:
 				break;
@@ -3335,95 +3345,95 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Int64:
-					return (con->i64[min(i, 1ul)]);
+					return (con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return (con->i64[min(i, 2ul)]);
+					return (con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return (con->i64[min(i, 3ul)]);
+					return (con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return (*con->i64);
 				case typePtr:
 					return (int64_t)(void*)con->data;
 				case typeVec2Int32:
-					return int64_t(con->i32[min(i, 1ul)]);
+					return int64_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return int64_t(con->i32[min(i, 2ul)]);
+					return int64_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return int64_t(con->i32[min(i, 3ul)]);
+					return int64_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return int64_t(*con->i32);
 				case typeVec2Int16:
-					return int64_t(con->i16[min(i, 1ul)]);
+					return int64_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return int64_t(con->i16[min(i, 2ul)]);
+					return int64_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return int64_t(con->i16[min(i, 3ul)]);
+					return int64_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return int64_t(*con->i16);
 				case typeVec2Int8:
-					return int64_t(con->i8[min(i, 1ul)]);
+					return int64_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return int64_t(con->i8[min(i, 2ul)]);
+					return int64_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return int64_t(con->i8[min(i, 3ul)]);
+					return int64_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return int64_t(*con->i8);
 				case typeVec2UInt64:
-					return int64_t(con->u64[min(i, 1ul)]);
+					return int64_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return int64_t(con->u64[min(i, 2ul)]);
+					return int64_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return int64_t(con->u64[min(i, 3ul)]);
+					return int64_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return int64_t(*con->u64);
 				case typeVec2UInt32:
-					return int64_t(con->u32[min(i, 1ul)]);
+					return int64_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return int64_t(con->u32[min(i, 2ul)]);
+					return int64_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return int64_t(con->u32[min(i, 3ul)]);
+					return int64_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return int64_t(*con->u32);
 				case typeVec2UInt16:
-					return int64_t(con->u16[min(i, 1ul)]);
+					return int64_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return int64_t(con->u16[min(i, 2ul)]);
+					return int64_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return int64_t(con->u16[min(i, 3ul)]);
+					return int64_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return int64_t(*con->u16);
 				case typeVec2UInt8:
-					return int64_t(con->u8[min(i, 1ul)]);
+					return int64_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return int64_t(con->u8[min(i, 2ul)]);
+					return int64_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return int64_t(con->u8[min(i, 3ul)]);
+					return int64_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return int64_t(*con->u8);
 				case typeVec2Double:
-					return int64_t(con->d[min(i, 1ul)]);
+					return int64_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return int64_t(con->d[min(i, 2ul)]);
+					return int64_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return int64_t(con->d[min(i, 3ul)]);
+					return int64_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return int64_t(con->d[min(i, 8ul)]);
+					return int64_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return int64_t(con->d[min(i, 15ul)]);
+					return int64_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return int64_t(*con->d);
 				case typeVec2Float:
-					return int64_t(con->f[min(i, 1ul)]);
+					return int64_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return int64_t(con->f[min(i, 2ul)]);
+					return int64_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return int64_t(con->f[min(i, 3ul)]);
+					return int64_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return int64_t(con->f[min(i, 8ul)]);
+					return int64_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return int64_t(con->f[min(i, 15ul)]);
+					return int64_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return int64_t(*con->f);
 				case typeBool:
@@ -3446,93 +3456,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Int32:
-					return (con->i32[min(i, 1ul)]);
+					return (con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return (con->i32[min(i, 2ul)]);
+					return (con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return (con->i32[min(i, 3ul)]);
+					return (con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return (*con->i32);
 				case typeVec2Int64:
-					return int32_t(con->i64[min(i, 1ul)]);
+					return int32_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return int32_t(con->i64[min(i, 2ul)]);
+					return int32_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return int32_t(con->i64[min(i, 3ul)]);
+					return int32_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return int32_t(*con->i64);
 				case typeVec2Int16:
-					return int32_t(con->i16[min(i, 1ul)]);
+					return int32_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return int32_t(con->i16[min(i, 2ul)]);
+					return int32_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return int32_t(con->i16[min(i, 3ul)]);
+					return int32_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return int32_t(*con->i16);
 				case typeVec2Int8:
-					return int32_t(con->i8[min(i, 1ul)]);
+					return int32_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return int32_t(con->i8[min(i, 2ul)]);
+					return int32_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return int32_t(con->i8[min(i, 3ul)]);
+					return int32_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return int32_t(*con->i8);
 				case typeVec2UInt64:
-					return int32_t(con->u64[min(i, 1ul)]);
+					return int32_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return int32_t(con->u64[min(i, 2ul)]);
+					return int32_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return int32_t(con->u64[min(i, 3ul)]);
+					return int32_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return int32_t(*con->u64);
 				case typeVec2UInt32:
-					return int32_t(con->u32[min(i, 1ul)]);
+					return int32_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return int32_t(con->u32[min(i, 2ul)]);
+					return int32_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return int32_t(con->u32[min(i, 3ul)]);
+					return int32_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return int32_t(*con->u32);
 				case typeVec2UInt16:
-					return int32_t(con->u16[min(i, 1ul)]);
+					return int32_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return int32_t(con->u16[min(i, 2ul)]);
+					return int32_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return int32_t(con->u16[min(i, 3ul)]);
+					return int32_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return int32_t(*con->u16);
 				case typeVec2UInt8:
-					return int32_t(con->u8[min(i, 1ul)]);
+					return int32_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return int32_t(con->u8[min(i, 2ul)]);
+					return int32_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return int32_t(con->u8[min(i, 3ul)]);
+					return int32_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return int32_t(*con->u8);
 				case typeVec2Double:
-					return int32_t(con->d[min(i, 1ul)]);
+					return int32_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return int32_t(con->d[min(i, 2ul)]);
+					return int32_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return int32_t(con->d[min(i, 3ul)]);
+					return int32_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return int32_t(con->d[min(i, 8ul)]);
+					return int32_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return int32_t(con->d[min(i, 15ul)]);
+					return int32_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return int32_t(*con->d);
 				case typeVec2Float:
-					return int32_t(con->f[min(i, 1ul)]);
+					return int32_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return int32_t(con->f[min(i, 2ul)]);
+					return int32_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return int32_t(con->f[min(i, 3ul)]);
+					return int32_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return int32_t(con->f[min(i, 8ul)]);
+					return int32_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return int32_t(con->f[min(i, 15ul)]);
+					return int32_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return int32_t(*con->f);
 				case typeBool:
@@ -3556,93 +3566,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Int16:
-					return (con->i16[min(i, 1ul)]);
+					return (con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return (con->i16[min(i, 2ul)]);
+					return (con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return (con->i16[min(i, 3ul)]);
+					return (con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return (*con->i16);
 				case typeVec2Int64:
-					return int16_t(con->i64[min(i, 1ul)]);
+					return int16_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return int16_t(con->i64[min(i, 2ul)]);
+					return int16_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return int16_t(con->i64[min(i, 3ul)]);
+					return int16_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return int16_t(*con->i64);
 				case typeVec2Int32:
-					return int16_t(con->i32[min(i, 1ul)]);
+					return int16_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return int16_t(con->i32[min(i, 2ul)]);
+					return int16_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return int16_t(con->i32[min(i, 3ul)]);
+					return int16_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return int16_t(*con->i32);
 				case typeVec2Int8:
-					return int16_t(con->i8[min(i, 1ul)]);
+					return int16_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return int16_t(con->i8[min(i, 2ul)]);
+					return int16_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return int16_t(con->i8[min(i, 3ul)]);
+					return int16_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return int16_t(*con->i8);
 				case typeVec2UInt64:
-					return int16_t(con->u64[min(i, 1ul)]);
+					return int16_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return int16_t(con->u64[min(i, 2ul)]);
+					return int16_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return int16_t(con->u64[min(i, 3ul)]);
+					return int16_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return int16_t(*con->u64);
 				case typeVec2UInt32:
-					return int16_t(con->u32[min(i, 1ul)]);
+					return int16_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return int16_t(con->u32[min(i, 2ul)]);
+					return int16_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return int16_t(con->u32[min(i, 3ul)]);
+					return int16_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return int16_t(*con->u32);
 				case typeVec2UInt16:
-					return int16_t(con->u16[min(i, 1ul)]);
+					return int16_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return int16_t(con->u16[min(i, 2ul)]);
+					return int16_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return int16_t(con->u16[min(i, 3ul)]);
+					return int16_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return int16_t(*con->u16);
 				case typeVec2UInt8:
-					return int16_t(con->u8[min(i, 1ul)]);
+					return int16_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return int16_t(con->u8[min(i, 2ul)]);
+					return int16_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return int16_t(con->u8[min(i, 3ul)]);
+					return int16_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return int16_t(*con->u8);
 				case typeVec2Double:
-					return int16_t(con->d[min(i, 1ul)]);
+					return int16_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return int16_t(con->d[min(i, 2ul)]);
+					return int16_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return int16_t(con->d[min(i, 3ul)]);
+					return int16_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return int16_t(con->d[min(i, 8ul)]);
+					return int16_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return int16_t(con->d[min(i, 15ul)]);
+					return int16_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return int16_t(*con->d);
 				case typeVec2Float:
-					return int16_t(con->f[min(i, 1ul)]);
+					return int16_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return int16_t(con->f[min(i, 2ul)]);
+					return int16_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return int16_t(con->f[min(i, 3ul)]);
+					return int16_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return int16_t(con->f[min(i, 8ul)]);
+					return int16_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return int16_t(con->f[min(i, 15ul)]);
+					return int16_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return int16_t(*con->f);
 				case typeBool:
@@ -3666,93 +3676,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Int8:
-					return (con->i8[min(i, 1ul)]);
+					return (con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return (con->i8[min(i, 2ul)]);
+					return (con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return (con->i8[min(i, 3ul)]);
+					return (con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return (*con->i8);
 				case typeVec2Int64:
-					return int8_t(con->i64[min(i, 1ul)]);
+					return int8_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return int8_t(con->i64[min(i, 2ul)]);
+					return int8_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return int8_t(con->i64[min(i, 3ul)]);
+					return int8_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return int8_t(*con->i64);
 				case typeVec2Int32:
-					return int8_t(con->i32[min(i, 1ul)]);
+					return int8_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return int8_t(con->i32[min(i, 2ul)]);
+					return int8_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return int8_t(con->i32[min(i, 3ul)]);
+					return int8_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return int8_t(*con->i32);
 				case typeVec2Int16:
-					return int8_t(con->i16[min(i, 1ul)]);
+					return int8_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return int8_t(con->i16[min(i, 2ul)]);
+					return int8_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return int8_t(con->i16[min(i, 3ul)]);
+					return int8_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return int8_t(*con->i16);
 				case typeVec2UInt64:
-					return int8_t(con->u64[min(i, 1ul)]);
+					return int8_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return int8_t(con->u64[min(i, 2ul)]);
+					return int8_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return int8_t(con->u64[min(i, 3ul)]);
+					return int8_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return int8_t(*con->u64);
 				case typeVec2UInt32:
-					return int8_t(con->u32[min(i, 1ul)]);
+					return int8_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return int8_t(con->u32[min(i, 2ul)]);
+					return int8_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return int8_t(con->u32[min(i, 3ul)]);
+					return int8_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return int8_t(*con->u32);
 				case typeVec2UInt16:
-					return int8_t(con->u16[min(i, 1ul)]);
+					return int8_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return int8_t(con->u16[min(i, 2ul)]);
+					return int8_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return int8_t(con->u16[min(i, 3ul)]);
+					return int8_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return int8_t(*con->u16);
 				case typeVec2UInt8:
-					return int8_t(con->u8[min(i, 1ul)]);
+					return int8_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return int8_t(con->u8[min(i, 2ul)]);
+					return int8_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return int8_t(con->u8[min(i, 3ul)]);
+					return int8_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return int8_t(*con->u8);
 				case typeVec2Double:
-					return int8_t(con->d[min(i, 1ul)]);
+					return int8_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return int8_t(con->d[min(i, 2ul)]);
+					return int8_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return int8_t(con->d[min(i, 3ul)]);
+					return int8_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return int8_t(con->d[min(i, 8ul)]);
+					return int8_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return int8_t(con->d[min(i, 15ul)]);
+					return int8_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return int8_t(*con->d);
 				case typeVec2Float:
-					return int8_t(con->f[min(i, 1ul)]);
+					return int8_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return int8_t(con->f[min(i, 2ul)]);
+					return int8_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return int8_t(con->f[min(i, 3ul)]);
+					return int8_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return int8_t(con->f[min(i, 8ul)]);
+					return int8_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return int8_t(con->f[min(i, 15ul)]);
+					return int8_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return int8_t(*con->f);
 				case typeBool:
@@ -3776,95 +3786,95 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2UInt64:
-					return (con->u64[min(i, 1ul)]);
+					return (con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return (con->u64[min(i, 2ul)]);
+					return (con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return (con->u64[min(i, 3ul)]);
+					return (con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return (*con->u64);
 				case typeVec2Int64:
-					return uint64_t(con->i64[min(i, 1ul)]);
+					return uint64_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return uint64_t(con->i64[min(i, 2ul)]);
+					return uint64_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return uint64_t(con->i64[min(i, 3ul)]);
+					return uint64_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return uint64_t(*con->i64);
 				case typePtr:
 					return (uint64_t)(void*)con->data;
 				case typeVec2Int32:
-					return uint64_t(con->i32[min(i, 1ul)]);
+					return uint64_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return uint64_t(con->i32[min(i, 2ul)]);
+					return uint64_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return uint64_t(con->i32[min(i, 3ul)]);
+					return uint64_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return uint64_t(*con->i32);
 				case typeVec2Int16:
-					return uint64_t(con->i16[min(i, 1ul)]);
+					return uint64_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return uint64_t(con->i16[min(i, 2ul)]);
+					return uint64_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return uint64_t(con->i16[min(i, 3ul)]);
+					return uint64_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return uint64_t(*con->i16);
 				case typeVec2Int8:
-					return uint64_t(con->i8[min(i, 1ul)]);
+					return uint64_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return uint64_t(con->i8[min(i, 2ul)]);
+					return uint64_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return uint64_t(con->i8[min(i, 3ul)]);
+					return uint64_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return uint64_t(*con->i8);
 				case typeVec2UInt32:
-					return uint64_t(con->u32[min(i, 1ul)]);
+					return uint64_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return uint64_t(con->u32[min(i, 2ul)]);
+					return uint64_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return uint64_t(con->u32[min(i, 3ul)]);
+					return uint64_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return uint64_t(*con->u32);
 				case typeVec2UInt16:
-					return uint64_t(con->u16[min(i, 1ul)]);
+					return uint64_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return uint64_t(con->u16[min(i, 2ul)]);
+					return uint64_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return uint64_t(con->u16[min(i, 3ul)]);
+					return uint64_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return uint64_t(*con->u16);
 				case typeVec2UInt8:
-					return uint64_t(con->u8[min(i, 1ul)]);
+					return uint64_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return uint64_t(con->u8[min(i, 2ul)]);
+					return uint64_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return uint64_t(con->u8[min(i, 3ul)]);
+					return uint64_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return uint64_t(*con->u8);
 				case typeVec2Double:
-					return uint64_t(con->d[min(i, 1ul)]);
+					return uint64_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return uint64_t(con->d[min(i, 2ul)]);
+					return uint64_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return uint64_t(con->d[min(i, 3ul)]);
+					return uint64_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return uint64_t(con->d[min(i, 8ul)]);
+					return uint64_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return uint64_t(con->d[min(i, 15ul)]);
+					return uint64_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return uint64_t(*con->d);
 				case typeVec2Float:
-					return uint64_t(con->f[min(i, 1ul)]);
+					return uint64_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return uint64_t(con->f[min(i, 2ul)]);
+					return uint64_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return uint64_t(con->f[min(i, 3ul)]);
+					return uint64_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return uint64_t(con->f[min(i, 8ul)]);
+					return uint64_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return uint64_t(con->f[min(i, 15ul)]);
+					return uint64_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return uint64_t(*con->f);
 				case typeBool:
@@ -3888,93 +3898,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2UInt32:
-					return (con->u32[min(i, 1ul)]);
+					return (con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return (con->u32[min(i, 2ul)]);
+					return (con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return (con->u32[min(i, 3ul)]);
+					return (con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return (*con->u32);
 				case typeVec2Int64:
-					return uint32_t(con->i64[min(i, 1ul)]);
+					return uint32_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return uint32_t(con->i64[min(i, 2ul)]);
+					return uint32_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return uint32_t(con->i64[min(i, 3ul)]);
+					return uint32_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return uint32_t(*con->i64);
 				case typeVec2Int32:
-					return uint32_t(con->i32[min(i, 1ul)]);
+					return uint32_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return uint32_t(con->i32[min(i, 2ul)]);
+					return uint32_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return uint32_t(con->i32[min(i, 3ul)]);
+					return uint32_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return uint32_t(*con->i32);
 				case typeVec2Int16:
-					return uint32_t(con->i16[min(i, 1ul)]);
+					return uint32_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return uint32_t(con->i16[min(i, 2ul)]);
+					return uint32_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return uint32_t(con->i16[min(i, 3ul)]);
+					return uint32_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return uint32_t(*con->i16);
 				case typeVec2Int8:
-					return uint32_t(con->i8[min(i, 1ul)]);
+					return uint32_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return uint32_t(con->i8[min(i, 2ul)]);
+					return uint32_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return uint32_t(con->i8[min(i, 3ul)]);
+					return uint32_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return uint32_t(*con->i8);
 				case typeVec2UInt64:
-					return uint32_t(con->u64[min(i, 1ul)]);
+					return uint32_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return uint32_t(con->u64[min(i, 2ul)]);
+					return uint32_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return uint32_t(con->u64[min(i, 3ul)]);
+					return uint32_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return uint32_t(*con->u64);
 				case typeVec2UInt16:
-					return uint32_t(con->u16[min(i, 1ul)]);
+					return uint32_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return uint32_t(con->u16[min(i, 2ul)]);
+					return uint32_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return uint32_t(con->u16[min(i, 3ul)]);
+					return uint32_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return uint32_t(*con->u16);
 				case typeVec2UInt8:
-					return uint32_t(con->u8[min(i, 1ul)]);
+					return uint32_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return uint32_t(con->u8[min(i, 2ul)]);
+					return uint32_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return uint32_t(con->u8[min(i, 3ul)]);
+					return uint32_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return uint32_t(*con->u8);
 				case typeVec2Double:
-					return uint32_t(con->d[min(i, 1ul)]);
+					return uint32_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return uint32_t(con->d[min(i, 2ul)]);
+					return uint32_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return uint32_t(con->d[min(i, 3ul)]);
+					return uint32_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return uint32_t(con->d[min(i, 8ul)]);
+					return uint32_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return uint32_t(con->d[min(i, 15ul)]);
+					return uint32_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return uint32_t(*con->d);
 				case typeVec2Float:
-					return uint32_t(con->f[min(i, 1ul)]);
+					return uint32_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return uint32_t(con->f[min(i, 2ul)]);
+					return uint32_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return uint32_t(con->f[min(i, 3ul)]);
+					return uint32_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return uint32_t(con->f[min(i, 8ul)]);
+					return uint32_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return uint32_t(con->f[min(i, 15ul)]);
+					return uint32_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return uint32_t(*con->f);
 				case typeBool:
@@ -3999,93 +4009,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2UInt16:
-					return (con->u16[min(i, 1ul)]);
+					return (con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return (con->u16[min(i, 2ul)]);
+					return (con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return (con->u16[min(i, 3ul)]);
+					return (con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return (*con->u16);
 				case typeVec2Int64:
-					return uint16_t(con->i64[min(i, 1ul)]);
+					return uint16_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return uint16_t(con->i64[min(i, 2ul)]);
+					return uint16_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return uint16_t(con->i64[min(i, 3ul)]);
+					return uint16_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return uint16_t(*con->i64);
 				case typeVec2Int32:
-					return uint16_t(con->i32[min(i, 1ul)]);
+					return uint16_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return uint16_t(con->i32[min(i, 2ul)]);
+					return uint16_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return uint16_t(con->i32[min(i, 3ul)]);
+					return uint16_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return uint16_t(*con->i32);
 				case typeVec2Int16:
-					return uint16_t(con->i16[min(i, 1ul)]);
+					return uint16_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return uint16_t(con->i16[min(i, 2ul)]);
+					return uint16_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return uint16_t(con->i16[min(i, 3ul)]);
+					return uint16_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return uint16_t(*con->i16);
 				case typeVec2Int8:
-					return uint16_t(con->i8[min(i, 1ul)]);
+					return uint16_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return uint16_t(con->i8[min(i, 2ul)]);
+					return uint16_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return uint16_t(con->i8[min(i, 3ul)]);
+					return uint16_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return uint16_t(*con->i8);
 				case typeVec2UInt64:
-					return uint16_t(con->u64[min(i, 1ul)]);
+					return uint16_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return uint16_t(con->u64[min(i, 2ul)]);
+					return uint16_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return uint16_t(con->u64[min(i, 3ul)]);
+					return uint16_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return uint16_t(*con->u64);
 				case typeVec2UInt32:
-					return uint16_t(con->u32[min(i, 1ul)]);
+					return uint16_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return uint16_t(con->u32[min(i, 2ul)]);
+					return uint16_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return uint16_t(con->u32[min(i, 3ul)]);
+					return uint16_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return uint16_t(*con->u32);
 				case typeVec2UInt8:
-					return uint16_t(con->u8[min(i, 1ul)]);
+					return uint16_t(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return uint16_t(con->u8[min(i, 2ul)]);
+					return uint16_t(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return uint16_t(con->u8[min(i, 3ul)]);
+					return uint16_t(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return uint16_t(*con->u8);
 				case typeVec2Double:
-					return uint16_t(con->d[min(i, 1ul)]);
+					return uint16_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return uint16_t(con->d[min(i, 2ul)]);
+					return uint16_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return uint16_t(con->d[min(i, 3ul)]);
+					return uint16_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return uint16_t(con->d[min(i, 8ul)]);
+					return uint16_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return uint16_t(con->d[min(i, 15ul)]);
+					return uint16_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return uint16_t(*con->d);
 				case typeVec2Float:
-					return uint16_t(con->f[min(i, 1ul)]);
+					return uint16_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return uint16_t(con->f[min(i, 2ul)]);
+					return uint16_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return uint16_t(con->f[min(i, 3ul)]);
+					return uint16_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return uint16_t(con->f[min(i, 8ul)]);
+					return uint16_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return uint16_t(con->f[min(i, 15ul)]);
+					return uint16_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return uint16_t(*con->f);
 				case typeBool:
@@ -4110,93 +4120,93 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2UInt8:
-					return (con->u8[min(i, 1ul)]);
+					return (con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return (con->u8[min(i, 2ul)]);
+					return (con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return (con->u8[min(i, 3ul)]);
+					return (con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return (*con->u8);
 				case typeVec2Int64:
-					return uint8_t(con->i64[min(i, 1ul)]);
+					return uint8_t(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return uint8_t(con->i64[min(i, 2ul)]);
+					return uint8_t(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return uint8_t(con->i64[min(i, 3ul)]);
+					return uint8_t(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return uint8_t(*con->i64);
 				case typeVec2Int32:
-					return uint8_t(con->i32[min(i, 1ul)]);
+					return uint8_t(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return uint8_t(con->i32[min(i, 2ul)]);
+					return uint8_t(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return uint8_t(con->i32[min(i, 3ul)]);
+					return uint8_t(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return uint8_t(*con->i32);
 				case typeVec2Int16:
-					return uint8_t(con->i16[min(i, 1ul)]);
+					return uint8_t(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return uint8_t(con->i16[min(i, 2ul)]);
+					return uint8_t(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return uint8_t(con->i16[min(i, 3ul)]);
+					return uint8_t(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return uint8_t(*con->i16);
 				case typeVec2Int8:
-					return uint8_t(con->i8[min(i, 1ul)]);
+					return uint8_t(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return uint8_t(con->i8[min(i, 2ul)]);
+					return uint8_t(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return uint8_t(con->i8[min(i, 3ul)]);
+					return uint8_t(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return uint8_t(*con->i8);
 				case typeVec2UInt64:
-					return uint8_t(con->u64[min(i, 1ul)]);
+					return uint8_t(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return uint8_t(con->u64[min(i, 2ul)]);
+					return uint8_t(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return uint8_t(con->u64[min(i, 3ul)]);
+					return uint8_t(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return uint8_t(*con->u64);
 				case typeVec2UInt32:
-					return uint8_t(con->u32[min(i, 1ul)]);
+					return uint8_t(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return uint8_t(con->u32[min(i, 2ul)]);
+					return uint8_t(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return uint8_t(con->u32[min(i, 3ul)]);
+					return uint8_t(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return uint8_t(*con->u32);
 				case typeVec2UInt16:
-					return uint8_t(con->u16[min(i, 1ul)]);
+					return uint8_t(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return uint8_t(con->u16[min(i, 2ul)]);
+					return uint8_t(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return uint8_t(con->u16[min(i, 3ul)]);
+					return uint8_t(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return uint8_t(*con->u16);
 				case typeVec2Double:
-					return uint8_t(con->d[min(i, 1ul)]);
+					return uint8_t(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return uint8_t(con->d[min(i, 2ul)]);
+					return uint8_t(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return uint8_t(con->d[min(i, 3ul)]);
+					return uint8_t(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return uint8_t(con->d[min(i, 8ul)]);
+					return uint8_t(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return uint8_t(con->d[min(i, 15ul)]);
+					return uint8_t(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return uint8_t(*con->d);
 				case typeVec2Float:
-					return uint8_t(con->f[min(i, 1ul)]);
+					return uint8_t(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return uint8_t(con->f[min(i, 2ul)]);
+					return uint8_t(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return uint8_t(con->f[min(i, 3ul)]);
+					return uint8_t(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return uint8_t(con->f[min(i, 8ul)]);
+					return uint8_t(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return uint8_t(con->f[min(i, 15ul)]);
+					return uint8_t(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return uint8_t(*con->f);
 				case typeBool:
@@ -4220,95 +4230,95 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Double:
-					return (con->d[min(i, 1ul)]);
+					return (con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return (con->d[min(i, 2ul)]);
+					return (con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return (con->d[min(i, 3ul)]);
+					return (con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return (con->d[min(i, 8ul)]);
+					return (con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return (con->d[min(i, 15ul)]);
+					return (con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return (*con->d);
 				case typeVec2Int64:
-					return double(con->i64[min(i, 1ul)]);
+					return double(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return double(con->i64[min(i, 2ul)]);
+					return double(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return double(con->i64[min(i, 3ul)]);
+					return double(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return double(*con->i64);
 				case typePtr:
 					return (double)(uint64_t)(void*)con->data;
 				case typeVec2Int32:
-					return double(con->i32[min(i, 1ul)]);
+					return double(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return double(con->i32[min(i, 2ul)]);
+					return double(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return double(con->i32[min(i, 3ul)]);
+					return double(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return double(*con->i32);
 				case typeVec2Int16:
-					return double(con->i16[min(i, 1ul)]);
+					return double(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return double(con->i16[min(i, 2ul)]);
+					return double(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return double(con->i16[min(i, 3ul)]);
+					return double(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return double(*con->i16);
 				case typeVec2Int8:
-					return double(con->i8[min(i, 1ul)]);
+					return double(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return double(con->i8[min(i, 2ul)]);
+					return double(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return double(con->i8[min(i, 3ul)]);
+					return double(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return double(*con->i8);
 				case typeVec2UInt64:
-					return double(con->u64[min(i, 1ul)]);
+					return double(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return double(con->u64[min(i, 2ul)]);
+					return double(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return double(con->u64[min(i, 3ul)]);
+					return double(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return double(*con->u64);
 				case typeVec2UInt32:
-					return double(con->u32[min(i, 1ul)]);
+					return double(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return double(con->u32[min(i, 2ul)]);
+					return double(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return double(con->u32[min(i, 3ul)]);
+					return double(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return double(*con->u32);
 				case typeVec2UInt16:
-					return double(con->u16[min(i, 1ul)]);
+					return double(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return double(con->u16[min(i, 2ul)]);
+					return double(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return double(con->u16[min(i, 3ul)]);
+					return double(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return double(*con->u16);
 				case typeVec2UInt8:
-					return double(con->u8[min(i, 1ul)]);
+					return double(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return double(con->u8[min(i, 2ul)]);
+					return double(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return double(con->u8[min(i, 3ul)]);
+					return double(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return double(*con->u8);
 				case typeVec2Float:
-					return double(con->f[min(i, 1ul)]);
+					return double(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return double(con->f[min(i, 2ul)]);
+					return double(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return double(con->f[min(i, 3ul)]);
+					return double(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return double(con->f[min(i, 8ul)]);
+					return double(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return double(con->f[min(i, 15ul)]);
+					return double(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return double(*con->f);
 				case typeBool:
@@ -4331,95 +4341,95 @@ namespace gold {
 		if (con) {
 			switch (con->type) {
 				case typeVec2Float:
-					return (con->f[min(i, 1ul)]);
+					return (con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return (con->f[min(i, 2ul)]);
+					return (con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return (con->f[min(i, 3ul)]);
+					return (con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return (con->f[min(i, 8ul)]);
+					return (con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return (con->f[min(i, 15ul)]);
+					return (con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return (*con->f);
 				case typeVec2Double:
-					return (con->d[min(i, 1ul)]);
+					return float(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return (con->d[min(i, 2ul)]);
+					return float(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return (con->d[min(i, 3ul)]);
+					return float(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return (con->d[min(i, 8ul)]);
+					return float(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return (con->d[min(i, 15ul)]);
+					return float(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return float(*con->d);
 				case typeVec2Int64:
-					return float(con->i64[min(i, 1ul)]);
+					return float(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return float(con->i64[min(i, 2ul)]);
+					return float(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return float(con->i64[min(i, 3ul)]);
+					return float(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return float(*con->i64);
 				case typePtr:
 					return (float)(uint64_t)(void*)con->data;
 				case typeVec2Int32:
-					return float(con->i32[min(i, 1ul)]);
+					return float(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return float(con->i32[min(i, 2ul)]);
+					return float(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return float(con->i32[min(i, 3ul)]);
+					return float(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return float(*con->i32);
 				case typeVec2Int16:
-					return float(con->i16[min(i, 1ul)]);
+					return float(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return float(con->i16[min(i, 2ul)]);
+					return float(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return float(con->i16[min(i, 3ul)]);
+					return float(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return float(*con->i16);
 				case typeVec2Int8:
-					return float(con->i8[min(i, 1ul)]);
+					return float(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return float(con->i8[min(i, 2ul)]);
+					return float(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return float(con->i8[min(i, 3ul)]);
+					return float(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return float(*con->i8);
 				case typeVec2UInt64:
-					return float(con->u64[min(i, 1ul)]);
+					return float(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return float(con->u64[min(i, 2ul)]);
+					return float(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return float(con->u64[min(i, 3ul)]);
+					return float(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return float(*con->u64);
 				case typeVec2UInt32:
-					return float(con->u32[min(i, 1ul)]);
+					return float(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return float(con->u32[min(i, 2ul)]);
+					return float(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return float(con->u32[min(i, 3ul)]);
+					return float(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return float(*con->u32);
 				case typeVec2UInt16:
-					return float(con->u16[min(i, 1ul)]);
+					return float(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return float(con->u16[min(i, 2ul)]);
+					return float(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return float(con->u16[min(i, 3ul)]);
+					return float(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return float(*con->u16);
 				case typeVec2UInt8:
-					return float(con->u8[min(i, 1ul)]);
+					return float(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return float(con->u8[min(i, 2ul)]);
+					return float(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return float(con->u8[min(i, 3ul)]);
+					return float(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return float(*con->u8);
 				case typeBool:
@@ -4444,95 +4454,95 @@ namespace gold {
 				case typeBool:
 					return bool(*con->b);
 				case typeVec2Int64:
-					return bool(con->i64[min(i, 1ul)]);
+					return bool(con->i64[min((unsigned long)i, 1ul)]);
 				case typeVec3Int64:
-					return bool(con->i64[min(i, 2ul)]);
+					return bool(con->i64[min((unsigned long)i, 2ul)]);
 				case typeVec4Int64:
-					return bool(con->i64[min(i, 3ul)]);
+					return bool(con->i64[min((unsigned long)i, 3ul)]);
 				case typeInt64:
 					return bool(*con->i64);
 				case typePtr:
 					return (bool)(void*)con->data;
 				case typeVec2Int32:
-					return bool(con->i32[min(i, 1ul)]);
+					return bool(con->i32[min((unsigned long)i, 1ul)]);
 				case typeVec3Int32:
-					return bool(con->i32[min(i, 2ul)]);
+					return bool(con->i32[min((unsigned long)i, 2ul)]);
 				case typeVec4Int32:
-					return bool(con->i32[min(i, 3ul)]);
+					return bool(con->i32[min((unsigned long)i, 3ul)]);
 				case typeInt32:
 					return bool(*con->i32);
 				case typeVec2Int16:
-					return bool(con->i16[min(i, 1ul)]);
+					return bool(con->i16[min((unsigned long)i, 1ul)]);
 				case typeVec3Int16:
-					return bool(con->i16[min(i, 2ul)]);
+					return bool(con->i16[min((unsigned long)i, 2ul)]);
 				case typeVec4Int16:
-					return bool(con->i16[min(i, 3ul)]);
+					return bool(con->i16[min((unsigned long)i, 3ul)]);
 				case typeInt16:
 					return bool(*con->i16);
 				case typeVec2Int8:
-					return bool(con->i8[min(i, 1ul)]);
+					return bool(con->i8[min((unsigned long)i, 1ul)]);
 				case typeVec3Int8:
-					return bool(con->i8[min(i, 2ul)]);
+					return bool(con->i8[min((unsigned long)i, 2ul)]);
 				case typeVec4Int8:
-					return bool(con->i8[min(i, 3ul)]);
+					return bool(con->i8[min((unsigned long)i, 3ul)]);
 				case typeInt8:
 					return bool(*con->i8);
 				case typeVec2UInt64:
-					return bool(con->u64[min(i, 1ul)]);
+					return bool(con->u64[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt64:
-					return bool(con->u64[min(i, 2ul)]);
+					return bool(con->u64[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt64:
-					return bool(con->u64[min(i, 3ul)]);
+					return bool(con->u64[min((unsigned long)i, 3ul)]);
 				case typeUInt64:
 					return bool(*con->u64);
 				case typeVec2UInt32:
-					return bool(con->u32[min(i, 1ul)]);
+					return bool(con->u32[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt32:
-					return bool(con->u32[min(i, 2ul)]);
+					return bool(con->u32[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt32:
-					return bool(con->u32[min(i, 3ul)]);
+					return bool(con->u32[min((unsigned long)i, 3ul)]);
 				case typeUInt32:
 					return bool(*con->u32);
 				case typeVec2UInt16:
-					return bool(con->u16[min(i, 1ul)]);
+					return bool(con->u16[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt16:
-					return bool(con->u16[min(i, 2ul)]);
+					return bool(con->u16[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt16:
-					return bool(con->u16[min(i, 3ul)]);
+					return bool(con->u16[min((unsigned long)i, 3ul)]);
 				case typeUInt16:
 					return bool(*con->u16);
 				case typeVec2UInt8:
-					return bool(con->u8[min(i, 1ul)]);
+					return bool(con->u8[min((unsigned long)i, 1ul)]);
 				case typeVec3UInt8:
-					return bool(con->u8[min(i, 2ul)]);
+					return bool(con->u8[min((unsigned long)i, 2ul)]);
 				case typeVec4UInt8:
-					return bool(con->u8[min(i, 3ul)]);
+					return bool(con->u8[min((unsigned long)i, 3ul)]);
 				case typeUInt8:
 					return bool(*con->u8);
 				case typeVec2Float:
-					return bool(con->f[min(i, 1ul)]);
+					return bool(con->f[min((unsigned long)i, 1ul)]);
 				case typeVec3Float:
-					return bool(con->f[min(i, 2ul)]);
+					return bool(con->f[min((unsigned long)i, 2ul)]);
 				case typeVec4Float:
 				case typeQuatFloat:
-					return bool(con->f[min(i, 3ul)]);
+					return bool(con->f[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Float:
-					return bool(con->f[min(i, 8ul)]);
+					return bool(con->f[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Float:
-					return bool(con->f[min(i, 15ul)]);
+					return bool(con->f[min((unsigned long)i, 15ul)]);
 				case typeFloat:
 					return bool(*con->f);
 				case typeVec2Double:
-					return bool(con->d[min(i, 1ul)]);
+					return bool(con->d[min((unsigned long)i, 1ul)]);
 				case typeVec3Double:
-					return bool(con->d[min(i, 2ul)]);
+					return bool(con->d[min((unsigned long)i, 2ul)]);
 				case typeVec4Double:
 				case typeQuatDouble:
-					return bool(con->d[min(i, 3ul)]);
+					return bool(con->d[min((unsigned long)i, 3ul)]);
 				case typeMat3x3Double:
-					return bool(con->d[min(i, 8ul)]);
+					return bool(con->d[min((unsigned long)i, 8ul)]);
 				case typeMat4x4Double:
-					return bool(con->d[min(i, 15ul)]);
+					return bool(con->d[min((unsigned long)i, 15ul)]);
 				case typeDouble:
 					return bool(*con->d);
 				case typeBinary:

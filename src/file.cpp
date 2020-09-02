@@ -1,5 +1,8 @@
 #include "file.hpp"
 
+#include <cryptopp/base64.h>
+#include <cryptopp/filters.h>
+
 #include <chrono>
 #include <fstream>
 #include <functional>
@@ -8,6 +11,8 @@
 namespace gold {
 	using value_t = nlohmann::detail::value_t;
 	namespace fs = std::filesystem;
+	const auto preferred_separator =
+		fs::path::preferred_separator;
 
 	obj& file::getPrototype() {
 		static auto proto = obj({
@@ -19,6 +24,16 @@ namespace gold {
 			{"extension", method(&file::extension)},
 		});
 		return proto;
+	}
+
+	path file::forwardPath(path p) {
+		auto str = p.native();
+		for (size_t i = 0; i < str.length(); ++i) {
+			auto c = str[i];
+			if (c == '\\') str[i] = '/';
+		}
+		p = path(str);
+		return p;
 	}
 
 	file::file() : obj() {}
@@ -40,27 +55,27 @@ namespace gold {
 
 	var file::save(list args) {
 		auto path = getString("path");
-		auto data = getStringView("data");
+		auto bin = getStringView("data");
 		for (auto it = args.begin(); it != args.end(); ++it)
 			if (it->isString() && path == "")
 				path = it->getString();
 			else if (
 				(it->isBinary() || it->isString() || it->isView()) &&
-				data.size() == 0)
-				data = it->getStringView();
+				bin.size() == 0)
+				bin = it->getStringView();
 			else
 				break;
 		if (path.size() == 0)
 			return genericError(
 				"path is empty, supply as argument or set path on "
 				"object");
-		if (data.size() == 0)
+		if (bin.size() == 0)
 			return genericError(
 				"data is empty, supply as argument or set data on "
 				"object");
 		auto str = ofstream(path);
 		if (str.is_open()) {
-			str.write((char*)data.data(), data.size());
+			str.write((char*)bin.data(), bin.size());
 			str.close();
 			auto writeTime = fs::last_write_time(path);
 			auto wtms =
@@ -83,25 +98,24 @@ namespace gold {
 					"path is empty, supply as argument or set path on "
 					"object");
 			if (fs::exists(path)) {
-				auto data = getStringView("data");
+				auto bin = getStringView("data");
 				auto writeTime = fs::last_write_time(path);
 				auto wtms = (uint64_t)std::chrono::duration_cast<
 											std::chrono::nanoseconds>(
 											writeTime.time_since_epoch())
 											.count();
 				auto lastWriteTime = getUInt64("writeTime");
-				if (data.size() > 0 && wtms == lastWriteTime)
-					return data;
+				if (bin.size() > 0 && wtms == lastWriteTime) return bin;
 				auto str = ifstream(path);
 				if (str.is_open()) {
 					str.seekg(0, str.end);
 					auto size = size_t(str.tellg());
-					auto bin = binary(size);
+					auto read = binary(size);
 					str.seekg(0, str.beg);
-					str.read((char*)bin.data(), bin.size());
+					str.read((char*)read.data(), read.size());
 					str.close();
 					setUInt64("writeTime", wtms);
-					setBinary("data", bin);
+					setBinary("data", read);
 					return getStringView("data");
 				}
 			}
@@ -141,45 +155,45 @@ namespace gold {
 	}
 
 	var file::hash(list args) {
-		auto data = binary();
+		auto bin = binary();
 		if (args.size() > 0)
-			args[0].assignBinary(data);
+			args[0].assignBinary(bin);
 		else
-			assignBinary("data", data);
-		auto strData = string_view((char*)data.data(), data.size());
+			assignBinary("data", bin);
+		auto strData = string_view((char*)bin.data(), bin.size());
 		auto h = std::hash<string_view>();
 		return to_string((uint64_t)h(strData));
 	}
 
-	var file::extension() {
+	var file::extension(list args) {
 		return fs::path(getString("path")).extension().string();
 	}
 
-	var file::asJSON() {
+	var file::asJSON(list args) {
 		auto d = getStringView("data");
 		if (d.size() > 0) return file::parseJSON(d);
 		return var();
 	}
 
-	var file::asBSON() {
+	var file::asBSON(list args) {
 		auto d = getStringView("data");
 		if (d.size() > 0) return file::parseBSON(d);
 		return var();
 	}
 
-	var file::asCBOR() {
+	var file::asCBOR(list args) {
 		auto d = getStringView("data");
 		if (d.size() > 0) return file::parseCBOR(d);
 		return var();
 	}
 
-	var file::asMsgPack() {
+	var file::asMsgPack(list args) {
 		auto d = getStringView("data");
 		if (d.size() > 0) return file::parseMsgPack(d);
 		return var();
 	}
 
-	var file::asUBJSON() {
+	var file::asUBJSON(list args) {
 		auto d = getStringView("data");
 		if (d.size() > 0) return file::parseUBJSON(d);
 		return var();
@@ -212,25 +226,21 @@ namespace gold {
 			auto point = fs::canonical(p);
 			auto cwd = fs::current_path();
 			auto pName = point.string();
-			pName = pName.substr(pName.rfind('/') + 1);
+			pName =
+				pName.substr(pName.rfind(preferred_separator) + 1);
 			auto absPoint = fs::canonical(point);
 			if (fs::exists(absPoint) && fs::is_directory(absPoint)) {
-				for (auto& p : fs::recursive_directory_iterator(
+				for (auto& ip : fs::recursive_directory_iterator(
 							 absPoint,
 							 fs::directory_options::
 								 follow_directory_symlink)) {
-					auto chop = p.path().string().find(pName);
-					auto relURL = fs::relative(p, cwd);
-					auto url =
-						fs::path(p.path().string().substr(chop - 1));
-					if (!fs::is_directory(p)) {
-						auto urlStr = url.string();
-						if (urlStr.find("index.html") != string::npos)
-							urlStr = urlStr.substr(
-								0, urlStr.size() - strlen("index.html"));
-						auto f = file(p);
-						results.setObject(urlStr, f);
-					}
+					auto chop = ip.path().string().find(pName);
+					auto relURL = fs::relative(ip, cwd);
+					auto url = forwardPath(
+						fs::path(ip.path().string().substr(chop - 1)));
+
+					if (!fs::is_directory(ip))
+						results.setObject(url.string(), file(ip));
 				}
 			} else {
 				auto e =
@@ -343,9 +353,9 @@ namespace gold {
 		return toSet;
 	}
 
-	object json2Object(json& value) {
+	object json2Object(json& j) {
 		auto ret = obj();
-		for (auto it = value.begin(); it != value.end(); ++it) {
+		for (auto it = j.begin(); it != j.end(); ++it) {
 			auto name = it.key();
 			auto value = it.value();
 			var toSet = var();
@@ -380,10 +390,10 @@ namespace gold {
 		return ret;
 	}
 
-	list json2List(json& value) {
+	list json2List(json& j) {
 		auto ret = list();
 		size_t i = 0;
-		for (auto it = value.begin(); it != value.end(); ++it) {
+		for (auto it = j.begin(); it != j.end(); ++it) {
 			auto value = it.value();
 			var toSet = var();
 			switch (value.type()) {
@@ -875,80 +885,27 @@ namespace gold {
 		return out;
 	}
 
-	inline void decodeBlock(
-		string_view base64In, binary* binOut) {
-		// CREDIT: github.com/Jim-CodeHub/libmime
-		// CHANGES: variableNames, formatting
+	binary file::decodeBase64(string_view v) {
+		using namespace CryptoPP;
+		string out;
 
-		const unsigned char* _base64In =
-			(const unsigned char*)base64In.data();
+		StringSource ss(
+			(CryptoPP::byte*)v.data(), v.size(), true,
+			new Base64URLDecoder(
+				new StringSink(out))  // Base64URLDecoder
+		);                            // StringSource
 
-		const char table[] = {
-			/* clang-format off */
-/*		---------------------------------------------------------------------------------------------------!  "  #  $  %  &  '  (  )  *  +  */
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 
-
-/*		,  -   .  /   0	  1   2   3   4   5   6   7   8   9   :  ;  <  =  >  ?  @  A  B  C  D  E  F  G  H  I  J  K   L   M   N   O   P   Q  */ 
-			0, 62, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-
-/*		R   S   T   U   V   W   X   Y   Z   [  \  ]  ^  _   `  a   b   c   d   e   f   g   h   i   g   k   l   m   n   o   p   q   r   s   t */
-			17, 18, 19, 20, 21, 22, 23, 24, 25, 0, 0, 0, 0, 63, 0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-
-/*		u   v   w   x   y   z */
-			46, 47, 48,	49, 50, 51
-			/* clang-format on */
-		};
-
-		switch (
-			base64In.size()) /*< Case 1,2,3 is to be compatible with
-						the base64 variant schema of omitted '=' */
-		{
-			case 0:
-				break;
-			case 1:
-				binOut->push_back(table[_base64In[0]] << 2);
-				break;
-			case 2:
-				binOut->push_back(
-					(table[_base64In[0]] << 2) |
-					(table[_base64In[1]] >> 4));
-				binOut->push_back(table[_base64In[1]] << 4);
-				break;
-			case 3:
-				binOut->push_back(
-					(table[_base64In[0]] << 2) |
-					(table[_base64In[1]] >> 4));
-				binOut->push_back(
-					(table[_base64In[1]] << 4) |
-					(table[_base64In[2]] >> 2));
-				binOut->push_back(table[_base64In[2]] << 6);
-				break;
-			default:
-				binOut->push_back(
-					(table[_base64In[0]] << 2) |
-					(table[_base64In[1]] >> 4));
-				binOut->push_back(
-					(table[_base64In[1]] << 4) |
-					(table[_base64In[2]] >> 2));
-				binOut->push_back(
-					(table[_base64In[2]] << 6) | (table[_base64In[3]]));
-		}
+		return binary(out.begin(), out.end());
 	}
 
-	binary file::decodeBase64(string_view v) {
-		auto out = binary();
-		out.reserve(v.size() / 4 * 3);
-		size_t i = 0;
-		size_t k = 0;
-
-		while (i < v.size()) {
-			for (k = 0; k < 4; k++)
-				if ('\0' == v[i + k]) break;
-
-			auto view = string_view(v.data() + i, k);
-			i += k;
-			decodeBlock(view, &out);
-		}
+	string file::encodeBase64(binary b) {
+		using namespace CryptoPP;
+		string out;
+		StringSource ss(
+			b.data(), b.size(), true,
+			new Base64URLEncoder(
+				new StringSink(out))  // Base64URLEncoder
+		);                        // StringSource
 		return out;
 	}
 

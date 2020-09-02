@@ -1,7 +1,5 @@
 #include "promise.hpp"
 
-#include <unistd.h>
-
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -68,7 +66,9 @@ namespace gold {
 				try {
 					if (getPromise(job)) job.call();
 					job = promise();
-					usleep(threadSleep);
+					this_thread::sleep_for(
+						std::chrono::microseconds(threadSleep)
+																	 );
 				} catch (exception e) {
 					printError(e.what());
 				}
@@ -168,7 +168,8 @@ namespace gold {
 		} else {
 			auto status = getInt8("status");
 			while (status == 0) {
-				usleep(threadSleep);
+				this_thread::sleep_for(
+					std::chrono::microseconds(threadSleep));
 				status = getInt8("status");
 			}
 			return getVar("response");

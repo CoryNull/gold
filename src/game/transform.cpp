@@ -118,7 +118,7 @@ namespace gold {
 		return var();
 	}
 
-	var transform::getEuler() {
+	var transform::getEuler(list) {
 		auto rot = getVar("rot");
 		auto qua = bx::Quaternion{rot.getFloat(0), rot.getFloat(1),
 															rot.getFloat(2), rot.getFloat(3)};
@@ -126,11 +126,11 @@ namespace gold {
 		return vec3f(v3.x, v3.y, v3.z);
 	}
 
-	var transform::getPosition() { return getVar("pos"); }
+	var transform::getPosition(list) { return getVar("pos"); }
 
-	var transform::getRotation() { return getVar("rot"); }
+	var transform::getRotation(list) { return getVar("rot"); }
 
-	var transform::getScale() { return getVar("scl"); }
+	var transform::getScale(list) { return getVar("scl"); }
 
 	var transform::getMatrix(list) {
 		if (getBool("rebuild", false) == false) {

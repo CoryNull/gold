@@ -1,1 +1,0 @@
-../../../3rdParty/bgfx/src/bgfx_shader.sh

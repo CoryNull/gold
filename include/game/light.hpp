@@ -10,16 +10,16 @@ namespace gold {
 		light(object config);
 
 		var setColor(list args);
-		var getColor();
+		var getColor(list args = {});
 		var setIntensity(list args);
-		var getIntensity();
+		var getIntensity(list args = {});
 		var setCone(list args);
-		var getCone();
+		var getCone(list args = {});
 		var setType(list args);
-		var getType();
+		var getType(list args = {});
 
-		var getArea();
+		var getArea(list args = {});
 
-		var drawScene(list comps, uint16_t scene);
+		var drawScene(list args);
 	};
 }  // namespace gold

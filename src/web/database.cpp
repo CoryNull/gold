@@ -1,6 +1,7 @@
 #include "database.hpp"
 
 #include <mongoc.h>
+#include <string.h>
 
 #include <chrono>
 #include <cstdint>
@@ -554,15 +555,8 @@ namespace gold {
 			}
 			return *this;
 		}
-		auto res = col.updateOne({
-			obj{
-				{"_id", id},
-			},
-			obj{
-				{"$set", *this},
-			},
-			obj{},
-		});
+		auto res = col.updateOne(
+			{obj{{"_id", id}}, obj{{"$set", *this}}, obj{}});
 		if (res.isError())
 			return res;
 		else if (res.isObject()) {
@@ -591,6 +585,81 @@ namespace gold {
 
 	string model::getID() { return getString("_id"); }
 
+	var model::addOwners(list args) {
+		auto owners = getList("owners");
+		if (owners)
+			for (auto it = args.begin(); it != args.end(); ++it) {
+				string id = "";
+				if (it->isObject())
+					id = it->getObject().getString("_id");
+				else if (it->isString())
+					id = it->getString();
+				if (validID(id) && owners.find(id) == owners.end())
+					owners.pushString(id);
+			}
+		return gold::var();
+	}
+
+	var model::removeOwners(list args) {
+		auto owners = getList("owners");
+		if (owners)
+			for (auto it = args.begin(); it != args.end(); ++it) {
+				if (it->isObject()) {
+					auto o = it->getObject();
+					auto id = o.getString("_id");
+					auto oit = owners.find(id);
+					if (oit != owners.end()) owners.erase(oit);
+				} else if (it->isString()) {
+					auto id = it->getString();
+					auto oit = owners.find(id);
+					if (oit != owners.end()) owners.erase(oit);
+				}
+			}
+		return gold::var();
+	}
+
+	var model::isOwner(list args) {
+		auto owners = getList("owners");
+		if (args.size() > 1) {
+			auto ret = gold::list();
+			for (auto it = args.begin(); it != args.end(); ++it) {
+				if (it->isObject()) {
+					auto o = it->getObject();
+					auto id = o.getString("_id");
+					auto oit = owners.find(id);
+					if (oit != owners.end())
+						ret.pushBool(true);
+					else
+						ret.pushBool(false);
+				} else if (it->isString()) {
+					auto id = it->getString();
+					auto oit = owners.find(id);
+					if (oit != owners.end())
+						ret.pushBool(true);
+					else
+						ret.pushBool(false);
+				} else {
+					ret.pushBool(false);
+				}
+			}
+			return ret;
+		} else {
+			// 1
+			auto arg = args[0];
+			if (arg.isObject()) {
+				auto o = arg.getObject();
+				auto id = o.getString("_id");
+				auto oit = owners.find(id);
+				if (oit != owners.end()) return true;
+			} else if (arg.isString()) {
+				auto id = arg.getString();
+				auto oit = owners.find(id);
+				if (oit != owners.end()) return true;
+			}
+		}
+		return false;
+	}
+
 	string model::newID() {
 		bson_oid_t oid;
 		auto ss = stringstream();
@@ -600,9 +669,16 @@ namespace gold {
 		return ss.str();
 	}
 
+	bool model::validID(string_view id) {
+		if (id.length() > 24) return false;
+		for (auto it = id.begin(); it != id.end(); ++it)
+			if (!isalnum(*it)) return false;
+		return true;
+	}
+
 	uint64_t getMonoTime() {
 		return duration_cast<std::chrono::milliseconds>(
-						 std::chrono::high_resolution_clock::now()
+						 std::chrono::system_clock::now()
 							 .time_since_epoch())
 			.count();
 	}

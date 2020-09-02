@@ -218,6 +218,21 @@ namespace gold {
 				try {
 					auto p = string(req->getUrl());
 					auto f = mounts.getObject<file>(p);
+					if (!f) {
+						auto assetIndex = p.find("/assets/");
+						if (assetIndex != string::npos) {
+							p = p.substr(0, assetIndex) +
+									p.substr(assetIndex + 8);
+							f = mounts.getObject<file>(p);
+						}
+						if (!f) {
+							auto indexIndex = p.find("/index.");
+							if (indexIndex != string::npos) {
+								p = p.substr(0, indexIndex);
+								f = mounts.getObject<file>(p);
+							}
+						}
+					}
 					auto chash = req->getHeader("if-none-match");
 					auto control = getString("cacheControl");
 					if (f) {
@@ -229,16 +244,14 @@ namespace gold {
 								res->writeHeader("Cache-Control", control);
 								res->end();
 							} else {
-								auto bin = loaded.getBinary();
-								auto strView =
-									string_view((char*)bin.data(), bin.size());
+								auto bin = loaded.getStringView();
 								res->writeStatus(HTTP_200_OK);
 								auto ext = fs::path(p).extension().string();
 								auto ct = mimeMap[ext];
 								res->writeHeader("Content-Type", ct);
 								res->writeHeader("Cache-Control", control);
 								res->writeHeader("ETag", hash);
-								res->end(strView);
+								res->end(bin);
 							}
 						} else {
 							res->writeStatus("404 Not Found");
@@ -387,10 +400,9 @@ namespace gold {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto mounts = getObject("mounts");
-		for (auto it = args.begin(); it != args.end(); ++it) {
-			auto point = fs::canonical(it->getString());
-			file::recursiveReadDirectory(point, mounts);
-		}
+		for (auto it = args.begin(); it != args.end(); ++it)
+			file::recursiveReadDirectory(
+				fs::canonical(it->getString()), mounts);
 
 		return var();
 	}
@@ -494,24 +506,24 @@ namespace gold {
 	}
 
 	var response::end(list args) {
-		auto data = binary();
+		auto bin = binary();
 		if (args[0].isObject(HTML::iHTML::getPrototype())) {
-			data = args[0].getObject<HTML::iHTML>();
+			bin = args[0].getObject<HTML::iHTML>();
 			writeHeader({"Content-Type", "text/html"});
 		} else if (args[0].isObject()) {
-			data = args[0].getObject().getJSONBin();
+			bin = args[0].getObject().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isList()) {
-			data = args[0].getList().getJSONBin();
+			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
-			data = args[0].getBinary();
+			bin = args[0].getBinary();
 
 		auto headers = getObject("headers");
 		auto code = getUInt16("code");
 		auto status = httpReturnStatusMap[code];
 
-		auto strV = string_view((char*)data.data(), data.size());
+		auto strV = string_view((char*)bin.data(), bin.size());
 		auto ssl = getBool("ssl");
 		if (ssl) {
 			auto res = (HttpResponse<true>*)getPtr("handle");
@@ -548,24 +560,24 @@ namespace gold {
 	}
 
 	var response::tryEnd(list args) {
-		auto data = binary();
+		auto bin = binary();
 		if (args[0].isObject(HTML::iHTML::getPrototype())) {
-			data = args[0].getObject<HTML::iHTML>();
+			bin = args[0].getObject<HTML::iHTML>();
 			writeHeader({"Content-Type", "text/html"});
 		} else if (args[0].isObject()) {
-			data = args[0].getObject().getJSONBin();
+			bin = args[0].getObject().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isList()) {
-			data = args[0].getList().getJSONBin();
+			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
-			data = args[0].getBinary();
+			bin = args[0].getBinary();
 
 		auto headers = getObject("headers");
 		auto code = getUInt16("code");
 		auto status = httpReturnStatusMap[code];
 
-		auto strV = string_view((char*)data.data(), data.size());
+		auto strV = string_view((char*)bin.data(), bin.size());
 		auto size = args.size() >= 2 ? args[1].getInt32() : 0;
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -602,13 +614,13 @@ namespace gold {
 	}
 
 	var response::write(list args) {
-		auto data = binary();
+		auto bin = binary();
 		if (args[0].isObject(HTML::iHTML::getPrototype())) {
-			data = args[0].getObject<HTML::iHTML>();
+			bin = args[0].getObject<HTML::iHTML>();
 			writeHeader({"Content-Type", "text/html"});
 		} else if (args[0].isView())
-			data = args[0].getBinary();
-		auto strV = string_view((char*)data.data(), data.size());
+			bin = args[0].getBinary();
+		auto strV = string_view((char*)bin.data(), bin.size());
 
 		auto ssl = getBool("ssl");
 		if (ssl) {
@@ -731,7 +743,7 @@ namespace gold {
 					headers.setString(k, v);
 			}
 		}
-		size_t i = 0;
+		uint32_t i = 0;
 		auto currentParm = req->getParameter(i);
 		while (currentParm.data() && currentParm.size() > 0) {
 			params.pushString(string(currentParm));
@@ -745,7 +757,9 @@ namespace gold {
 		setPtr("handle", req);
 	}
 
-	var request::getAllHeaders() { return getObject("headers"); }
+	var request::getAllHeaders(list args) {
+		return getObject("headers");
+	}
 
 	var request::getHeader(list args) {
 		auto headers = getObject("headers");
@@ -756,7 +770,9 @@ namespace gold {
 		return headers[lch];
 	}
 
-	var request::getMethod() { return getString("method"); }
+	var request::getMethod(list args) {
+		return getString("method");
+	}
 
 	var request::getParameter(list args) {
 		auto in = args[0].getUInt32();
@@ -764,11 +780,13 @@ namespace gold {
 		return params[in];
 	}
 
-	var request::getQuery() { return getString("query"); }
+	var request::getQuery(list args) {
+		return getString("query");
+	}
 
-	var request::getUrl() { return getString("path"); }
+	var request::getUrl(list args) { return getString("path"); }
 
-	var request::getYield() {
+	var request::getYield(list args) {
 		auto handle = (uWS::HttpRequest*)getPtr("handle");
 		return handle->getYield();
 	}

@@ -16,7 +16,7 @@ namespace gold {
 		return proto;
 	}
 
-	var envMap::getSize() { return getVar("size"); }
+	var envMap::getSize(list) { return getVar("size"); }
 
 	envMap::envMap() : component() { setParent(getPrototype()); }
 

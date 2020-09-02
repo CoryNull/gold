@@ -29,7 +29,7 @@ namespace gold {
 		return color;
 	}
 
-	var light::getColor() { return getUInt32("color"); }
+	var light::getColor(list) { return getUInt32("color"); }
 
 	var light::setIntensity(list args) {
 		float in = args[0].getFloat();
@@ -37,7 +37,9 @@ namespace gold {
 		return in;
 	}
 
-	var light::getIntensity() { return getFloat("intensity"); }
+	var light::getIntensity(list) {
+		return getFloat("intensity");
+	}
 
 	var light::setCone(list args) {
 		auto val = list::getVec2f(args);
@@ -45,7 +47,7 @@ namespace gold {
 		return val;
 	}
 
-	var light::getCone() { return getVar("cone"); }
+	var light::getCone(list) { return getVar("cone"); }
 
 	var light::setType(list args) {
 		auto val = args.getString(0);
@@ -53,11 +55,13 @@ namespace gold {
 		return val;
 	}
 
-	var light::getType() { return getString("type"); }
+	var light::getType(list) { return getString("type"); }
 
-	var light::getArea() { return var(); }
+	var light::getArea(list) { return var(); }
 
-	var light::drawScene(list comps, uint16_t scene) {
+	var light::drawScene(list args) {
+		auto comps = args.getList(0);
+		auto scene = args.getUInt16(1);
 		return var();
 	}
 

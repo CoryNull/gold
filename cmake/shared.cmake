@@ -19,7 +19,7 @@ add_library(
 )
 
 if(MSVC)
-  target_compile_options(goldShared PRIVATE /W4 /WX)
+  target_compile_options(goldShared PRIVATE /W4)
 else()
   target_compile_options(goldShared PRIVATE -Wall -Wextra -pedantic)
 endif()
@@ -28,17 +28,27 @@ target_include_directories(
 	goldShared
 	PUBLIC
 		"include"
+		3rdParty/
 		3rdParty/uWebSockets/src
 )
 
 target_link_libraries (
 	goldShared
 	PUBLIC 
+		cryptopp-static
 		bx
 		bimg
 		nlohmann_json::nlohmann_json
-		stdc++fs
 )
+
+if(MSVC)
+else()
+	target_link_libraries (
+		goldShared
+		PUBLIC 
+			stdc++fs
+	)
+endif(MSVC)
 
 target_compile_features(
 	goldShared

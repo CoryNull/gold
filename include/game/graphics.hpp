@@ -14,11 +14,11 @@ namespace gold {
 		gfxBackend();
 		gfxBackend(object config);
 
-		var destroy();
+		var destroy(list args = {});
 		var initialize(list args = {});
-		var preFrame();
-		var renderFrame();
-		var getConfig();
+		var preFrame(list args = {});
+		var renderFrame(list args = {});
+		var getConfig(list args = {});
 	};
 
 	struct frameBuffer : public object {
@@ -81,7 +81,7 @@ namespace gold {
 		shaderObject();
 		shaderObject(object config);
 
-		var getAllUniforms();
+		var getAllUniforms(list args = {});
 		void destroy();
 	};
 

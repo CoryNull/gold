@@ -23,8 +23,8 @@ namespace gold {
 		static object& getPrototype();
 		component();
 		component(object config);
-		var initialize();
-		var update();
+		var initialize(list args = {});
+		var update(list args = {});
 		var draw(list args);
 	};
 }  // namespace gold

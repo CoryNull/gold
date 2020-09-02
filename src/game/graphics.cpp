@@ -1,6 +1,6 @@
 #include "graphics.hpp"
 
-#include <SDL2/SDL_syswm.h>
+#include <SDL_syswm.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <bimg/bimg.h>
@@ -23,7 +23,7 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include "SDL2/SDL.h"
+#include <SDL.h>
 
 namespace gold {
 	bgfx::PlatformData pd = bgfx::PlatformData();
@@ -167,11 +167,11 @@ namespace gold {
 		return var();
 	}
 
-	var gfxBackend::renderFrame() { return bgfx::frame(false); }
+	var gfxBackend::renderFrame(list) { return bgfx::frame(false); }
 
-	var gfxBackend::getConfig() {
+	var gfxBackend::getConfig(list) {
 		auto allowed = defaultBackendConfig;
-		auto config = obj();
+		auto config = obj(defaultBackendConfig);
 		for (auto it = begin(); it != end(); ++it) {
 			auto def = allowed[it->first];
 			if (def.getType() != typeNull && it->second != def)
@@ -180,7 +180,7 @@ namespace gold {
 		return config;
 	}
 
-	var gfxBackend::destroy() {
+	var gfxBackend::destroy(list) {
 		for (auto it = frameBuffer::cache.begin();
 				 it != frameBuffer::cache.end();
 				 ++it)
@@ -237,7 +237,7 @@ namespace gold {
 		return var();
 	}
 
-	var gfxBackend::preFrame() {
+	var gfxBackend::preFrame(list) {
 		bgfx::touch(0);
 		return var();
 	}
@@ -258,7 +258,7 @@ namespace gold {
 	frameBuffer::frameBuffer() : obj() {}
 	frameBuffer::frameBuffer(object config) : obj(config) {
 		setParent(getPrototype());
-		bgfx::FrameBufferHandle handle;
+		bgfx::FrameBufferHandle handle = {bgfx::kInvalidHandle};
 		if (config.getType("attachments") == typeList) {
 			auto attachments = vector<bgfx::Attachment>();
 			auto attachentObjs = config.getList("attachments");
@@ -281,7 +281,8 @@ namespace gold {
 			}
 
 			handle = bgfx::createFrameBuffer(
-				attachments.size(), attachments.data(), destroyTexs);
+				uint8_t(attachments.size()), attachments.data(),
+				destroyTexs);
 		} else if (config.getType("textures") == typeList) {
 			auto handles = vector<bgfx::TextureHandle>();
 			auto textureObjs = config.getList("textures");
@@ -294,7 +295,7 @@ namespace gold {
 					bgfx::TextureHandle{tex.getUInt16("idx")});
 			}
 			handle = bgfx::createFrameBuffer(
-				handles.size(), handles.data(), destroyTexs);
+				uint8_t(handles.size()), handles.data(), destroyTexs);
 		} else if (config.getVar("ratio").isNumber()) {
 			auto ratio =
 				(bgfx::BackbufferRatio::Enum)config.getUInt8("ratio");
@@ -350,7 +351,7 @@ namespace gold {
 	void frameBuffer::setName(string name) {
 		auto handle = bgfx::FrameBufferHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
-		bgfx::setName(handle, name.c_str(), name.size());
+		bgfx::setName(handle, name.c_str(), int32_t(name.size()));
 	}
 
 	var frameBuffer::getTexture(uint8_t attachment) {
@@ -454,7 +455,8 @@ namespace gold {
 		if (v.isView()) {
 			// Load compiled binary
 			auto bin = v.getStringView();
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto strData = string_view((char*)mem->data, mem->size);
 			auto h = std::hash<string_view>();
 			setString("hash", to_string((uint64_t)h(strData)));
@@ -466,16 +468,16 @@ namespace gold {
 				getUInt8("type", shaderc::ShaderType::ST_COMPUTE));
 			auto path = filesystem::path(s.getString());
 			auto defines = getString("defines");
-			auto varying = getString(
-				"varying", filesystem::path(path).replace_filename(
-										 "varying.def.sc"));
+			auto varDef = filesystem::path(path).replace_filename(
+				"varying.def.sc");
+			auto varying = getString("varying", varDef.string());
 			auto inputs = getList("inputs", list());
 			auto outputs = getList("outputs", list());
 			if (inputs.size() > 0 || outputs.size() > 0) {
 				// Generate source from inputs and outputs
 				// Prepend i/o arguments for application
 				auto source = file::readFile(path).getObject<file>();
-				string tempDir = filesystem::temp_directory_path();
+				string tempDir = filesystem::temp_directory_path().string();
 				auto now =
 					to_string(duration_cast<std::chrono::milliseconds>(
 											std::chrono::high_resolution_clock::now()
@@ -510,7 +512,7 @@ namespace gold {
 			}
 			// TODO: Add profile from backend
 			auto mem = shaderc::compileShader(
-				type, path.c_str(), defines.c_str(), varying.c_str(),
+				type, (const char*)path.c_str(), defines.c_str(), varying.c_str(),
 				nullptr);
 			if (mem) {
 				auto strData = string_view((char*)mem->data, mem->size);
@@ -529,7 +531,7 @@ namespace gold {
 			cache[to_string((uint64_t)this)] = *this;
 	}
 
-	var shaderObject::getAllUniforms() {
+	var shaderObject::getAllUniforms(list) {
 		auto handle = bgfx::ShaderHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
 		if (bgfx::isValid(handle)) {
@@ -1091,19 +1093,19 @@ namespace gold {
 		return flags;
 	}
 
-	bgfx::TextureHandle gpuTexture::parseData(binary& data) {
+	bgfx::TextureHandle gpuTexture::parseData(binary& bin) {
 		auto flagsStr = getString("flags");
 		toLower(flagsStr);
 		uint64_t flags = sampleStringToFlags(flagsStr);
 		auto handle = bgfx::TextureHandle{bgfx::kInvalidHandle};
 		auto img = image({
-			{"data", data},
+			{"data", bin},
 		});
 		copy(img);
 		auto pData = getStringView("data");
-		auto mem = bgfx::makeRef(pData.data(), pData.size());
+		auto mem =
+			bgfx::makeRef(pData.data(), uint32_t(pData.size()));
 
-		auto skip = getUInt8("skip");
 		auto info = bgfx::TextureInfo();
 		auto format =
 			(bgfx::TextureFormat::Enum)getUInt32("format");
@@ -1154,11 +1156,12 @@ namespace gold {
 		auto depthVar = config.getVar("depth");
 		auto widthVar = config.getVar("width");
 		auto heightVar = config.getVar("height");
-		var data = getVar("data");
+		var binData = getVar("data");
 		string_view bin;
 		if (sizeVar && sizeVar.getUInt16() != 0) {
-			bin = data.getStringView();
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			bin = binData.getStringView();
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto size = sizeVar.getUInt16();
 			auto layers = getUInt16("layers");
 			auto mips = getBool("hasMips");
@@ -1170,8 +1173,9 @@ namespace gold {
 			depthVar && depthVar.getUInt16() != 0 && widthVar &&
 			widthVar.getUInt16() != 0 && heightVar &&
 			heightVar.getUInt16() != 0) {
-			bin = data.getStringView();
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			bin = binData.getStringView();
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto width = widthVar.getUInt16();
 			auto height = heightVar.getUInt16();
 			auto depth = depthVar.getUInt16();
@@ -1183,8 +1187,9 @@ namespace gold {
 		} else if (
 			widthVar && widthVar.getUInt16() != 0 && heightVar &&
 			heightVar.getUInt16() != 0) {
-			bin = data.getStringView();
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			bin = binData.getStringView();
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto width = widthVar.getUInt16();
 			auto height = heightVar.getUInt16();
 			auto mips = getBool("hasMips");
@@ -1193,9 +1198,9 @@ namespace gold {
 				"format", bgfx::TextureFormat::Count);
 			handle = bgfx::createTexture2D(
 				width, height, mips, layers, format, flags, mem);
-		} else if (data.isView()) {
-			auto bin = data.getBinary();
-			handle = parseData(bin);
+		} else if (binData.isView()) {
+			auto b = binData.getBinary();
+			handle = parseData(b);
 		} else if (config.getType("path") == typeString) {
 			auto path = getString("path");
 			if (path.size() > 0) {
@@ -1207,13 +1212,14 @@ namespace gold {
 			}
 		}
 		if (bgfx::isValid(handle)) {
-			bgfx::setName(handle, name.c_str(), name.size());
+			bgfx::setName(handle, name.c_str(), int32_t(name.size()));
 			setUInt16("idx", handle.idx);
 			cache[name] = *this;
 		}
 	}
 
-	void gpuTexture::update(object data) {
+	void gpuTexture::update(object info) {
+		//TODO: This function feels wrong... figure out why
 		auto handle = bgfx::TextureHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
 		if (!bgfx::isValid(handle)) return;
@@ -1222,13 +1228,14 @@ namespace gold {
 		auto w = getUInt16("width");
 		auto h = getUInt16("heigth");
 		auto mip = getUInt8("mip");
-		auto sideVar = data.getVar("side");
-		auto depthVar = data.getVar("depth");
+		auto sideVar = info.getVar("side");
+		auto depthVar = info.getVar("depth");
 		if (sideVar && sideVar.getUInt8() < 6) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto layer = getUInt16("layer");
-			auto side = sideVar.getUInt16();
+			auto side = sideVar.getUInt8();
 			auto pitch = getUInt16("pitch", UINT16_MAX);
 			bgfx::updateTextureCube(
 				handle, layer, side, mip, x, y, w, h, mem, pitch);
@@ -1236,14 +1243,16 @@ namespace gold {
 			depthVar && depthVar.getUInt16() != 0 && w != 0 &&
 			h != 0) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto z = getUInt16("z");
 			auto depth = depthVar.getUInt16();
 			bgfx::updateTexture3D(
 				handle, mip, x, y, z, w, h, depth, mem);
 		} else if (w != 0 && h != 0) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto layer = getUInt16("layer");
 			auto pitch = getUInt16("pitch", UINT16_MAX);
 			bgfx::updateTexture2D(
@@ -1308,10 +1317,10 @@ namespace gold {
 			s[0], s[1], s[2]);
 	}
 
-	uint32_t gpuTexture::readTexture(void* data, uint8_t mip) {
+	uint32_t gpuTexture::readTexture(void* bin, uint8_t mip) {
 		auto handle = bgfx::TextureHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
-		return bgfx::readTexture(handle, data, mip);
+		return bgfx::readTexture(handle, bin, mip);
 	}
 	void* gpuTexture::getDirectAccessPtr() {
 		auto handle = bgfx::TextureHandle{
@@ -1323,7 +1332,7 @@ namespace gold {
 		auto handle = bgfx::TextureHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
 		if (!bgfx::isValid(handle)) return;
-		bgfx::setName(handle, name.c_str(), name.size());
+		bgfx::setName(handle, name.c_str(), int32_t(name.size()));
 	}
 	void gpuTexture::destroy() {
 		auto handle = bgfx::TextureHandle{
@@ -1404,13 +1413,15 @@ namespace gold {
 			*(bgfx::VertexLayout*)layoutObj.getPtr("layout");
 		if (type == standardBufferType) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto handle =
 				bgfx::createVertexBuffer(mem, layout, flags);
 			setUInt16("idx", handle.idx);
 		} else if (type == dynamicBufferType) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto handle =
 				bgfx::createDynamicVertexBuffer(mem, layout, flags);
 			setUInt16("idx", handle.idx);
@@ -1427,19 +1438,18 @@ namespace gold {
 	}
 
 	void vertexBuffer::update(
-		binary data, uint64_t start, uint64_t end) {
+		binary bin, uint64_t start, uint64_t end) {
 		auto type = getUInt8("type", nullBufferType);
-		auto it = data.begin();
-		if (end == UINT64_MAX) end = data.size();
+		auto it = bin.begin();
+		if (end == UINT64_MAX) end = bin.size();
 		if (type == dynamicBufferType) {
 			auto dstBin = getStringView("data");
-			auto dstIt = (char*)dstBin.begin();
-			auto endIt = dstBin.begin();
+			auto dstIt = dstBin.begin();
+			auto endIt = dstBin.end();
 			advance(dstIt, start);
 			advance(endIt, end);
-			for (; dstIt != endIt; ++dstIt, ++it) {
-				*dstIt = *it;
-			}
+			for (; dstIt != endIt; ++dstIt, ++it) 
+				*((char*)&(*dstIt)) = *it;
 		} else if (type == transientBufferType) {
 			auto transBuffer =
 				(bgfx::TransientVertexBuffer*)getPtr("trans");
@@ -1523,12 +1533,14 @@ namespace gold {
 		auto type = getUInt8("type");
 		if (type == standardBufferType) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto handle = bgfx::createIndexBuffer(mem, flags);
 			setUInt16("idx", handle.idx);
 		} else if (type == dynamicBufferType) {
 			auto bin = getStringView("data");
-			auto mem = bgfx::makeRef(bin.data(), bin.size());
+			auto mem =
+				bgfx::makeRef(bin.data(), uint32_t(bin.size()));
 			auto handle = bgfx::createDynamicIndexBuffer(mem, flags);
 			setUInt16("idx", handle.idx);
 		} else if (type == transientBufferType) {

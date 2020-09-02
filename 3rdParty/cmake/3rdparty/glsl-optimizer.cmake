@@ -84,4 +84,8 @@ elseif(APPLE)
 endif()
 set_target_properties( glsl-optimizer PROPERTIES FOLDER "bgfx/3rdparty" )
 
-set_target_properties( glsl-optimizer PROPERTIES COMPILE_FLAGS "-Wno-deprecated-register")
+if(MSVC)
+
+else()
+	set_target_properties( glsl-optimizer PROPERTIES COMPILE_FLAGS "-Wno-deprecated-register")
+endif()

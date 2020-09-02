@@ -34,6 +34,7 @@ target_include_directories( glslang PUBLIC
 	${BGFX_DIR}/3rdparty/glslang
 	${BGFX_DIR}/3rdparty/glslang/glslang/Include
 	${BGFX_DIR}/3rdparty/glslang/glslang/Public
+	${BGFX_DIR}/3rdparty
 )
 
 set_target_properties( glslang PROPERTIES FOLDER "bgfx/3rdparty" )

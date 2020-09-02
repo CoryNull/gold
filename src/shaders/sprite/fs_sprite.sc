@@ -1,6 +1,6 @@
 $input v_texcoord0
 
-#include "../common/bgfx_shader.sh"
+#include <bgfx_shader.sh>
 
 SAMPLER2D(s_texColor, 0);
 uniform vec4 u_color0;

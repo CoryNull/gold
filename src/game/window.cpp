@@ -1,6 +1,6 @@
 #include "window.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <iostream>
 #include <map>
@@ -229,7 +229,7 @@ namespace gold {
 
 	var window::getConfig(list) {
 		auto allowed = windowConfigDefault;
-		auto config = obj();
+		auto config = obj(windowConfigDefault);
 		for (auto it = begin(); it != end(); ++it) {
 			auto def = allowed[it->first];
 			if (def.getType() != typeNull && it->second != def)

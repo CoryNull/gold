@@ -438,6 +438,7 @@ namespace gold {
 		void findParent();
 		template <typename T>
 		void setExpression(string name, T value);
+		var getExpression(string name);
 
 	 public:
 		typedef initializer_list<omap::value_type> initList;
@@ -559,6 +560,7 @@ namespace gold {
 			setObject(name, o);
 			return o;
 		}
+		static var generateHash(string value, string salt);
 	};
 	using obj = object;
 

@@ -106,8 +106,7 @@ namespace gg {
 			};
 		}
 
-		auto errJson = errors.getJSON();
-		auto errComment = string("<!--") + errJson.dump() + "-->";
+		auto errComment = string("<!--") + errors.getJSON() + "-->";
 		ret += {errComment};
 		return ret;
 	}

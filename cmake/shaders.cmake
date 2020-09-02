@@ -1,3 +1,4 @@
+
 get_filename_component(
 	SHADERS_ROOT
 	"${CMAKE_CURRENT_BINARY_DIR}/bin"
@@ -10,6 +11,8 @@ set_source_files_properties(${SHADERS}
 PROPERTIES GENERATED TRUE)
 
 add_library(Shaders OBJECT)
+
+set_target_properties(Shaders PROPERTIES LINKER_LANGUAGE CXX)
 
 source_group( "Shader Files" FILES "${GLOB_SHADERS}")
 

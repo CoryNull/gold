@@ -1,19 +1,27 @@
 #include "types.hpp"
 
 #include <sstream>
+#include <bx/platform.h>
 
 namespace gold {
 
 	const var nullVar = var();
+	const auto voidPSize = sizeof(void*);
 
 	bool isCopyable(types type) {
 		if (type == typeString) return true;
-		if (sizeof(uint64_t) > sizeof(void*) && type == typeUInt64)
+#ifdef BX_ARCH_64BIT
+		if (type == typeUInt64)
 			return true;
-		if (sizeof(int64_t) > sizeof(void*) && type == typeInt64)
+		if (type == typeInt64)
 			return true;
-		if (sizeof(double) > sizeof(void*) && type == typeDouble)
+		if (type == typeDouble)
 			return true;
+#else
+		if (type == typeUInt32) return true;
+		if (type == typeInt32) return true;
+		if (type == typeFloat) return true;
+#endif
 		return false;
 	}
 
@@ -154,7 +162,7 @@ namespace gold {
 
 	genericError::operator string() const {
 		auto ss = stringstream();
-		ss << (*this);
+		ss.operator<<(*this);
 		return ss.str();
 	}
 

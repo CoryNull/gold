@@ -1,7 +1,7 @@
 
 #include "engine.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <iostream>
 
@@ -40,7 +40,7 @@ namespace gold {
 		return string(engine::getSettingsDir() + "config.json");
 	}
 
-	var engine::loadSettings() {
+	var engine::loadSettings(list) {
 		auto configPath = getSettingsPath();
 		auto configJSON = object::loadJSON(configPath);
 		object config;
@@ -55,11 +55,11 @@ namespace gold {
 		return config;
 	}
 
-	var engine::saveSettings() {
+	var engine::saveSettings(list) {
 		auto config = getObject("config");
 		auto win = getObject<window>("window");
 		auto gfx = getObject<gfxBackend>("graphics");
-		if (config && win && gfx) {
+		if (win && gfx) {
 			auto windowConfigVar = win.getConfig({});
 			auto windowConfig = windowConfigVar.getObject();
 			if (windowConfig) {
@@ -80,7 +80,7 @@ namespace gold {
 		return var();
 	}
 
-	var engine::getPrimaryCamera() {
+	var engine::getPrimaryCamera(list) {
 		auto cameras = getList("cameras");
 		for (auto it = cameras.begin(); it != cameras.end(); ++it) {
 			auto cam = it->getObject<camera>();
@@ -89,7 +89,7 @@ namespace gold {
 		return var();
 	}
 
-	var engine::initialize() {
+	var engine::initialize(list) {
 		SDL_SetMainReady();
 		if (SDL_Init(SDL_INIT_EVERYTHING) != SDL_FALSE) {
 			cout << "[SDL2]" << SDL_GetError() << endl;
@@ -112,8 +112,8 @@ namespace gold {
 		phys.initialize({*this});
 		setObject("world", phys);
 
-		auto w = win.getUInt32("width");
-		auto h = win.getUInt32("height");
+		auto w = win.getFloat("width");
+		auto h = win.getFloat("height");
 
 		setList(
 			"cameras",
@@ -182,7 +182,7 @@ namespace gold {
 		auto cameras = getList("cameras");
 	}
 
-	var engine::start() {
+	var engine::start(list) {
 		auto win = getObject<window>("window");
 		auto gfx = getObject<gfxBackend>("graphics");
 		auto phys = getObject<world>("world");
