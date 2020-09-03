@@ -400,9 +400,16 @@ namespace gold {
 		auto handle = (App*)getPtr("handle");
 		if (!handle) return genericError("server handle null");
 		auto mounts = getObject("mounts");
-		for (auto it = args.begin(); it != args.end(); ++it)
-			file::recursiveReadDirectory(
-				fs::canonical(it->getString()), mounts);
+		for (auto it = args.begin(); it != args.end(); ++it) {
+			try {
+				auto url = fs::canonical(it->getString());
+				file::recursiveReadDirectory(url, mounts);
+			} catch (fs::filesystem_error e) {
+				auto msg = string("Unable to find folder (") +
+									 string(e.what()) + string(")");
+				return genericError(msg);
+			}
+		}
 
 		return var();
 	}
@@ -517,7 +524,7 @@ namespace gold {
 			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isList()) {
-			data = args[0].getList().getJSONBin();
+			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
 			bin = args[0].getBinary();
@@ -574,7 +581,7 @@ namespace gold {
 			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isList()) {
-			data = args[0].getList().getJSONBin();
+			bin = args[0].getList().getJSONBin();
 			writeHeader({"Content-Type", "application/json"});
 		} else if (args[0].isView())
 			bin = args[0].getBinary();

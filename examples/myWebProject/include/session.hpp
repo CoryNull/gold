@@ -27,6 +27,7 @@ namespace gg {
 		var reset(list args = {});
 		var save(list args = {});
 		var writeSession(list args);
+		var getQuery(list args = {});
 
 		static void setRoutes(database, server);
 		static var findOne(list args);

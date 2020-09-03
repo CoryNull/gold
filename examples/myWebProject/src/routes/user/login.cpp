@@ -29,13 +29,13 @@ namespace gg {
 			pClass = "form-text text-danger";
 		}
 		auto em = formInputRow("email", "email", "Email", true);
-		em += {small({
+		em += {hSmall({
 			atts{{"id", "emailHelp"}, {"class", eClass}},
 			eText,
 		})};
 		auto ps =
 			formInputRow("password", "password", "Password", true);
-		ps += {small({
+		ps += {hSmall({
 			atts{{"id", "passwordHelp"}, {"class", pClass}},
 			pText,
 		})};

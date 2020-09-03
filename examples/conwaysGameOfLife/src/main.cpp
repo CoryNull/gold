@@ -16,6 +16,7 @@
 using namespace gold;
 
 int main() {
+	using list = gold::list;
 	engine main =
 		engine("MountainAndValley", "ConwaysGameOfLife");
 	auto cam = main.getPrimaryCamera().getObject<camera>();
@@ -33,7 +34,7 @@ int main() {
 
 	auto circleTexture = gpuTexture(obj{
 		{"path", "./assets/circle.dds"},
-		{"flags", "min_anis;mag_point;mip_point;u_clamp;v_clamp"},
+		{"flags", "min_anis;mag_point;mip_point"},
 	});
 
 	component simulator;
@@ -51,10 +52,8 @@ int main() {
 			frame.setList(y, col);
 		}
 
-		auto getLife = [=](int16_t x, int16_t y) -> bool {
-			if (
-				(x < itemsX && x >= 0) &&
-				(y < itemsY && y >= 0)) {
+		auto getLife = [=](auto x, auto y) -> bool {
+			if ((x < itemsX && x >= 0) && (y < itemsY && y >= 0)) {
 				auto xVector = last[y].getList();
 				auto v = xVector[x].getBool();
 				return v;
@@ -62,17 +61,15 @@ int main() {
 			return false;
 		};
 
-		auto getSprite = [=](int16_t x, int16_t y) -> sprite {
-			if (
-				(x < itemsX && x >= 0) &&
-				(y < itemsY && y >= 0)) {
+		auto getSprite = [=](auto x, auto y) -> sprite {
+			if ((x < itemsX && x >= 0) && (y < itemsY && y >= 0)) {
 				auto xVector = sprites[y].getList();
 				return xVector[x].getObject<sprite>();
 			}
 			return sprite();
 		};
-		for (auto y = 0u; y < itemsY; y++) {
-			for (auto x = 0u; x < itemsX; x++) {
+		for (auto y = 0; y < itemsY; y++) {
+			for (auto x = 0; x < itemsX; x++) {
 				int nCount = 0;
 				auto cSprite = getSprite(x, y);
 				nCount += int(getLife(x + 0, y + 1));  // N

@@ -36,8 +36,7 @@ namespace gg {
 		auto redirect = options.getString("redirect");
 		auto url = string(redirect);
 		auto seshId = getString("_id");
-		auto useCookies = getBool("useCookies");
-		if (!useCookies) {
+		if (!getBool("useCookies")) {
 			auto q = "?s=" + seshId;
 			url += q;
 		} else {
@@ -57,6 +56,12 @@ namespace gg {
 			res.writeStatus({303});
 		}
 		return var();
+	}
+
+	var session::getQuery(list args) {
+		auto q = string();
+		if (!getBool("useCookies")) q = "?s=" + getString("_id");
+		return q;
 	}
 
 	gold::var session::getSeshUser(list args) {

@@ -7,7 +7,6 @@
 	});
 	let onFileSelect = async () => {
 		let fileInputDummy = $("#fileInputDummy");
-		fileInputDummy.trigger("click");
 		fileInputDummy.on("change", async (event) => {
 			let lf = event.target.files[0];
 			if (lf.name.search(/\.gif/g) != -1) {
@@ -25,6 +24,7 @@
 				$('#cropperModal').on('shown.bs.modal', async () => {
 					let bin = await toBase64(lf);
 					let el = $("#cropper");
+					window.cropper = el;
 					if (el.hasClass("croppie-container"))
 						await el.croppie("bind", { url: bin });
 					else
@@ -53,7 +53,7 @@
 			}
 
 		});
-
+		fileInputDummy.trigger("click");
 	};
 	$("#iconInput").on("click", onFileSelect);
 

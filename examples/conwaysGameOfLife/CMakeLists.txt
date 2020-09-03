@@ -32,7 +32,7 @@ add_executable(
 )
 
 if(MSVC)
-  target_compile_options(ConwaysGameOfLife PRIVATE /W4 /WX)
+  target_compile_options(ConwaysGameOfLife PRIVATE /W4)
 else()
   target_compile_options(ConwaysGameOfLife PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
@@ -52,6 +52,8 @@ target_link_libraries (
 	PRIVATE
 		gold::game
 )
+
+SET_TARGET_PROPERTIES(ConwaysGameOfLife PROPERTIES DEPLOYMENT_REMOTE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 target_compile_features(ConwaysGameOfLife
 	PUBLIC

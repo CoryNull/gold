@@ -39,7 +39,7 @@ else()
 endif()
 
 # Create the bgfx target
-add_library( bgfx ${BGFX_SOURCES} )
+add_library( bgfx STATIC ${BGFX_SOURCES} )
 
 set_target_properties(
 	bgfx 

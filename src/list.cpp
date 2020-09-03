@@ -133,15 +133,7 @@ namespace gold {
 	}
 
 	binary list::getBSON() { return file::serializeBSON(*this); }
-<<<<<<< HEAD
-
 	binary list::getCBOR() { return file::serializeCBOR(*this); }
-
-=======
-
-	binary list::getCBOR() { return file::serializeCBOR(*this); }
-
->>>>>>> working
 	binary list::getMsgPack() {
 		return file::serializeMsgPack(*this);
 	}

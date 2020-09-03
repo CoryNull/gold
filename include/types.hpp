@@ -438,10 +438,7 @@ namespace gold {
 		void findParent();
 		template <typename T>
 		void setExpression(string name, T value);
-<<<<<<< HEAD
-=======
 		var getExpression(string name);
->>>>>>> working
 
 	 public:
 		typedef initializer_list<omap::value_type> initList;

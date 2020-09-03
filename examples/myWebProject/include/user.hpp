@@ -25,7 +25,8 @@ namespace gg {
 		var blockUser(list args);
 		var deleteUser(list args);
 
-		static var generateHash(string value, string salt);
+		bool isAdmin();
+
 		static void setRoutes(database, server);
 		static var create(object data);
 		static var login(
@@ -35,6 +36,9 @@ namespace gg {
 		static string transformBirthday(string value);
 
 		// Site rendering
+		static var userCard(struct session sesh, user u, user data);
+		static var userMediaItem(
+			struct session sesh, user u, user data);
 		static list userHome(struct session sesh);
 		static list userLogin(
 			string response = "",
@@ -42,6 +46,7 @@ namespace gg {
 			string passwordError = "");
 		static list userRegister(obj data, object errs);
 		static list userOptions(obj data, object errs);
+		static list userDelete(session s, user u, list data);
 
 		// Validation
 		static bool invalidEmail(string email, string& error);
@@ -60,6 +65,7 @@ namespace gg {
 		static bool invalidZone(string z, string& error);
 		static bool invalidZip(string z, string& error);
 		static bool invalidIcon(string id, string& error);
+		static bool invalidUserType(string t, string& error);
 
 		static var findOne(list args);
 		static var findMany(list args);

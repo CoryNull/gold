@@ -51,7 +51,6 @@ namespace gg {
 							 }),
 						 }),
 						 errorBody});
-		auto uType = data.getString("userType");
 		auto gender = data.getString("gender");
 		auto content = gold::list({
 			div({

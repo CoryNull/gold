@@ -154,7 +154,7 @@ namespace gold {
 		const char* _func,
 		const int _line)
 		: exception(), object() {
-		setStringView("msg", message);
+		setString("msg", string(message));
 		setString("file", _file);
 		setString("func", _func);
 		setInt32("line", _line);

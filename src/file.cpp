@@ -207,6 +207,10 @@ namespace gold {
 		return load().getStringView();
 	}
 
+	string file::currentWorkingDir() {
+		return fs::current_path().string();
+	}
+
 	var file::readFile(path p) {
 		auto f = file(p);
 		auto err = f.load();

@@ -7,14 +7,10 @@
 #include <iostream>
 #include <memory>
 #include <string>
-<<<<<<< HEAD
-=======
-
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/pwdbased.h>
 #include <cryptopp/sha.h>
->>>>>>> working
 
 #include "file.hpp"
 #include "types.hpp"
@@ -71,7 +67,7 @@ namespace gold {
 	object::object() : data(nullptr) {}
 
 	object::~object() {
-		if (data && data.use_count() <= 0) {
+		if (data && data.use_count() <= 1) {
 			data->items.clear();
 			data->parent = object();
 		}
@@ -199,18 +195,6 @@ namespace gold {
 		return data->parent;
 	}
 
-<<<<<<< HEAD
-=======
-	bool object::inherits(const object other) const {
-		auto cP = data->parent;
-		while (cP) {
-			if (cP == other) return true;
-			cP = cP.getParent();
-		}
-		return false;
-	}
-
->>>>>>> working
 	template <typename T>
 	void object::setExpression(string name, T value) {
 		// This allows you to set values of objects and lists
@@ -221,14 +205,9 @@ namespace gold {
 		if (sqIndex != string::npos) {
 			auto end = name.find(']', sqIndex);
 			if (sqIndex + 1 == end) {
-<<<<<<< HEAD
-				auto li = getList(aName);
-				li.pushVar(varVal);
-=======
 				auto liVal = getExpression(aName);
 				auto li = liVal.getList();
 				if (liVal != varVal) li.pushVar(varVal);
->>>>>>> working
 				varVal = li;
 			} else if (end != string::npos) {
 				auto subKey =
@@ -242,8 +221,6 @@ namespace gold {
 		data->items[aName] = varVal;
 	}
 
-<<<<<<< HEAD
-=======
 	var object::getExpression(string name) {
 		auto varVal = var();
 		auto sqIndex = name.find('[');
@@ -280,7 +257,6 @@ namespace gold {
 		return varVal;
 	}
 
->>>>>>> working
 	void object::setString(string name, string value) {
 		initMemory();
 		unique_lock<mutex> gaurd(data->omutex);
@@ -583,16 +559,8 @@ namespace gold {
 	object object::getObject(string name, object def) {
 		initMemory();
 		// unique_lock<mutex> gaurd(data->omutex);
-<<<<<<< HEAD
-		auto it = data->items.find(name);
-		if (it != data->items.end())
-			return it->second.getObject();
-		else if (data->parent)
-			return data->parent.getObject(name);
-=======
 		auto val = getExpression(name);
 		if (val.isObject()) return val.getObject();
->>>>>>> working
 		return def;
 	}
 

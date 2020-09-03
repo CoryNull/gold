@@ -57,8 +57,6 @@ if(NOT (IS_SYMLINK ${BUILD_ROOT}/css/main))
 	)
 endif()
 
-FIND_LIBRARY(cryptopp crypto++ /usr/lib)
-
 # add the executable
 add_executable(
 	MyWebProject
@@ -83,7 +81,7 @@ add_executable(
 )
 
 if(MSVC)
-  target_compile_options(MyWebProject PRIVATE /W4 /WX)
+  target_compile_options(MyWebProject PRIVATE /W4)
 else()
   target_compile_options(MyWebProject PRIVATE -Wall -pedantic)
 endif()
@@ -91,6 +89,8 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 20)
+
+SET_TARGET_PROPERTIES(MyWebProject PROPERTIES DEPLOYMENT_REMOTE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(
 	MyWebProject
@@ -102,7 +102,6 @@ target_link_libraries(
 	MyWebProject 
 	PRIVATE
 		gold::web
-		cryptopp
 )
 
 target_compile_features(

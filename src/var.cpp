@@ -4667,7 +4667,7 @@ namespace gold {
 				case typeObject:
 					return (c->obj)->getJSON();
 				case typeException:
-					return string(*c->err);
+					return (c->err->operator std::string());
 				case typeBinary:
 					return string(c->bin->begin(), c->bin->end());
 
@@ -4850,7 +4850,7 @@ namespace gold {
 	}
 
 	ostream& operator<<(ostream& os, const var& v) {
-		os << string(v);
+		os << v.operator std::string();
 		return os;
 	}
 

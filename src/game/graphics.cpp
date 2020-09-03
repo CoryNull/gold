@@ -167,7 +167,9 @@ namespace gold {
 		return var();
 	}
 
-	var gfxBackend::renderFrame(list) { return bgfx::frame(false); }
+	var gfxBackend::renderFrame(list) {
+		return bgfx::frame(false);
+	}
 
 	var gfxBackend::getConfig(list) {
 		auto allowed = defaultBackendConfig;
@@ -477,7 +479,8 @@ namespace gold {
 				// Generate source from inputs and outputs
 				// Prepend i/o arguments for application
 				auto source = file::readFile(path).getObject<file>();
-				string tempDir = filesystem::temp_directory_path().string();
+				string tempDir =
+					filesystem::temp_directory_path().string();
 				auto now =
 					to_string(duration_cast<std::chrono::milliseconds>(
 											std::chrono::high_resolution_clock::now()
@@ -512,8 +515,8 @@ namespace gold {
 			}
 			// TODO: Add profile from backend
 			auto mem = shaderc::compileShader(
-				type, (const char*)path.c_str(), defines.c_str(), varying.c_str(),
-				nullptr);
+				type, (const char*)path.c_str(), defines.c_str(),
+				varying.c_str(), nullptr);
 			if (mem) {
 				auto strData = string_view((char*)mem->data, mem->size);
 				auto h = std::hash<string_view>();
@@ -1130,8 +1133,10 @@ namespace gold {
 			auto height = getUInt16("height");
 			auto numLayers = getUInt16("numLayers");
 			auto hasMips = getUInt8("numMips") > 0;
-			handle = bgfx::createTexture2D(
-				width, height, hasMips, numLayers, format, flags, mem);
+			if (width != 0 && height != 0)
+				handle = bgfx::createTexture2D(
+					width, height, hasMips, numLayers, format, flags,
+					mem);
 		}
 		return handle;
 	}
@@ -1219,7 +1224,7 @@ namespace gold {
 	}
 
 	void gpuTexture::update(object info) {
-		//TODO: This function feels wrong... figure out why
+		// TODO: This function feels wrong... figure out why
 		auto handle = bgfx::TextureHandle{
 			getUInt16("idx", bgfx::kInvalidHandle)};
 		if (!bgfx::isValid(handle)) return;
@@ -1448,7 +1453,7 @@ namespace gold {
 			auto endIt = dstBin.end();
 			advance(dstIt, start);
 			advance(endIt, end);
-			for (; dstIt != endIt; ++dstIt, ++it) 
+			for (; dstIt != endIt; ++dstIt, ++it)
 				*((char*)&(*dstIt)) = *it;
 		} else if (type == transientBufferType) {
 			auto transBuffer =

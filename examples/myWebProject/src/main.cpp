@@ -2,6 +2,7 @@
 #include <iostream>
 #include <server.hpp>
 #include <thread>
+#include <file.hpp>
 
 #include "error.hpp"
 #include "index.hpp"
@@ -16,13 +17,19 @@ using namespace gold;
 using namespace gg;
 
 int main() {
+	auto err = gold::var();
 	auto serv = server(obj{});
 	auto db = database(
 		{{"name", "MyWebProject"}, {"appName", "my-web-project"}});
-	serv.setMountPoint({"./js", "./css", "./assets"});
-	auto con = db.connect();
-	if (con.isError()) {
-		cerr << con << endl;
+	if ((err = serv.setMountPoint({"./js", "./css", "./assets"}))
+				.isError()) {
+		cerr << "current working directory: "
+				 << file::currentWorkingDir() << endl
+				 << *err.getError() << endl;
+		return 2;
+	}
+	if ((err = db.connect()).isError()) {
+		cerr << *err.getError() << endl;
 		return 1;
 	}
 

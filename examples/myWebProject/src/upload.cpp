@@ -34,6 +34,56 @@ namespace gg {
 
 	upload::upload() : model() {}
 
+	var upload::uploadCard(session s, user u, upload b) {
+		auto q = s.getQuery().getString();
+		auto iconSrc = "/upload/" + b.getString("_id") + q;
+		auto iconPage = "/upload/" + b.getString("icon") + q;
+		auto item = div({
+			atts{{"class", "card"}},
+			a({
+				atts{{"href", iconSrc}},
+				img({
+					atts{
+						{"class", "mr-3"},
+						{"src", iconPage},
+						{"width", 64},
+						{"height", 64},
+					},
+				}),
+			}),
+			div(
+				{atts{{"class", "card-body"}},
+				 h5({atts{{"class", "mt-0"}}, b.getString("name")}),
+				 p({b.getString("shortDesc")})}),
+		});
+		return item;
+	}
+
+	var upload::uploadMediaItem(session s, user u, upload b) {
+		auto q = s.getQuery().getString();
+		auto iconSrc = "/upload/" + b.getString("_id") + q;
+		auto iconPage = "/upload/" + b.getString("icon") + q;
+		auto item = div({
+			atts{{"class", "media d-inline-flex m-3"}},
+			a({
+				atts{{"href", iconSrc}},
+				img({
+					atts{
+						{"class", "mr-3"},
+						{"src", iconPage},
+						{"width", 64},
+						{"height", 64},
+					},
+				}),
+			}),
+			div(
+				{atts{{"class", "media-body"}},
+				 h5({atts{{"class", "mt-0"}}, b.getString("name")}),
+				 p({b.getString("shortDesc")})}),
+		});
+		return item;
+	}
+
 	void upload::createUploadFolder() {
 		auto upPath = "./upload";
 		auto exists = fs::is_directory(upPath);
@@ -78,82 +128,6 @@ namespace gg {
 			setString("hash", hash);
 			setString("mime", mime);
 		}
-	}
-
-	var upload::addOwners(list args) {
-		auto owners = getList("owners");
-		if (owners)
-			for (auto it = args.begin(); it != args.end(); ++it) {
-				if (it->isObject()) {
-					auto o = it->getObject();
-					auto id = o.getString("_id");
-					owners.pushString(id);
-				} else if (it->isString()) {
-					auto id = it->getString();
-					owners.pushString(id);
-				}
-			}
-		return gold::var();
-	}
-
-	var upload::removeOwners(list args) {
-		auto owners = getList("owners");
-		if (owners)
-			for (auto it = args.begin(); it != args.end(); ++it) {
-				if (it->isObject()) {
-					auto o = it->getObject();
-					auto id = o.getString("_id");
-					auto oit = owners.find(id);
-					if (oit != owners.end()) owners.erase(oit);
-				} else if (it->isString()) {
-					auto id = it->getString();
-					auto oit = owners.find(id);
-					if (oit != owners.end()) owners.erase(oit);
-				}
-			}
-		return gold::var();
-	}
-
-	var upload::isOwner(list args) {
-		auto owners = getList("owners");
-		if (args.size() > 1) {
-			auto ret = gold::list();
-			for (auto it = args.begin(); it != args.end(); ++it) {
-				if (it->isObject()) {
-					auto o = it->getObject();
-					auto id = o.getString("_id");
-					auto oit = owners.find(id);
-					if (oit != owners.end())
-						ret.pushBool(true);
-					else
-						ret.pushBool(false);
-				} else if (it->isString()) {
-					auto id = it->getString();
-					auto oit = owners.find(id);
-					if (oit != owners.end())
-						ret.pushBool(true);
-					else
-						ret.pushBool(false);
-				} else {
-					ret.pushBool(false);
-				}
-			}
-			return ret;
-		} else {
-			// 1
-			auto arg = args[0];
-			if (arg.isObject()) {
-				auto o = arg.getObject();
-				auto id = o.getString("_id");
-				auto oit = owners.find(id);
-				if (oit != owners.end()) return true;
-			} else if (arg.isString()) {
-				auto id = arg.getString();
-				auto oit = owners.find(id);
-				if (oit != owners.end()) return true;
-			}
-		}
-		return false;
 	}
 
 	var upload::getOwners(list args) {
@@ -422,11 +396,12 @@ namespace gg {
 					},
 					div({
 						atts{{"class", "modal-header"}},
-						h5({atts{
-									{"class", "modal-title"},
-									{"id", "cropperTitle"},
-								},
-								"Crop before uploading..."}),
+						h5(
+							{atts{
+								 {"class", "modal-title"},
+								 {"id", "cropperTitle"},
+							 },
+							 "Crop before uploading..."}),
 						button({
 							atts{
 								{"type", "button"},
@@ -467,9 +442,10 @@ namespace gg {
 							"Close",
 						}),
 						button({
-							atts{{"type", "button"},
-									 {"class", "btn btn-primary"},
-									 {"id", "cropperModalAccept"}},
+							atts{
+								{"type", "button"},
+								{"class", "btn btn-primary"},
+								{"id", "cropperModalAccept"}},
 							"Accept",
 						}),
 					}),

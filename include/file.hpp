@@ -33,6 +33,7 @@ namespace gold {
 		operator string();
 		operator string_view();
 
+		static string currentWorkingDir();
 		static var readFile(path p);
 		static var saveFile(path p, string_view data);
 		static object& recursiveReadDirectory(
